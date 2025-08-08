@@ -150,13 +150,13 @@ function App() {
                     break;
                 // CASE BARU UNTUK INFLUENCER
                 case 'influencer-my-campaigns':
-                    dashboardContent = <MyCampaignsPage pageProps={pageProps}  setPage={navigate} />;
+                    dashboardContent = <MyCampaignsPage pageProps={pageProps} setPage={navigate} user={user} />;
                     break;
                 case 'dashboard-overview':
                     default:
                     // Jika influencer, arahkan ke halaman kampanye mereka sebagai default dashboard
                     if (user.role === 'influencer') {
-                        dashboardContent = <MyCampaignsPage setPage={navigate} />;
+                        dashboardContent = <MyCampaignsPage setPage={navigate} user={user} />;
                     } else {
                         dashboardContent = <DashboardPage user={user} />;
                     }

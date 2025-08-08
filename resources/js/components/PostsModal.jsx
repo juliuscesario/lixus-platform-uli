@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { formatCompactNumber, formatDate } from '../services/apiService';
 
-const IconX = () => ( <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> );
+const IconX = () => ( <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> );
 const SocialIcon = ({ platform, className }) => {
     if (platform === 'instagram') {
         return <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><rect width="20" height="20" x="2" y="2" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"></line></svg>;
@@ -55,7 +55,6 @@ export default function PostsModal({ isOpen, onClose, posts, loading, influencer
 
     if (!isOpen) return null;
 
-   
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center p-4" onClick={onClose}>
             <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] flex flex-col" onClick={e => e.stopPropagation()}>
@@ -66,9 +65,11 @@ export default function PostsModal({ isOpen, onClose, posts, loading, influencer
                 <div className="p-6 overflow-y-auto">
                     {loading ? (
                         <p>Memuat postingan...</p>
-                    ) : posts.length > 0 ? (
+                    ) : posts && posts.length > 0 ? ( // MODIFICATION HERE: Check if 'posts' is truthy before checking length.
                         <div className="space-y-4">
-                            {posts.map(post => {
+                            {posts
+                                .filter(post => post && post.id) // MODIFICATION: Add a filter to remove any null/invalid posts
+                                .map(post => {
                                 const metrics = typeof post.metrics === 'string' ? JSON.parse(post.metrics) : (post.metrics || {});
                                 const socialAccount = post.social_media_account || {};
                                 return (

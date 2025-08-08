@@ -33,8 +33,10 @@ export default function MyCampaignsPage({ setPage, user }) {
         setError(null);
         try {
             const response = await apiService.getMyCampaigns();
-            setParticipations(response || []);
+            // PERBAIKAN: Ambil data dari response.data, bukan response langsung
+            setParticipations(response.data || []);
         } catch (err) {
+            console.error('Error fetching campaigns:', err);
             setError("Gagal memuat data kampanye Anda.");
         } finally {
             setLoading(false);
@@ -63,7 +65,6 @@ export default function MyCampaignsPage({ setPage, user }) {
         setIsModalLoading(true);
         setSelectedCampaignName(campaignName);
         try {
-            // Menggunakan fungsi yang sudah ada dari leaderboard
             const response = await apiService.getPostsForInfluencerInCampaign(campaignId, user.id);
             setModalPosts(response.data || []);
         } catch (err) {
@@ -80,6 +81,7 @@ export default function MyCampaignsPage({ setPage, user }) {
     return (
         <div>
             <h1 className="text-2xl font-bold text-gray-800 mb-6">Kampanye Saya</h1>
+            
             <div className="bg-white shadow-md rounded-lg overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-gray-50">
@@ -93,19 +95,26 @@ export default function MyCampaignsPage({ setPage, user }) {
                     <tbody className="bg-white divide-y divide-gray-200">
                         {participations.length > 0 ? participations.map(p => (
                             <tr key={p.id}>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{p.campaign.name}</td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm"><StatusBadge status={p.status} /></td>
+                                {/* PERBAIKAN: Ganti p.campaign.name menjadi p.name */}
+                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{p.name}</td>
+                                
+                                {/* PERBAIKAN: Ganti p.status menjadi p.participant_status */}
+                                <td className="px-6 py-4 whitespace-nowrap text-sm"><StatusBadge status={p.participant_status} /></td>
+                                
+                                {/* PERBAIKAN: Ganti p.campaign.start_date/end_date menjadi p.start_date/end_date */}
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                    {formatDate(p.campaign.start_date)} - {formatDate(p.campaign.end_date)}
+                                    {formatDate(p.start_date)} - {formatDate(p.end_date)}
                                 </td>
+                                
                                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                    {p.status === 'approved' ? (
+                                    {/* PERBAIKAN: Ganti p.status menjadi p.participant_status */}
+                                    {p.participant_status === 'approved' ? (
                                         <div className="flex justify-end items-center gap-4">
-                                            <button onClick={() => handleViewPosts(p.campaign.id, p.campaign.name)} className="text-blue-600 hover:underline">Lihat Postingan</button>
-                                            <button onClick={() => handleWithdraw(p.campaign.id)} className="text-red-600 hover:underline">Withdraw</button>
+                                            <button onClick={() => handleViewPosts(p.id, p.name)} className="text-blue-600 hover:underline">Lihat Postingan</button>
+                                            <button onClick={() => handleWithdraw(p.id)} className="text-red-600 hover:underline">Withdraw</button>
                                         </div>
                                     ) : (
-                                        <button onClick={() => setPage('campaign-detail', { id: p.campaign.id })} className="text-indigo-600 hover:text-indigo-900">
+                                        <button onClick={() => setPage('campaign-detail', { id: p.id })} className="text-indigo-600 hover:text-indigo-900">
                                             Lihat Detail
                                         </button>
                                     )}
@@ -125,6 +134,7 @@ export default function MyCampaignsPage({ setPage, user }) {
                 onClose={() => setIsModalOpen(false)}
                 posts={modalPosts}
                 loading={isModalLoading}
+                influencerName={user.name}
                 campaignName={selectedCampaignName}
             />
         </div>
