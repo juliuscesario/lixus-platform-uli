@@ -1,0 +1,60 @@
+<?php
+
+namespace App\Http\Controllers\Api;
+
+use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use App\Models\InfluencerProfile; // Untuk update profil influencer
+
+class UserController extends Controller
+{
+    /**
+     * Display the authenticated user's profile.
+     */
+    public function showProfile(Request $request)
+    {
+        $user = $request->user();
+        $user->load('role', 'influencerProfile', 'socialMediaAccounts'); // Load relasi yang relevan
+
+        return response()->json($user);
+    }
+
+    /**
+     * Update the authenticated user's profile.
+     */
+    public function updateProfile(Request $request)
+    {
+        $user = $request->user();
+
+        $request->validate([
+            'name' => 'sometimes|required|string|max:255',
+            'email' => 'sometimes|required|string|email|max:255|unique:users,email,' . $user->id,
+            // Tidak mengizinkan update password di sini, harus endpoint terpisah
+            // Validasi untuk InfluencerProfile jika user adalah influencer
+            'bio' => 'nullable|string',
+            'follower_range' => 'nullable|string',
+            'gender' => 'nullable|string',
+            'date_of_birth' => 'nullable|date',
+            'city' => 'nullable|string',
+            'contact_email' => 'nullable|email',
+        ]);
+
+        $user->update($request->only('name', 'email')); // Update data user
+
+        // Jika user adalah influencer, update juga profilnya
+        if ($user->isInfluencer()) {
+            $influencerProfileData = $request->only([
+                'bio', 'follower_range', 'gender', 'date_of_birth', 'city', 'contact_email'
+            ]);
+            // Gunakan updateOrCreate agar bisa update jika sudah ada atau buat jika belum
+            $user->influencerProfile()->updateOrCreate(
+                ['user_id' => $user->id], // Kriteria untuk mencari
+                $influencerProfileData   // Data yang akan diupdate/dibuat
+            );
+        }
+
+        $user->load('role', 'influencerProfile'); // Reload untuk data terbaru
+        return response()->json($user);
+    }
+}
