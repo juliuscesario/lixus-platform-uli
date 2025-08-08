@@ -15,7 +15,7 @@ export default function DashboardLayout({ user, onLogout, children, setPage, act
         // Menu Influencer
         { name: 'Menuju ke Laman Utama', page: 'influencer-my-campaigns', icon: <IconHome />, roles: ['influencer'] },
         // Menu Admin/Brand
-        { name: 'Manajemen Kampanye', page: 'admin-campaigns', icon: <IconCampaign />, roles: ['admin', 'brand'] },
+        { name: 'Manajemen Kampanye', page: 'admin-campaigns', icon: <IconBriefcase />, roles: ['admin', 'brand'] },
         { name: 'Manajemen User', page: 'admin-users', icon: <IconUsers />, roles: ['admin'] },
     ];
 

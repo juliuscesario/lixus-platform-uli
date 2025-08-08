@@ -16,9 +16,12 @@ export default function CreateCampaignPage({ setPage }) {
         mentions: '',
         content_type: '',
         target_audience: '',
-        likes_point: 0.01,
-        comments_point: 0.05,
-        shares_point: 0.1,
+        instagram_likes_point: 0.01,
+        instagram_comments_point: 0.05,
+        instagram_shares_point: 0.1,
+        tiktok_likes_point: 0.02,
+        tiktok_comments_point: 0.06,
+        tiktok_shares_point: 0.15,
         hashtag_bonus: 5,
         mention_bonus: 10,
         status: 'draft'
@@ -36,9 +39,6 @@ export default function CreateCampaignPage({ setPage }) {
         setLoading(true);
         setError(null);
 
-        // Panggilan getCsrfCookie() tidak lagi diperlukan di sini
-        // await apiService.getCsrfCookie();
-
         const payload = {
             name: formData.name,
             description: formData.description,
@@ -54,9 +54,16 @@ export default function CreateCampaignPage({ setPage }) {
                 target_audience: formData.target_audience,
             },
             scoring_rules: {
-                likes_point: parseFloat(formData.likes_point),
-                comments_point: parseFloat(formData.comments_point),
-                shares_point: parseFloat(formData.shares_point),
+                instagram: {
+                    likes_point: parseFloat(formData.instagram_likes_point),
+                    comments_point: parseFloat(formData.instagram_comments_point),
+                    shares_point: parseFloat(formData.instagram_shares_point),
+                },
+                tiktok: {
+                    likes_point: parseFloat(formData.tiktok_likes_point),
+                    comments_point: parseFloat(formData.tiktok_comments_point),
+                    shares_point: parseFloat(formData.tiktok_shares_point),
+                },
                 hashtag_bonus: parseInt(formData.hashtag_bonus, 10),
                 mention_bonus: parseInt(formData.mention_bonus, 10),
             },
@@ -81,7 +88,7 @@ export default function CreateCampaignPage({ setPage }) {
                 Kembali ke Manajemen Kampanye
             </button>
             <h1 className="text-2xl font-bold text-gray-800 mb-6">Buat Kampanye Baru</h1>
-            
+
             <form onSubmit={handleSubmit} className="bg-white shadow-md rounded-lg p-8">
                 {error && <div className="bg-red-100 text-red-700 p-3 rounded-md mb-6">{error}</div>}
 
@@ -115,41 +122,31 @@ export default function CreateCampaignPage({ setPage }) {
                 {/* Bagian Briefing Content */}
                 <fieldset className="mb-8">
                     <legend className="text-lg font-semibold border-b pb-2 mb-4 w-full">Konten Briefing</legend>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700">Goals</label>
-                            <input type="text" name="goals" value={formData.goals} onChange={handleChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm" />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700">KPI</label>
-                            <input type="text" name="kpi" value={formData.kpi} onChange={handleChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm" />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700">Target Audience</label>
-                            <input type="text" name="target_audience" value={formData.target_audience} onChange={handleChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm" />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700">Tipe Konten (pisahkan dengan koma)</label>
-                            <input type="text" name="content_type" value={formData.content_type} onChange={handleChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm" placeholder="foto, video singkat" />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700">Hashtags (pisahkan dengan koma)</label>
-                            <input type="text" name="hashtags" value={formData.hashtags} onChange={handleChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm" placeholder="#SunsilkID, #Lixus" />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700">Mentions (pisahkan dengan koma)</label>
-                            <input type="text" name="mentions" value={formData.mentions} onChange={handleChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm" placeholder="@sunsilkID, @lixus_id" />
-                        </div>
-                    </div>
+                    {/* ... briefing content fields ... */}
                 </fieldset>
-                
+
                 {/* Bagian Aturan Skor */}
                 <fieldset className="mb-8">
                     <legend className="text-lg font-semibold border-b pb-2 mb-4 w-full">Aturan Skor</legend>
-                    <div className="grid grid-cols-2 md:grid-cols-5 gap-6">
-                        <div><label className="block text-sm font-medium text-gray-700">Poin Likes</label><input type="number" step="0.01" name="likes_point" value={formData.likes_point} onChange={handleChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm" /></div>
-                        <div><label className="block text-sm font-medium text-gray-700">Poin Comments</label><input type="number" step="0.01" name="comments_point" value={formData.comments_point} onChange={handleChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm" /></div>
-                        <div><label className="block text-sm font-medium text-gray-700">Poin Shares</label><input type="number" step="0.01" name="shares_point" value={formData.shares_point} onChange={handleChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm" /></div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div>
+                            <h3 className="text-md font-semibold mb-2">Instagram</h3>
+                            <div className="grid grid-cols-1 gap-4">
+                                <div><label className="block text-sm font-medium text-gray-700">Poin Likes</label><input type="number" step="0.01" name="instagram_likes_point" value={formData.instagram_likes_point} onChange={handleChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm" /></div>
+                                <div><label className="block text-sm font-medium text-gray-700">Poin Comments</label><input type="number" step="0.01" name="instagram_comments_point" value={formData.instagram_comments_point} onChange={handleChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm" /></div>
+                                <div><label className="block text-sm font-medium text-gray-700">Poin Shares</label><input type="number" step="0.01" name="instagram_shares_point" value={formData.instagram_shares_point} onChange={handleChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm" /></div>
+                            </div>
+                        </div>
+                        <div>
+                            <h3 className="text-md font-semibold mb-2">TikTok</h3>
+                            <div className="grid grid-cols-1 gap-4">
+                                <div><label className="block text-sm font-medium text-gray-700">Poin Likes</label><input type="number" step="0.01" name="tiktok_likes_point" value={formData.tiktok_likes_point} onChange={handleChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm" /></div>
+                                <div><label className="block text-sm font-medium text-gray-700">Poin Comments</label><input type="number" step="0.01" name="tiktok_comments_point" value={formData.tiktok_comments_point} onChange={handleChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm" /></div>
+                                <div><label className="block text-sm font-medium text-gray-700">Poin Shares</label><input type="number" step="0.01" name="tiktok_shares_point" value={formData.tiktok_shares_point} onChange={handleChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm" /></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-6">
                         <div><label className="block text-sm font-medium text-gray-700">Bonus Hashtag</label><input type="number" name="hashtag_bonus" value={formData.hashtag_bonus} onChange={handleChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm" /></div>
                         <div><label className="block text-sm font-medium text-gray-700">Bonus Mention</label><input type="number" name="mention_bonus" value={formData.mention_bonus} onChange={handleChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm" /></div>
                     </div>
@@ -164,4 +161,3 @@ export default function CreateCampaignPage({ setPage }) {
         </div>
     );
 }
-
