@@ -582,10 +582,10 @@ class PostController extends Controller
             $updatedCount = 0;
             $scoringRules = $campaign->scoring_rules ?? []; // Dapatkan aturan scoring dari Campaign
 
-            foreach ($posts as $post) {
+           foreach ($posts as $post) {
                 // Hanya hitung ulang jika post memiliki metrik
                 if ($post->metrics) {
-                    $calculatedScore = $this->applyScoringRules($post->metrics, $scoringRules);
+                    $calculatedScore = $this->applyScoringRules($post->metrics, $scoringRules, $post->platform);
                     $post->score = $calculatedScore;
                     $post->save();
                     $updatedCount++;
@@ -610,18 +610,19 @@ class PostController extends Controller
         }
     }
 
-    /**
+   /**
      * Helper function to apply scoring rules (from ScoreSeeder, can be moved to a service class).
      */
-    protected function applyScoringRules(array $metrics, array $rules): float
+    protected function applyScoringRules(array $metrics, array $rules, string $platform): float
     {
         $score = 0;
+        $platformRules = $rules[$platform] ?? [];
 
         // Default weights if not specified in rules
-        $likeWeight = $rules['like_weight'] ?? 1;
-        $commentWeight = $rules['comment_weight'] ?? 5;
-        $shareWeight = $rules['share_weight'] ?? 10;
-        $viewWeight = $rules['view_weight'] ?? 0.1;
+        $likeWeight = $platformRules['likes_point'] ?? 0;
+        $commentWeight = $platformRules['comments_point'] ?? 0;
+        $shareWeight = $platformRules['shares_point'] ?? 0;
+        $viewWeight = $platformRules['views_point'] ?? 0;
 
         $score += ($metrics['likes_count'] ?? 0) * $likeWeight;
         $score += ($metrics['comments_count'] ?? 0) * $commentWeight;
@@ -631,7 +632,6 @@ class PostController extends Controller
         // Pastikan skor tidak negatif atau terlalu tinggi jika ada batasan
         return (float) max(0, $score);
     }
-
     /**
      * [Admin] Fetch latest live metrics for all posts in a specific campaign.
      * Endpoint: POST /api/admin/campaigns/{uuid}/fetch-metrics

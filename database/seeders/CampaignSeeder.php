@@ -8,9 +8,6 @@ use Illuminate\Support\Str; // Tambahkan ini
 
 class CampaignSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
         // Generate UUIDs for campaigns
@@ -36,9 +33,16 @@ class CampaignSeeder extends Seeder
                     'target_audience' => 'Generasi muda',
                 ]),
                 'scoring_rules' => json_encode([
-                    'likes_point' => 0.01,
-                    'comments_point' => 0.05,
-                    'shares_point' => 0.1,
+                    'instagram' => [
+                        'likes_point' => 0.01,
+                        'comments_point' => 0.05,
+                        'shares_point' => 0.1,
+                    ],
+                    'tiktok' => [
+                        'likes_point' => 0.02,
+                        'comments_point' => 0.06,
+                        'shares_point' => 0.15,
+                    ],
                     'hashtag_bonus' => 5, // Bonus per hashtag yang digunakan
                     'mention_bonus' => 10, // Bonus per mention yang digunakan
                 ]),
@@ -63,9 +67,16 @@ class CampaignSeeder extends Seeder
                     'target_audience' => 'Masyarakat umum',
                 ]),
                 'scoring_rules' => json_encode([
-                    'likes_point' => 0.005,
-                    'comments_point' => 0.02,
-                    'shares_point' => 0.08,
+                    'instagram' => [
+                        'likes_point' => 0.005,
+                        'comments_point' => 0.02,
+                        'shares_point' => 0.08,
+                    ],
+                    'tiktok' => [
+                        'likes_point' => 0.01,
+                        'comments_point' => 0.03,
+                        'shares_point' => 0.1,
+                    ],
                     'hashtag_bonus' => 3,
                     'mention_bonus' => 7,
                 ]),
