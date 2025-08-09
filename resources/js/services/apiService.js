@@ -143,6 +143,25 @@ export const apiService = {
     getPostsForInfluencerInCampaign: (campaignId, userId) => apiFetch(`${API_BASE_URL}/public/campaigns/${campaignId}/posts?user_id=${userId}`),
     
     // ===================================
+    // NEW! STRATEGIC REPORTING ROUTES
+    // ===================================
+    getBrandPerformanceReport: (params = {}) => {
+        const query = new URLSearchParams(params).toString();
+        return apiFetch(`${API_BASE_URL}/admin/reports/brand-performance?${query}`);
+    },
+
+    getCampaignComparisonReport: (campaign_ids = []) => {
+        const params = new URLSearchParams();
+        campaign_ids.forEach(id => params.append('campaign_ids[]', id));
+        const query = params.toString();
+        return apiFetch(`${API_BASE_URL}/admin/reports/campaign-comparison?${query}`);
+    },
+
+    getInfluencerPerformanceReport: (userId) => {
+        return apiFetch(`${API_BASE_URL}/admin/reports/influencer-performance/${userId}`);
+    },
+
+    // ===================================
     // INFLUENCER ROUTES
     // ===================================
     getMyCampaigns: () => apiFetch(`${API_BASE_URL}/influencer/campaigns`),

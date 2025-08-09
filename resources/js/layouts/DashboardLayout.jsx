@@ -6,6 +6,11 @@ const IconCampaign = () => ( <svg xmlns="http://www.w3.org/2000/svg" width="24" 
 const IconUsers = () => ( <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg> );
 const IconMenu = () => ( <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg> );
 const IconBriefcase = () => ( <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg> );
+const IconMegaphone = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m3 11 18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg>;
+const IconPower = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"/><line x1="12" x2="12" y1="2" y2="12"/></svg>;
+const IconChartBar = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>;
+
+
 
 export default function DashboardLayout({ user, onLogout, children, setPage, activePage }) {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -13,9 +18,10 @@ export default function DashboardLayout({ user, onLogout, children, setPage, act
     const menuItems = [
         { name: 'Dashboard', page: 'dashboard-overview', icon: <IconHome />, roles: ['admin', 'brand', 'influencer'] },
         // Menu Influencer
-        { name: 'Menuju ke Laman Utama', page: 'influencer-my-campaigns', icon: <IconHome />, roles: ['influencer'] },
+        { name: 'Menuju ke Laman Utama', page: 'influencer-my-campaigns', icon: <IconMegaphone />, roles: ['influencer'] },
         // Menu Admin/Brand
-        { name: 'Manajemen Kampanye', page: 'admin-campaigns', icon: <IconBriefcase />, roles: ['admin', 'brand'] },
+        { name: 'Manajemen Kampanye', page: 'admin-campaigns', icon: <IconMegaphone />, roles: ['admin', 'brand'] },
+        { name: 'Reporting', page: 'admin-analytics', icon: <IconChartBar />, roles: ['admin', 'brand'] },
         { name: 'Manajemen User', page: 'admin-users', icon: <IconUsers />, roles: ['admin'] },
     ];
 

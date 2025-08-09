@@ -15,6 +15,7 @@ class DatabaseSeeder extends Seeder
     {       
          // Panggil seeder dalam urutan yang benar sesuai dependensi
         $this->call([
+            InfluencerApplicationSeeder::class,
             RoleSeeder::class,
             UserSeeder::class,
             CampaignSeeder::class,
