@@ -111,6 +111,70 @@ export const apiService = {
         });
     },
 
+    getApplications: async (status = 'pending', page = 1) => {
+        const xsrfToken = getCookie('XSRF-TOKEN');
+        try {
+            const response = await fetch(`${API_BASE_URL}/admin/influencer-applications?status=${status}&page=${page}`, {
+                method: 'GET',
+                credentials: 'include',
+                headers: {
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-XSRF-TOKEN': xsrfToken ? decodeURIComponent(xsrfToken) : '',
+                },
+            });
+            if (!response.ok) throw new Error('Failed to fetch applications.');
+            return await response.json();
+        } catch (error) {
+            console.error('API Error getApplications:', error);
+            throw error;
+        }
+    },
+
+    approveApplication: async (applicationId) => {
+        const xsrfToken = getCookie('XSRF-TOKEN');
+        try {
+            const response = await fetch(`${API_BASE_URL}/admin/influencer-applications/${applicationId}/approve`, {
+                method: 'POST',
+                credentials: 'include',
+                headers: {
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-XSRF-TOKEN': xsrfToken ? decodeURIComponent(xsrfToken) : '',
+                },
+            });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.message || 'Failed to approve application.');
+            return data;
+        } catch (error) {
+            console.error('API Error approveApplication:', error);
+            throw error;
+        }
+    },
+
+    rejectApplication: async (applicationId, rejection_reason) => {
+        const xsrfToken = getCookie('XSRF-TOKEN');
+        try {
+            const response = await fetch(`${API_BASE_URL}/admin/influencer-applications/${applicationId}/reject`, {
+                method: 'POST',
+                credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-XSRF-TOKEN': xsrfToken ? decodeURIComponent(xsrfToken) : '',
+                },
+                body: JSON.stringify({ rejection_reason }),
+            });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.message || 'Failed to reject application.');
+            return data;
+        } catch (error) {
+            console.error('API Error rejectApplication:', error);
+            throw error;
+        }
+    },
+
     // NEW METHOD
     applyAsInfluencer: async (applicationData) => {
         const xsrfToken = getCookie('XSRF-TOKEN');
