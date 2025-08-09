@@ -9,6 +9,10 @@ use App\Http\Controllers\Api\InfluencerProfileController;
 use App\Http\Controllers\Api\PostController; // Pastikan ini diimpor
 use App\Http\Controllers\Api\SocialMediaAccountController;
 use App\Http\Controllers\Api\UserController;
+// --- 1. IMPORT THE NEW CONTROLLER ---
+use App\Http\Controllers\Api\ReportController;
+// --- 2. IMPORT THE NEW CONTROLLER APPLICATION ---
+use App\Http\Controllers\Api\InfluencerApplicationController;
 
 /*
 |--------------------------------------------------------------------------
@@ -41,6 +45,9 @@ Route::prefix('public')->group(function () {
     Route::get('/posts/{post}', [PostController::class, 'showPublic']); // <-- Method ini perlu dibuat di PostController
     Route::get('/posts/campaign/{campaign}', [PostController::class, 'ShowPublicbyCampaign']); // <-- Method ini perlu dibuat di PostController
     
+    // NEW INFLUENCER APPLICATION ROUTE
+    Route::post('/influencer-applications', [InfluencerApplicationController::class, 'store']);
+
     // Roadmap 4.13: Get Leaderboard for a specific campaign
     Route::get('/campaigns/{campaign}/leaderboard', [CampaignController::class, 'getLeaderboard']);
 });
@@ -115,6 +122,20 @@ Route::middleware('auth:sanctum')->group(function () {
         // Influencer Management (Admin/Brand view all influencers)h;
         Route::get('/influencers', [InfluencerController::class, 'indexAdmin']); // Admin/Brand can view all influencers
         Route::get('/influencers/{user}', [InfluencerController::class, 'showAdmin']); // <-- Anda mungkin ingin membuat showAdmin untuk detail influencer dari sisi admin
+
+        // --- NEW REPORTING ROUTES ---
+        Route::prefix('reports')->name('reports.')->group(function () {
+            Route::get('/brand-performance', [ReportController::class, 'getBrandPerformanceReport'])->name('brand-performance');
+            Route::get('/campaign-comparison', [ReportController::class, 'getCampaignComparisonReport'])->name('campaign-comparison');
+            Route::get('/influencer-performance/{user}', [ReportController::class, 'getInfluencerPerformanceReport'])->name('influencer-performance');
+        });
+        // --- END OF NEW REPORTING ROUTES ---
+
+        // NEW INFLUENCER APPLICATION MANAGEMENT ROUTES
+        Route::get('/influencer-applications', [InfluencerApplicationController::class, 'index']);
+        Route::get('/influencer-applications/{application}', [InfluencerApplicationController::class, 'show']);
+        Route::post('/influencer-applications/{application}/approve', [InfluencerApplicationController::class, 'approve']);
+        Route::post('/influencer-applications/{application}/reject', [InfluencerApplicationController::class, 'reject']);
 
     });
 });
