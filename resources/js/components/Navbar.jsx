@@ -36,7 +36,8 @@ export default function Navbar({ user, onLogout, setPage }) {
                             ) : (
                                 <>
                                     <a href="#" onClick={() => setPage('login')} className="text-gray-600 hover:bg-gray-100 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">Login</a>
-                                    <a href="#" onClick={() => setPage('register')} className="ml-2 bg-pink-500 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-pink-600">Register</a>
+                                    {/* MODIFIED: Changed Register to Apply Now */}
+                                    <a href="#" onClick={() => setPage('influencer-application')} className="ml-2 bg-pink-500 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-pink-600">Apply Now</a>
                                 </>
                             )}
                         </div>
@@ -59,7 +60,6 @@ export default function Navbar({ user, onLogout, setPage }) {
                     </div>
                     <div className="pt-4 pb-3 border-t border-gray-200">
                         {user ? (
-                             // PERBAIKAN: Merapikan layout user info di mobile
                              <div className="px-4">
                                 <div className="flex items-center mb-3">
                                     <div className="flex-shrink-0">
@@ -80,7 +80,8 @@ export default function Navbar({ user, onLogout, setPage }) {
                         ) : (
                             <div className="px-2 space-y-1">
                                 <a href="#" onClick={() => { setPage('login'); setIsMobileMenuOpen(false); }} className="block bg-gray-100 text-gray-800 px-3 py-2 rounded-md text-base font-medium">Login</a>
-                                <a href="#" onClick={() => { setPage('register'); setIsMobileMenuOpen(false); }} className="block bg-pink-500 text-white px-3 py-2 rounded-md text-base font-medium">Register</a>
+                                {/* MODIFIED: Changed Register to Apply Now */}
+                                <a href="#" onClick={() => { setPage('influencer-application'); setIsMobileMenuOpen(false); }} className="block bg-pink-500 text-white px-3 py-2 rounded-md text-base font-medium">Apply Now</a>
                             </div>
                         )}
                     </div>
