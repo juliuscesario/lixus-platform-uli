@@ -20,7 +20,8 @@ export default function DashboardLayout({ user, onLogout, children, setPage, act
         // Menu Influencer
         { name: 'Menuju ke Laman Utama', page: 'influencer-my-campaigns', icon: <IconMegaphone />, roles: ['influencer'] },
         // Menu Admin/Brand
-        { name: 'Manajemen Kampanye', page: 'admin-campaigns', icon: <IconMegaphone />, roles: ['admin', 'brand'] },
+        { name: 'Manajemen Kampanye', page: 'admin-campaigns', icon: <IconMegaphone />, roles: ['admin', 'brand'] },// --- NEW LINK ---
+        { name: 'Manage Applicants', page: 'admin-manage-applications', icon: <IconUsers />,roles: ['admin', 'brand'] }, 
         { name: 'Reporting', page: 'admin-analytics', icon: <IconChartBar />, roles: ['admin', 'brand'] },
         { name: 'Manajemen User', page: 'admin-users', icon: <IconUsers />, roles: ['admin'] },
     ];

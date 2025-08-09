@@ -17,6 +17,7 @@ import PostDetailPage from './pages/PostDetailPage';
 import PlaceholderPage from './pages/PlaceholderPage';
 import InfluencerApplicationPage from './pages/InfluencerApplicationPage'; // NEW
 
+
 // Import Halaman Admin/Brand
 import DashboardPage from './pages/DashboardPage'; // Ini akan jadi halaman overview dashboard
 import CreateCampaignPage from './pages/admin/CreateCampaignPage';
@@ -24,6 +25,8 @@ import EditCampaignPage from './pages/admin/EditCampaignPage';
 import AdminCampaignsPage from './pages/admin/AdminCampaignsPage';
 import CampaignParticipantsPage from './pages/admin/CampaignParticipantsPage';
 import CampaignPostsPage from './pages/admin/CampaignPostsPage';
+// --- NEW IMPORT ---
+import ManageApplicationsPage from './pages/admin/ManageApplicationsPage'; 
 import CampaignLeaderboardPage from './pages/admin/CampaignLeaderboardPage'; // <-- BARU
 import MyCampaignsPage from './pages/influencer/MyCampaignsPage';
 // --- 1. IMPORT THE NEW REPORTING PAGE ---
@@ -143,6 +146,10 @@ function App() {
                     break;
                 case 'admin-edit-campaign':
                     dashboardContent = <EditCampaignPage pageProps={pageProps} setPage={navigate} />;
+                    break;
+                // --- NEW CASE ---
+                case 'admin-manage-applications':
+                    dashboardContent = <ManageApplicationsPage setPage={navigate} />;
                     break;
                 case 'admin-campaign-participants':
                     dashboardContent = <CampaignParticipantsPage pageProps={pageProps} setPage={navigate} />;
