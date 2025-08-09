@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import ReactDOM from 'react-dom/client';
 import { apiService } from './services/apiService';
 
@@ -38,12 +38,15 @@ function App() {
     
     const [user, setUser] = useState(null);
     const [authLoading, setAuthLoading] = useState(true);
+    const [justLoggedIn, setJustLoggedIn] = useState(false); 
 
-    const navigate = (pageName, props = {}) => {
+    // useCallback memastikan fungsi navigate tidak dibuat ulang di setiap render
+    const navigate = useCallback((pageName, props = {}) => {
         setPage(pageName);
         setPageProps(props);
         window.scrollTo(0, 0);
-    };
+    }, []);
+    
     
     const enrichUserWithRole = (userData) => {
         if (!userData) return null;
@@ -61,26 +64,22 @@ function App() {
         return enhancedUser;
     };
 
+// Efek ini HANYA untuk memeriksa sesi saat aplikasi pertama kali dimuat
     useEffect(() => {
         const verifyUserSession = async () => {
-            // Cek apakah ada data user di localStorage sebagai penanda awal
             const storedUser = localStorage.getItem('authUser');
             if (storedUser) {
                 try {
-                    // Verifikasi sesi ke backend
                     const freshUserData = await apiService.checkAuthStatus();
                     if (freshUserData) {
-                        // Jika sesi valid, perbarui data pengguna
                         const enhancedUser = enrichUserWithRole(freshUserData);
                         setUser(enhancedUser);
                         localStorage.setItem('authUser', JSON.stringify(enhancedUser));
                     } else {
-                        // Jika sesi tidak valid, bersihkan localStorage
                         localStorage.removeItem('authUser');
                         setUser(null);
                     }
                 } catch (error) {
-                    // Jika terjadi error (misal, 401), sesi sudah di-handle oleh authenticatedFetch
                     setUser(null);
                 }
             }
@@ -90,16 +89,19 @@ function App() {
         verifyUserSession();
     }, []);
 
-    const handleLogin = (userData) => {
+    // Efek ini HANYA untuk navigasi SETELAH login berhasil
+    useEffect(() => {
+        if (justLoggedIn && user) {
+            navigate('dashboard-overview');
+            setJustLoggedIn(false); // Reset flag setelah navigasi
+        }
+    }, [justLoggedIn, user, navigate]);
+
+   const handleLogin = (userData) => {
         const enhancedUser = enrichUserWithRole(userData);
         setUser(enhancedUser);
         localStorage.setItem('authUser', JSON.stringify(enhancedUser));
-        
-        if (enhancedUser.role === 'influencer') {
-            setPage('influencer-my-campaigns');
-        } else {
-            setPage('dashboard-overview');
-        }
+        setJustLoggedIn(true); // <-- Set flag, ini akan memicu useEffect di atas
     };
 
     const handleLogout = async () => {
@@ -112,15 +114,15 @@ function App() {
             localStorage.removeItem('authUser');
             navigate('home');
         }
-    };;
+    };
     
-    
+
     const renderPage = () => {
         if (authLoading) {
             return <div className="flex justify-center items-center h-screen">Memuat...</div>;
         }
 
-        const isDashboardPage = page.startsWith('dashboard-') || page.startsWith('admin-');
+        const isDashboardPage = page.startsWith('dashboard-') || page.startsWith('admin-') || page.startsWith('influencer-');
 
         if (isDashboardPage && !user) {
             return <LoginPage onLoginSuccess={handleLogin} setPage={navigate} />;
@@ -154,18 +156,17 @@ function App() {
                 case 'admin-users':
                     dashboardContent = <PlaceholderPage title="Manajemen User" />;
                     break;
-                // CASE BARU UNTUK INFLUENCER
                 case 'influencer-my-campaigns':
-                    dashboardContent = <MyCampaignsPage pageProps={pageProps} setPage={navigate} user={user} />;
-                    break;
+                     dashboardContent = <MyCampaignsPage pageProps={pageProps} setPage={navigate} user={user} />;
+                     break;
                 case 'dashboard-overview':
-                    default:
-                    // Jika influencer, arahkan ke halaman kampanye mereka sebagai default dashboard
+                default:
                     if (user.role === 'influencer') {
                         dashboardContent = <MyCampaignsPage setPage={navigate} user={user} />;
                     } else {
                         dashboardContent = <DashboardPage user={user} />;
                     }
+                    break;
             }
             return (
                 <DashboardLayout user={user} onLogout={handleLogout} setPage={navigate} activePage={page}>

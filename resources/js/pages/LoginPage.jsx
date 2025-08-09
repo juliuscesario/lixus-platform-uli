@@ -18,8 +18,14 @@ export default function LoginPage({ onLoginSuccess, setPage }) {
         try {
             await apiService.getCsrfCookie();
             const data = await apiService.login(email, password);
-            onLoginSuccess(data.user);
-            setPage('dashboard-overview');
+
+            // --- PERUBAHAN UTAMA ---
+            // Simpan data user ke localStorage.
+            localStorage.setItem('authUser', JSON.stringify(data.user));
+            // Lakukan refresh halaman.
+            window.location.reload();
+            // onLoginSuccess tidak perlu dipanggil lagi karena halaman akan di-refresh.
+
         } catch (err) {
             setError(err.message || 'Email atau password salah. Silakan coba lagi.');
         } finally {
