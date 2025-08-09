@@ -54,7 +54,7 @@ export default function InfluencerApplicationPage({ setPage }) {
         setSuccess('');
         setLoading(true);
         try {
-            const response = await apiService.submitInfluencerApplication(formData);
+            const response = await apiService.applyAsInfluencer(formData);
             setSuccess(response.message || 'Aplikasi Anda telah berhasil dikirim! Tim kami akan segera meninjaunya.');
             // Optionally clear the form
             setFormData({

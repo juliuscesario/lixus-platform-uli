@@ -4,6 +4,19 @@ const API_BASE_URL = "https://jul-proto.lixus.id/api";
 const SANCTUM_URL = "https://jul-proto.lixus.id";
 
 // --- Helper Functions ---
+
+/**
+ * THIS IS THE MISSING FUNCTION
+ * A helper function to read a specific cookie from the browser.
+ * It's needed to retrieve the XSRF-TOKEN for secure POST requests.
+ */
+function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+}
+
+
 export const formatDate = (dateString) => {
     if (!dateString) return "N/A";
     return new Date(dateString).toLocaleDateString('id-ID', {
@@ -98,12 +111,40 @@ export const apiService = {
         });
     },
 
-    register: (name, email, password, password_confirmation) => {
+    // NEW METHOD
+    applyAsInfluencer: async (applicationData) => {
+        const xsrfToken = getCookie('XSRF-TOKEN');
+        try {
+            const response = await fetch(`${API_BASE_URL}/public/influencer-applications`, {
+                method: 'POST',
+                credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-XSRF-TOKEN': xsrfToken ? decodeURIComponent(xsrfToken) : '',
+                },
+                body: JSON.stringify(applicationData),
+            });
+            const responseData = await response.json();
+            if (!response.ok) {
+                const message = responseData.message || `HTTP error! status: ${response.status}`;
+                const errors = responseData.errors ? Object.values(responseData.errors).flat().join(' ') : '';
+                throw new Error(`${message} ${errors}`);
+            }
+            return responseData;
+        } catch (error) {
+            console.error("Gagal mengirim aplikasi influencer:", error);
+            throw error;
+        }
+    },
+    
+/*    register: (name, email, password, password_confirmation) => {
         return apiFetch(`${API_BASE_URL}/public/register`, {
             method: 'POST',
             body: { name, email, password, password_confirmation },
         });
-    },
+    },*/
 
     logout: () => {
         return apiFetch(`${API_BASE_URL}/logout`, {

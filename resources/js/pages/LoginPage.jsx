@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
 import { apiService } from '../services/apiService';
 
-// PERBAIKAN: Menambahkan definisi ikon yang dibutuhkan
-const IconLock = () => ( <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> );
-const IconMail = () => ( <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg> );
+const IconLock = () => ( <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> );
+const IconMail = () => ( <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg> );
 
 export default function LoginPage({ onLoginSuccess, setPage }) {
     const [email, setEmail] = useState('');
@@ -18,14 +17,10 @@ export default function LoginPage({ onLoginSuccess, setPage }) {
         try {
             await apiService.getCsrfCookie();
             const data = await apiService.login(email, password);
-
-            // --- PERUBAHAN UTAMA ---
-            // Simpan data user ke localStorage.
             localStorage.setItem('authUser', JSON.stringify(data.user));
-            // Lakukan refresh halaman.
             window.location.reload();
-            // onLoginSuccess tidak perlu dipanggil lagi karena halaman akan di-refresh.
-
+            //onLoginSuccess(data.user);
+            //setPage('dashboard-overview');
         } catch (err) {
             setError(err.message || 'Email atau password salah. Silakan coba lagi.');
         } finally {
@@ -41,7 +36,8 @@ export default function LoginPage({ onLoginSuccess, setPage }) {
                 </h2>
                 <p className="mt-2 text-center text-sm text-gray-600">
                     Atau{' '}
-                    <a href="#" onClick={() => setPage('register')} className="font-medium text-pink-600 hover:text-pink-500">
+                    {/* MODIFIED: Changed link to the application page */}
+                    <a href="#" onClick={() => setPage('influencer-application')} className="font-medium text-pink-600 hover:text-pink-500">
                         daftar sebagai influencer baru
                     </a>
                 </p>

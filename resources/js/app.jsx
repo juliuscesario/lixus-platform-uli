@@ -9,12 +9,13 @@ import DashboardLayout from './layouts/DashboardLayout'; // <-- PERBAIKAN: Menam
 import HomePage from './pages/HomePage';
 import CampaignDetailPage from './pages/CampaignDetailPage';
 import LoginPage from './pages/LoginPage';
-import RegisterPage from './pages/RegisterPage';
+//import RegisterPage from './pages/RegisterPage';
 import InfluencersPage from './pages/InfluencersPage';
 import InfluencerDetailPage from './pages/InfluencerDetailPage';
 import PostsPage from './pages/PostsPage';
 import PostDetailPage from './pages/PostDetailPage';
 import PlaceholderPage from './pages/PlaceholderPage';
+import InfluencerApplicationPage from './pages/InfluencerApplicationPage'; // NEW
 
 // Import Halaman Admin/Brand
 import DashboardPage from './pages/DashboardPage'; // Ini akan jadi halaman overview dashboard
@@ -122,9 +123,12 @@ function App() {
             return <div className="flex justify-center items-center h-screen">Memuat...</div>;
         }
 
-        const isDashboardPage = page.startsWith('dashboard-') || page.startsWith('admin-') || page.startsWith('influencer-');
+        // --- CORRECTED LOGIC ---
+        // The influencer application page is public, so it must be excluded from the dashboard check.
+        const isDashboardPage = (page.startsWith('dashboard-') || page.startsWith('admin-') || page.startsWith('influencer-')) && page !== 'influencer-application';
 
         if (isDashboardPage && !user) {
+            // If trying to access a protected page without being logged in, show the login page.
             return <LoginPage onLoginSuccess={handleLogin} setPage={navigate} />;
         }
 
@@ -180,9 +184,12 @@ function App() {
             case 'login':
                 publicContent = <LoginPage onLoginSuccess={handleLogin} setPage={navigate} />;
                 break;
-            case 'register':
-                publicContent = <RegisterPage onRegisterSuccess={handleLogin} setPage={navigate} />;
+            case 'influencer-application': // NEW
+                publicContent = <InfluencerApplicationPage setPage={navigate} />;
                 break;
+            //case 'register':
+            //   publicContent = <RegisterPage onRegisterSuccess={handleLogin} setPage={navigate} />;
+            //   break;
             case 'influencers':
                 publicContent = <InfluencersPage setPage={navigate} />;
                 break;
