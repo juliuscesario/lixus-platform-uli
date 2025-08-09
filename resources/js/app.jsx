@@ -25,6 +25,8 @@ import CampaignParticipantsPage from './pages/admin/CampaignParticipantsPage';
 import CampaignPostsPage from './pages/admin/CampaignPostsPage';
 import CampaignLeaderboardPage from './pages/admin/CampaignLeaderboardPage'; // <-- BARU
 import MyCampaignsPage from './pages/influencer/MyCampaignsPage';
+// --- 1. IMPORT THE NEW REPORTING PAGE ---
+import ReportingPage from './pages/admin/ReportingPage';
 
 // Import Komponen Global
 import Navbar from './components/Navbar';
@@ -144,6 +146,10 @@ function App() {
                     break;
                 case 'admin-campaign-leaderboard':
                     dashboardContent = <CampaignLeaderboardPage pageProps={pageProps} setPage={navigate} />;
+                    break;
+                // --- 2. ADD THE CASE FOR THE ANALYTICS PAGE ---
+                case 'admin-analytics':
+                    dashboardContent = <ReportingPage setPage={navigate} />;
                     break;
                 case 'admin-users':
                     dashboardContent = <PlaceholderPage title="Manajemen User" />;
