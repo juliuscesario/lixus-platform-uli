@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\User; // Mengacu pada model User karena influencer adalah User
 use Illuminate\Http\Request;
+use App\Http\Resources\UserResource;
 
 class InfluencerController extends Controller
 {
@@ -16,9 +17,11 @@ class InfluencerController extends Controller
         // Hanya tampilkan user dengan role 'influencer' beserta profilnya
         $influencers = User::whereHas('role', function ($query) {
                             $query->where('name', 'influencer');
-                        })->with('influencerProfile')->get(); // eager load profile
+                        })->with(['influencerProfile', 'socialMediaAccounts'])->get(); // eager load profile and social media
 
-        return response()->json($influencers);
+        return response()->json([
+            'data' => UserResource::collection($influencers)
+        ]);
     }
 
     /**
@@ -34,7 +37,9 @@ class InfluencerController extends Controller
         // Load profil dan akun medsosnya
         $user->load('influencerProfile', 'socialMediaAccounts');
 
-        return response()->json($user);
+        return response()->json([
+            'data' => new UserResource($user)
+        ]);
     }
 
     // Metode untuk update profil influencer akan ada di UserController atau terpisah jika perlu

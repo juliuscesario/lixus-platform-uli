@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\InfluencerProfile; // Untuk update profil influencer
+use App\Http\Resources\UserResource;
 
 class UserController extends Controller
 {
@@ -17,7 +18,9 @@ class UserController extends Controller
         $user = $request->user();
         $user->load('role', 'influencerProfile', 'socialMediaAccounts'); // Load relasi yang relevan
 
-        return response()->json($user);
+        return response()->json([
+            'user' => new UserResource($user)
+        ]);
     }
 
     /**
@@ -54,7 +57,9 @@ class UserController extends Controller
             );
         }
 
-        $user->load('role', 'influencerProfile'); // Reload untuk data terbaru
-        return response()->json($user);
+        $user->load('role', 'influencerProfile', 'socialMediaAccounts'); // Reload untuk data terbaru
+        return response()->json([
+            'user' => new UserResource($user)
+        ]);
     }
 }

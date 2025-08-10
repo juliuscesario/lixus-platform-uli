@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
 use App\Models\Role; // Kita perlu Role model untuk assign role
+use App\Http\Resources\UserResource;
 
 class AuthController extends Controller
 {
@@ -59,16 +60,13 @@ class AuthController extends Controller
 
         $user = User::where('email', $request->email)->firstOrFail();
         $token = $user->createToken('auth_token')->plainTextToken;
+        
+        // Load relationships for UserResource
+        $user->load('role', 'influencerProfile');
 
         return response()->json([
             'message' => 'Login successful!',
-            'user' => [
-                'id' => $user->id,
-                'name' => $user->name,
-                'email' => $user->email,
-                "role_id" => $user->role
-                // Tambahkan field lain yang esensial saja
-            ],
+            'user' => new UserResource($user),
             'access_token' => $token,
             'token_type' => 'Bearer',
         ]);

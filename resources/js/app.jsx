@@ -28,21 +28,36 @@ const ManageApplicationsPage = lazy(() => import('./pages/admin/ManageApplicatio
 const PostsPage = lazy(() => import('./pages/PostsPage'));
 const PostDetailPage = lazy(() => import('./pages/PostDetailPage'));
 
-// Wrapper component to pass user data to DashboardPage
+// Wrapper components to pass user data to pages that need it
 const DashboardWrapper = () => {
     const { user } = useAuth();
     return <DashboardPage user={user} />;
 };
 
+const HomePageWrapper = () => {
+    const { user } = useAuth();
+    return <HomePage user={user} />;
+};
+
+const MyCampaignsWrapper = () => {
+    const { user } = useAuth();
+    return <MyCampaignsPage user={user} />;
+};
+
+const CampaignDetailWrapper = () => {
+    const { user } = useAuth();
+    return <CampaignDetailPage user={user} />;
+};
+
 function App() {
     return (
-        <AuthProvider>
-            <Router>
+        <Router>
+            <AuthProvider>
                 <Navbar />
                 <Suspense fallback={<div className="flex justify-center items-center h-screen"><div>Loading...</div></div>}>
                     <main className="flex-grow">
                         <Routes>
-                            <Route path="/" element={<HomePage />} />
+                            <Route path="/" element={<HomePageWrapper />} />
                             <Route path="/login" element={<LoginPage />} />
                             <Route path="/register" element={<RegisterPage />} />
                             <Route path="/dashboard" element={
@@ -58,10 +73,10 @@ function App() {
                             {/* Influencer Routes */}
                             <Route path="/my-campaigns" element={
                                 <ProtectedRoute>
-                                    <MyCampaignsPage />
+                                    <MyCampaignsWrapper />
                                 </ProtectedRoute>
                             } />
-                            <Route path="/campaigns/:id" element={<CampaignDetailPage />} />
+                            <Route path="/campaigns/:id" element={<CampaignDetailWrapper />} />
                             <Route path="/apply-influencer" element={<InfluencerApplicationPage />} />
                             
                             {/* Admin Routes */}
@@ -109,8 +124,8 @@ function App() {
                     </main>
                 </Suspense>
                 <Footer />
-            </Router>
-        </AuthProvider>
+            </AuthProvider>
+        </Router>
     );
 }
 

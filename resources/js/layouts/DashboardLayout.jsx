@@ -29,8 +29,9 @@ export default function DashboardLayout({ children }) {
         { name: 'Manage Users', to: '/admin/users', icon: <IconUsers />, roles: ['admin'] },
     ];
 
-    const handleLogout = () => {
-        logout();
+    const handleLogout = async () => {
+        await logout();
+        navigate('/login');
     };
 
     const SidebarContent = () => (

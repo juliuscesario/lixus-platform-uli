@@ -1,6 +1,5 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { apiService } from '../services/apiService';
-import { useNavigate } from 'react-router-dom';
 
 // Create the AuthContext
 const AuthContext = createContext();
@@ -18,7 +17,6 @@ export const useAuth = () => {
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
-    const navigate = useNavigate();
 
     // Check if user is authenticated on app load
     useEffect(() => {
@@ -67,7 +65,7 @@ export const AuthProvider = ({ children }) => {
         } finally {
             localStorage.removeItem('authUser');
             setUser(null);
-            navigate('/login');
+            // Navigation will be handled by the component that calls logout
         }
     };
 

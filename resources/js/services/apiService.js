@@ -203,12 +203,12 @@ export const apiService = {
         }
     },
     
-/*    register: (name, email, password, password_confirmation) => {
+    register: (name, email, password, password_confirmation) => {
         return apiFetch(`${API_BASE_URL}/public/register`, {
             method: 'POST',
             body: { name, email, password, password_confirmation },
         });
-    },*/
+    },
 
     logout: () => {
         return apiFetch(`${API_BASE_URL}/logout`, {
@@ -216,19 +216,36 @@ export const apiService = {
         });
     },
 
-    checkAuthStatus: () => {
+    checkAuthStatus: async () => {
         // This endpoint will return user data if authenticated, or 401 if not.
-        return apiFetch(`${API_BASE_URL}/user/profile`);
+        const response = await apiFetch(`${API_BASE_URL}/user/profile`);
+        // Extract user from response since UserResource wraps it
+        return { user: response.user };
     },
 
     // ===================================
     // PUBLIC ROUTES
     // ===================================
-    getPublicCampaigns: () => apiFetch(`${API_BASE_URL}/public/campaigns`),
-    getPublicCampaignsbyStatus: () => apiFetch(`${API_BASE_URL}/public/campaigns?status=active`),
-    getCampaignDetail: (id) => apiFetch(`${API_BASE_URL}/public/campaigns/${id}`),
-    getPublicInfluencers: () => apiFetch(`${API_BASE_URL}/public/influencers`),
-    getInfluencerDetail: (id) => apiFetch(`${API_BASE_URL}/public/influencers/${id}`),
+    getPublicCampaigns: async () => {
+        const response = await apiFetch(`${API_BASE_URL}/public/campaigns`);
+        return response;
+    },
+    getPublicCampaignsbyStatus: async () => {
+        const response = await apiFetch(`${API_BASE_URL}/public/campaigns?status=active`);
+        return response;
+    },
+    getCampaignDetail: async (id) => {
+        const response = await apiFetch(`${API_BASE_URL}/public/campaigns/${id}`);
+        return response;
+    },
+    getPublicInfluencers: async () => {
+        const response = await apiFetch(`${API_BASE_URL}/public/influencers`);
+        return response;
+    },
+    getInfluencerDetail: async (id) => {
+        const response = await apiFetch(`${API_BASE_URL}/public/influencers/${id}`);
+        return response;
+    },
     getPublicPosts: (url = null) => apiFetch(url || `${API_BASE_URL}/public/posts`),
     getPostDetail: (id) => apiFetch(`${API_BASE_URL}/public/posts/${id}`),
     getCampaignLeaderboard: (campaignId) => apiFetch(`${API_BASE_URL}/public/campaigns/${campaignId}/leaderboard`),
