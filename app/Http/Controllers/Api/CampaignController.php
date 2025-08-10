@@ -377,7 +377,7 @@ class CampaignController extends Controller
 
         // Pastikan relasi 'participants' ada di model Campaign
         // dan ia adalah Many-to-Many ke User melalui CampaignParticipant
-        $participants = $campaign->participants()->with('user.influencerProfile')->get(); // Load user dan influencer profile
+        $participants = $campaign->participants()->with(['user.influencerProfile', 'user.socialMediaAccounts'])->get(); // Load user dan influencer profile
 
         return CampaignParticipantResource::collection($participants);
     }

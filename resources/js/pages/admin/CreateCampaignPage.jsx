@@ -125,7 +125,32 @@ export default function CreateCampaignPage() {
                 {/* Bagian Briefing Content */}
                 <fieldset className="mb-8">
                     <legend className="text-lg font-semibold border-b pb-2 mb-4 w-full">Konten Briefing</legend>
-                    {/* ... briefing content fields ... */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700">Goals</label>
+                            <input type="text" name="goals" value={formData.goals} onChange={handleChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700">KPI</label>
+                            <input type="text" name="kpi" value={formData.kpi} onChange={handleChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700">Target Audience</label>
+                            <input type="text" name="target_audience" value={formData.target_audience} onChange={handleChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700">Content Type (pisahkan dengan koma)</label>
+                            <input type="text" name="content_type" value={formData.content_type} onChange={handleChange} placeholder="Reels, Feed Post, Story" className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700">Hashtags (pisahkan dengan koma)</label>
+                            <input type="text" name="hashtags" value={formData.hashtags} onChange={handleChange} placeholder="#campaign, #brand" className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700">Mentions (pisahkan dengan koma)</label>
+                            <input type="text" name="mentions" value={formData.mentions} onChange={handleChange} placeholder="@brand, @product" className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" />
+                        </div>
+                    </div>
                 </fieldset>
 
                 {/* Bagian Aturan Skor */}

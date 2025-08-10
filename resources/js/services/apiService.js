@@ -58,6 +58,9 @@ export const formatCompactNumber = (number) => {
  * @returns {Promise<Response>}
  */
 async function apiFetch(url, options = {}) {
+    // Get XSRF token for POST/PUT/PATCH/DELETE requests
+    const xsrfToken = getCookie('XSRF-TOKEN');
+    
     const defaultOptions = {
         // **THE FIX**: This ensures cookies (session, XSRF-TOKEN) are sent with every request.
         credentials: 'include',
@@ -69,6 +72,11 @@ async function apiFetch(url, options = {}) {
         },
         ...options,
     };
+    
+    // Add XSRF token for state-changing requests
+    if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(options.method?.toUpperCase()) && xsrfToken) {
+        defaultOptions.headers['X-XSRF-TOKEN'] = decodeURIComponent(xsrfToken);
+    }
     
     // Automatically stringify body if it's an object
     if (defaultOptions.body && typeof defaultOptions.body === 'object') {
@@ -273,8 +281,14 @@ export const apiService = {
     // ===================================
     getAdminCampaigns: () => apiFetch(`${API_BASE_URL}/admin/campaigns`),
     getAdminCampaignDetail: (id) => apiFetch(`${API_BASE_URL}/admin/campaigns/${id}`),
-    createCampaign: (campaignData) => apiFetch(`${API_BASE_URL}/admin/campaigns`, { method: 'POST', body: campaignData }),
-    updateCampaign: (id, campaignData) => apiFetch(`${API_BASE_URL}/admin/campaigns/${id}`, { method: 'PUT', body: campaignData }),
+    createCampaign: async (campaignData) => {
+        await apiService.getCsrfCookie();
+        return apiFetch(`${API_BASE_URL}/admin/campaigns`, { method: 'POST', body: campaignData });
+    },
+    updateCampaign: async (id, campaignData) => {
+        await apiService.getCsrfCookie();
+        return apiFetch(`${API_BASE_URL}/admin/campaigns/${id}`, { method: 'PUT', body: campaignData });
+    },
     updateCampaignStatus: (id, status) => apiFetch(`${API_BASE_URL}/admin/campaigns/${id}/status`, { method: 'PATCH', body: { status } }),
     getCampaignParticipants: (campaignId) => apiFetch(`${API_BASE_URL}/admin/campaigns/${campaignId}/participants`),
     updateParticipantStatus: (campaignId, participantId, status) => apiFetch(`${API_BASE_URL}/admin/campaigns/${campaignId}/participants/${participantId}/status`, { method: 'PATCH', body: { status } }),

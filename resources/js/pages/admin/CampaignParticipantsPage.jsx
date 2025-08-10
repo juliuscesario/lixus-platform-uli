@@ -98,10 +98,13 @@ export default function CampaignParticipantsPage({ pageProps }) {
     
     const filteredParticipants = useMemo(() => {
         if (!searchTerm) return participants;
-        return participants.filter(p => 
-            p.influencer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            p.influencer.email.toLowerCase().includes(searchTerm.toLowerCase())
-        );
+        return participants.filter(p => {
+            if (!p.influencer) return false;
+            return (
+                p.influencer.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                p.influencer.email?.toLowerCase().includes(searchTerm.toLowerCase())
+            );
+        });
     }, [participants, searchTerm]);
 
     if (loading) return <div>Memuat data partisipan...</div>;
@@ -217,8 +220,8 @@ export default function CampaignParticipantsPage({ pageProps }) {
                                             onChange={() => handleSelectOne(p.user_id)} 
                                         />
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{p.influencer.name}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{p.influencer.email}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{p.influencer?.name || 'N/A'}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{p.influencer?.email || 'N/A'}</td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{formatDateTime(p.applied_at)}</td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{formatDateTime(p.updated_at)}</td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm"><StatusBadge status={p.status} /></td>
