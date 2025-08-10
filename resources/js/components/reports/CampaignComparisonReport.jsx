@@ -228,7 +228,7 @@ export default function EnhancedCampaignComparison() {
           <p className="text-sm text-gray-600">{label}</p>
           {Icon && <Icon className="w-4 h-4 text-gray-400" />}
         </div>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="flex flex-wrap justify-between items-baseline gap-x-4 gap-y-2">
           <div className={`${selectedCampaignA ? colorClass : 'text-gray-300'}`}>
             <p className="text-2xl font-bold">{selectedCampaignA ? formattedA : '-'}</p>
             {selectedCampaignA && selectedCampaignB && diff !== '0.0' && (
