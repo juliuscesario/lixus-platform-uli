@@ -31,7 +31,7 @@ export default function CampaignCard({ campaign, user }) {
                     <p className="text-gray-600 text-sm mb-4">{campaign.description}</p>
                 </div>
                 <div>
-                    <div className="border-t border-gray-100 pt-4">
+                    <div className="border-t border-gray-100 pt-4 space-y-4">
                         <div className="flex justify-between items-center text-sm text-gray-500">
                             {isBrandOrAdmin && (
                                 <div>
@@ -48,10 +48,10 @@ export default function CampaignCard({ campaign, user }) {
                                 <p>{formatDate(campaign.end_date)}</p>
                             </div>
                         </div>
+                        <Link to={`/campaigns/${campaign.id}`} className="block w-full text-center bg-pink-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-pink-600 transition-colors duration-300">
+                            Lihat Detail
+                        </Link>
                     </div>
-                     <Link to={`/campaigns/${campaign.id}`} className="mt-4 w-full bg-pink-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-pink-600 transition-colors duration-300">
-                        Lihat Detail
-                    </Link>
                 </div>
             </div>
         </div>
