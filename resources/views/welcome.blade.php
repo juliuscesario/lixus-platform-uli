@@ -12,6 +12,6 @@
     </head>
     <body>
         {{-- Aplikasi React Anda akan berjalan di dalam div ini --}}
-        <div id="root"></div>
+        <div id="app"></div>
     </body>
 </html>
