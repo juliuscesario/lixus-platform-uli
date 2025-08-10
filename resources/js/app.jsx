@@ -50,6 +50,11 @@ const CampaignDetailWrapper = () => {
     return <CampaignDetailPage user={user} />;
 };
 
+const CampaignParticipantsWrapper = () => {
+    const { user } = useAuth();
+    return <CampaignParticipantsPage user={user} />;
+};
+
 // Layout wrapper component for authenticated routes
 const AuthenticatedLayout = ({ children }) => {
     const { isAuthenticated } = useAuth();
@@ -201,7 +206,7 @@ function App() {
                         <Route path="/admin/campaigns/:id/participants" element={
                             <ProtectedRoute>
                                 <DashboardLayout>
-                                    <CampaignParticipantsPage />
+                                    <CampaignParticipantsWrapper />
                                 </DashboardLayout>
                             </ProtectedRoute>
                         } />

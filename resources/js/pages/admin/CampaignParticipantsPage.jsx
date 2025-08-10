@@ -22,11 +22,13 @@ const StatusBadge = ({ status }) => {
     );
 };
 
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 
-export default function CampaignParticipantsPage({ pageProps }) {
+export default function CampaignParticipantsPage() {
     const navigate = useNavigate();
+    const { id: campaignId } = useParams();
     const [participants, setParticipants] = useState([]);
+    const [campaign, setCampaign] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
@@ -34,10 +36,15 @@ export default function CampaignParticipantsPage({ pageProps }) {
     const [bulkStatus, setBulkStatus] = useState('');
     const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'list'
 
-    const fetchParticipants = async () => {
+    const fetchCampaignData = async () => {
         setError(null);
         try {
-            const response = await apiService.getCampaignParticipants(pageProps.id);
+            // Fetch campaign details first
+            const campaignResponse = await apiService.getAdminCampaignDetail(campaignId);
+            setCampaign(campaignResponse.data);
+            
+            // Then fetch participants
+            const response = await apiService.getCampaignParticipants(campaignId);
             setParticipants(response.data || []);
         } catch (err) {
             setError('Gagal memuat data partisipan.');
@@ -47,15 +54,17 @@ export default function CampaignParticipantsPage({ pageProps }) {
     };
 
     useEffect(() => {
-        setLoading(true);
-        fetchParticipants();
-    }, [pageProps.id]);
+        if (campaignId) {
+            setLoading(true);
+            fetchCampaignData();
+        }
+    }, [campaignId]);
 
     const handleStatusChange = async (userId, newStatus) => {
         if (!confirm(`Apakah Anda yakin ingin mengubah status partisipan ini menjadi "${newStatus}"?`)) return;
         try {
-            await apiService.updateParticipantStatus(pageProps.id, userId, newStatus);
-            fetchParticipants();
+            await apiService.updateParticipantStatus(campaignId, userId, newStatus);
+            fetchCampaignData();
         } catch (err) {
             alert(err.message || 'Gagal mengubah status.');
         }
@@ -86,14 +95,14 @@ export default function CampaignParticipantsPage({ pageProps }) {
 
         for (const userId of selected) {
             try {
-                await apiService.updateParticipantStatus(pageProps.id, userId, bulkStatus);
+                await apiService.updateParticipantStatus(campaignId, userId, bulkStatus);
             } catch (err) {
                 alert(`Gagal mengubah status untuk partisipan ID ${userId}: ${err.message}`);
                 break;
             }
         }
         setSelected([]);
-        fetchParticipants();
+        fetchCampaignData();
     };
     
     const filteredParticipants = useMemo(() => {
@@ -121,7 +130,7 @@ export default function CampaignParticipantsPage({ pageProps }) {
                 <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
                     <div>
                         <h1 className="text-2xl font-bold text-gray-800">Partisipan Kampanye</h1>
-                        <p className="text-lg text-gray-600">{pageProps.name}</p>
+                        <p className="text-lg text-gray-600">{campaign?.name || 'Loading...'}</p>
                     </div>
                     <div className="flex items-center gap-2">
                         <div className="relative">

@@ -19,15 +19,15 @@ class CampaignResource extends JsonResource
             'name' => $this->name,
             'description' => $this->description,
             'brand_id' => $this->brand_id,
-            'brand_name' => $this->whenLoaded('brand', fn () => $this->brand->name),
-            'start_date' => $this->start_date->format('Y-m-d'),
-            'end_date' => $this->end_date->format('Y-m-d'),
+            'brand_name' => $this->whenLoaded('brand', fn () => $this->brand->name ?? null),
+            'start_date' => $this->start_date ? $this->start_date->format('Y-m-d') : null,
+            'end_date' => $this->end_date ? $this->end_date->format('Y-m-d') : null,
             'budget' => (float) $this->budget,
-            'briefing_content' => $this->briefing_content,
-            'scoring_rules' => $this->scoring_rules,
+            'briefing_content' => $this->briefing_content ?? [],
+            'scoring_rules' => $this->scoring_rules ?? [],
             'status' => $this->status,
-            'created_at' => $this->created_at->format('Y-m-d H:i:s'),
-            'updated_at' => $this->updated_at->format('Y-m-d H:i:s'),
+            'created_at' => $this->created_at ? $this->created_at->format('Y-m-d H:i:s') : null,
+            'updated_at' => $this->updated_at ? $this->updated_at->format('Y-m-d H:i:s') : null,
             // Tambahkan field status partisipasi
             'participant_status' => $this->whenLoaded('currentParticipant', function () {
                 return $this->currentParticipant ? $this->currentParticipant->status : null;

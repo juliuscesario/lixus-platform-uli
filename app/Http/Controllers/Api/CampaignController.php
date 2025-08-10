@@ -244,16 +244,33 @@ class CampaignController extends Controller
         }
 
         try {
-            $validatedData = $request->validate([
+            // Build validation rules dynamically
+            $rules = [
                 'name' => ['sometimes', 'required', 'string', 'max:255', Rule::unique('campaigns')->ignore($campaign->id)],
                 'description' => 'nullable|string',
-                'start_date' => 'sometimes|required|date|after_or_equal:today',
-                'end_date' => 'sometimes|required|date|after_or_equal:start_date',
                 'budget' => 'sometimes|required|numeric|min:0',
                 'briefing_content' => 'nullable|array',
                 'scoring_rules' => 'nullable|array',
                 'status' => ['sometimes', 'required', 'string', Rule::in(['draft', 'pending', 'active', 'completed', 'cancelled'])],
-            ]);
+            ];
+            
+            // Only validate start_date if it's being changed
+            if ($request->has('start_date')) {
+                // If campaign hasn't started yet, ensure new start date is not in the past
+                if ($campaign->start_date->isFuture()) {
+                    $rules['start_date'] = 'required|date|after_or_equal:today';
+                } else {
+                    // If campaign has already started, allow keeping the same date
+                    $rules['start_date'] = 'required|date';
+                }
+            }
+            
+            // Validate end_date
+            if ($request->has('end_date')) {
+                $rules['end_date'] = 'required|date|after_or_equal:start_date';
+            }
+            
+            $validatedData = $request->validate($rules);
 
             $campaign->update($validatedData);
 
