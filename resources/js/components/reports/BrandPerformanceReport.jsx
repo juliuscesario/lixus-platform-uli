@@ -14,18 +14,18 @@ export default function BrandPerformanceReport() {
     const [activeTab, setActiveTab] = useState('executive');
     const [dateRange, setDateRange] = useState('month');
     const [comparisonPeriod, setComparisonPeriod] = useState('previous');
-    
-    // Executive Overview Metrics
-    const executiveMetrics = {
-        totalCampaigns: 12,
-        activeCampaigns: 4,
-        totalInfluencers: 156,
-        totalEngagement: 2847329,
-        avgEngagementRate: 4.2,
-        totalInvestment: 25000000,
-        estimatedReach: 8234000,
-        roi: 3.4
+    const [metrics, setMetrics] = useState({});
+
+    const mockData = {
+        week: { totalCampaigns: 5, activeCampaigns: 2, totalInfluencers: 50, totalEngagement: 100000, avgEngagementRate: 5.1, totalInvestment: 5000000, estimatedReach: 1000000, roi: 2.1 },
+        month: { totalCampaigns: 12, activeCampaigns: 4, totalInfluencers: 156, totalEngagement: 2847329, avgEngagementRate: 4.2, totalInvestment: 25000000, estimatedReach: 8234000, roi: 3.4 },
+        quarter: { totalCampaigns: 25, activeCampaigns: 8, totalInfluencers: 300, totalEngagement: 5000000, avgEngagementRate: 4.8, totalInvestment: 50000000, estimatedReach: 15000000, roi: 4.0 },
+        year: { totalCampaigns: 50, activeCampaigns: 10, totalInfluencers: 500, totalEngagement: 10000000, avgEngagementRate: 4.5, totalInvestment: 100000000, estimatedReach: 30000000, roi: 3.8 },
     };
+
+    useEffect(() => {
+        setMetrics(mockData[dateRange]);
+      }, [dateRange]);
 
     // Heatmap data for engagement
     const engagementHeatmap = {
@@ -147,7 +147,7 @@ export default function BrandPerformanceReport() {
                     <div className="flex items-center justify-between">
                         <div>
                             <p className="text-blue-100 text-xs sm:text-sm">Total Investment</p>
-                            <p className="text-xl sm:text-2xl font-bold">{formatCurrency(executiveMetrics.totalInvestment)}</p>
+                            <p className="text-xl sm:text-2xl font-bold">{formatCurrency(metrics.totalInvestment || 0)}</p>
                             <p className="text-blue-100 text-xs mt-1">+12% vs last period</p>
                         </div>
                         <IconDollar className="w-6 h-6 sm:w-8 sm:h-8" />
@@ -158,7 +158,7 @@ export default function BrandPerformanceReport() {
                     <div className="flex items-center justify-between">
                         <div>
                             <p className="text-green-100 text-xs sm:text-sm">ROI</p>
-                            <p className="text-xl sm:text-2xl font-bold">{executiveMetrics.roi}x</p>
+                            <p className="text-xl sm:text-2xl font-bold">{metrics.roi}x</p>
                             <p className="text-green-100 text-xs mt-1">+0.5x vs target</p>
                         </div>
                         <IconTrendingUp className="w-6 h-6 sm:w-8 sm:h-8" />
@@ -169,8 +169,8 @@ export default function BrandPerformanceReport() {
                     <div className="flex items-center justify-between">
                         <div>
                             <p className="text-purple-100 text-xs sm:text-sm">Total Reach</p>
-                            <p className="text-xl sm:text-2xl font-bold">{formatNumber(executiveMetrics.estimatedReach)}</p>
-                            <p className="text-purple-100 text-xs mt-1">156 influencers</p>
+                            <p className="text-xl sm:text-2xl font-bold">{formatNumber(metrics.estimatedReach || 0)}</p>
+                            <p className="text-purple-100 text-xs mt-1">{metrics.totalInfluencers} influencers</p>
                         </div>
                         <IconUsers className="w-6 h-6 sm:w-8 sm:h-8" />
                     </div>
@@ -180,7 +180,7 @@ export default function BrandPerformanceReport() {
                     <div className="flex items-center justify-between">
                         <div>
                             <p className="text-orange-100 text-xs sm:text-sm">Avg Engagement</p>
-                            <p className="text-xl sm:text-2xl font-bold">{executiveMetrics.avgEngagementRate}%</p>
+                            <p className="text-xl sm:text-2xl font-bold">{metrics.avgEngagementRate}%</p>
                             <p className="text-orange-100 text-xs mt-1">Above industry avg</p>
                         </div>
                         <IconCalendar className="w-6 h-6 sm:w-8 sm:h-8" />
