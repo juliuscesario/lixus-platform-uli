@@ -7,6 +7,7 @@ import Footer from './components/Footer';
 import { AuthProvider } from './contexts/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import { useAuth } from './contexts/AuthContext';
+import DashboardLayout from './layouts/DashboardLayout';
 
 const HomePage = lazy(() => import('./pages/HomePage'));
 const LoginPage = lazy(() => import('./pages/LoginPage'));
@@ -49,81 +50,191 @@ const CampaignDetailWrapper = () => {
     return <CampaignDetailPage user={user} />;
 };
 
+// Layout wrapper component for authenticated routes
+const AuthenticatedLayout = ({ children }) => {
+    const { isAuthenticated } = useAuth();
+    
+    // Only show DashboardLayout for authenticated users
+    if (isAuthenticated) {
+        return <DashboardLayout>{children}</DashboardLayout>;
+    }
+    
+    return children;
+};
+
 function App() {
     return (
         <Router>
             <AuthProvider>
-                <Navbar />
                 <Suspense fallback={<div className="flex justify-center items-center h-screen"><div>Loading...</div></div>}>
-                    <main className="flex-grow">
-                        <Routes>
-                            <Route path="/" element={<HomePageWrapper />} />
-                            <Route path="/login" element={<LoginPage />} />
-                            <Route path="/register" element={<RegisterPage />} />
-                            <Route path="/dashboard" element={
-                                <ProtectedRoute>
+                    <Routes>
+                        {/* Public routes without DashboardLayout */}
+                        <Route path="/" element={
+                            <>
+                                <Navbar />
+                                <main className="flex-grow">
+                                    <HomePageWrapper />
+                                </main>
+                                <Footer />
+                            </>
+                        } />
+                        <Route path="/login" element={
+                            <>
+                                <Navbar />
+                                <main className="flex-grow">
+                                    <LoginPage />
+                                </main>
+                                <Footer />
+                            </>
+                        } />
+                        <Route path="/register" element={
+                            <>
+                                <Navbar />
+                                <main className="flex-grow">
+                                    <RegisterPage />
+                                </main>
+                                <Footer />
+                            </>
+                        } />
+                        <Route path="/influencers" element={
+                            <>
+                                <Navbar />
+                                <main className="flex-grow">
+                                    <InfluencersPage />
+                                </main>
+                                <Footer />
+                            </>
+                        } />
+                        <Route path="/influencers/:id" element={
+                            <>
+                                <Navbar />
+                                <main className="flex-grow">
+                                    <InfluencerDetailPage />
+                                </main>
+                                <Footer />
+                            </>
+                        } />
+                        <Route path="/posts" element={
+                            <>
+                                <Navbar />
+                                <main className="flex-grow">
+                                    <PostsPage />
+                                </main>
+                                <Footer />
+                            </>
+                        } />
+                        <Route path="/posts/:id" element={
+                            <>
+                                <Navbar />
+                                <main className="flex-grow">
+                                    <PostDetailPage />
+                                </main>
+                                <Footer />
+                            </>
+                        } />
+                        <Route path="/campaigns/:id" element={
+                            <>
+                                <Navbar />
+                                <main className="flex-grow">
+                                    <CampaignDetailWrapper />
+                                </main>
+                                <Footer />
+                            </>
+                        } />
+                        <Route path="/apply-influencer" element={
+                            <>
+                                <Navbar />
+                                <main className="flex-grow">
+                                    <InfluencerApplicationPage />
+                                </main>
+                                <Footer />
+                            </>
+                        } />
+                        
+                        {/* Protected routes with DashboardLayout */}
+                        <Route path="/dashboard" element={
+                            <ProtectedRoute>
+                                <DashboardLayout>
                                     <DashboardWrapper />
-                                </ProtectedRoute>
-                            } />
-                            <Route path="/influencers" element={<InfluencersPage />} />
-                            <Route path="/influencers/:id" element={<InfluencerDetailPage />} />
-                            <Route path="/posts" element={<PostsPage />} />
-                            <Route path="/posts/:id" element={<PostDetailPage />} />
-                            
-                            {/* Influencer Routes */}
-                            <Route path="/my-campaigns" element={
-                                <ProtectedRoute>
+                                </DashboardLayout>
+                            </ProtectedRoute>
+                        } />
+                        
+                        {/* Influencer Routes */}
+                        <Route path="/my-campaigns" element={
+                            <ProtectedRoute>
+                                <DashboardLayout>
                                     <MyCampaignsWrapper />
-                                </ProtectedRoute>
-                            } />
-                            <Route path="/campaigns/:id" element={<CampaignDetailWrapper />} />
-                            <Route path="/apply-influencer" element={<InfluencerApplicationPage />} />
-                            
-                            {/* Admin Routes */}
-                            <Route path="/admin/campaigns" element={
-                                <ProtectedRoute>
+                                </DashboardLayout>
+                            </ProtectedRoute>
+                        } />
+                        <Route path="/influencer/my-campaigns" element={
+                            <ProtectedRoute>
+                                <DashboardLayout>
+                                    <MyCampaignsWrapper />
+                                </DashboardLayout>
+                            </ProtectedRoute>
+                        } />
+                        
+                        {/* Admin/Brand Routes */}
+                        <Route path="/admin/campaigns" element={
+                            <ProtectedRoute>
+                                <DashboardLayout>
                                     <AdminCampaignsPage />
-                                </ProtectedRoute>
-                            } />
-                            <Route path="/admin/campaigns/create" element={
-                                <ProtectedRoute>
+                                </DashboardLayout>
+                            </ProtectedRoute>
+                        } />
+                        <Route path="/admin/campaigns/create" element={
+                            <ProtectedRoute>
+                                <DashboardLayout>
                                     <CreateCampaignPage />
-                                </ProtectedRoute>
-                            } />
-                            <Route path="/admin/campaigns/edit/:id" element={
-                                <ProtectedRoute>
+                                </DashboardLayout>
+                            </ProtectedRoute>
+                        } />
+                        <Route path="/admin/campaigns/edit/:id" element={
+                            <ProtectedRoute>
+                                <DashboardLayout>
                                     <EditCampaignPage />
-                                </ProtectedRoute>
-                            } />
-                            <Route path="/admin/campaigns/:id/participants" element={
-                                <ProtectedRoute>
+                                </DashboardLayout>
+                            </ProtectedRoute>
+                        } />
+                        <Route path="/admin/campaigns/:id/participants" element={
+                            <ProtectedRoute>
+                                <DashboardLayout>
                                     <CampaignParticipantsPage />
-                                </ProtectedRoute>
-                            } />
-                            <Route path="/admin/campaigns/:id/posts" element={
-                                <ProtectedRoute>
+                                </DashboardLayout>
+                            </ProtectedRoute>
+                        } />
+                        <Route path="/admin/campaigns/:id/posts" element={
+                            <ProtectedRoute>
+                                <DashboardLayout>
                                     <CampaignPostsPage />
-                                </ProtectedRoute>
-                            } />
-                            <Route path="/admin/campaigns/:id/leaderboard" element={
-                                <ProtectedRoute>
+                                </DashboardLayout>
+                            </ProtectedRoute>
+                        } />
+                        <Route path="/admin/campaigns/:id/leaderboard" element={
+                            <ProtectedRoute>
+                                <DashboardLayout>
                                     <CampaignLeaderboardPage />
-                                </ProtectedRoute>
-                            } />
-                            <Route path="/admin/reports" element={
-                                <ProtectedRoute>
+                                </DashboardLayout>
+                            </ProtectedRoute>
+                        } />
+                        <Route path="/admin/reporting" element={
+                            <ProtectedRoute>
+                                <DashboardLayout>
                                     <ReportingPage />
-                                </ProtectedRoute>
-                            } />
-                            <Route path="/admin/applications" element={
-                                <ProtectedRoute>
+                                </DashboardLayout>
+                            </ProtectedRoute>
+                        } />
+                        <Route path="/admin/applications" element={
+                            <ProtectedRoute>
+                                <DashboardLayout>
                                     <ManageApplicationsPage />
-                                </ProtectedRoute>
-                            } />
-                        </Routes>
-                    </main>
+                                </DashboardLayout>
+                            </ProtectedRoute>
+                        } />
+                    </Routes>
                 </Suspense>
-                <Footer />
             </AuthProvider>
         </Router>
     );
