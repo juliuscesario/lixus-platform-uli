@@ -45,6 +45,6 @@ export default function PostCard({ post }) {
                 </div>
                 <SocialIcon platform={post.platform} className="w-6 h-6 text-gray-400" />
             </div>
-        </div>
+        </Link>
     );
 }
