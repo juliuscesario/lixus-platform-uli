@@ -24,12 +24,13 @@ class UserResource extends JsonResource
             'created_at' => $this->created_at ? $this->created_at->format('Y-m-d H:i:s') : null,
             'updated_at' => $this->updated_at ? $this->updated_at->format('Y-m-d H:i:s') : null,
             
-            // Sertakan relasi role jika sudah di-eager load
-            'role' => new RoleResource($this->whenLoaded('role')), // Jika ada RoleResource
-            // Atau langsung seperti ini:
-            // 'role_name' => $this->whenLoaded('role', function () {
-            //     return $this->role->name;
-            // }),
+            // Return role name as string for frontend compatibility
+            'role' => $this->whenLoaded('role', function () {
+                return $this->role->name;
+            }),
+            
+            // Include full role details if needed
+            'role_details' => new RoleResource($this->whenLoaded('role')),
 
             // Sertakan influencer_profile jika sudah di-eager load dan jika ini bukan InfluencerProfileResource itu sendiri
             'influencer_profile' => new InfluencerProfileResource($this->whenLoaded('influencerProfile')), // Ini akan mencegah loop jika dipanggil dari InfluencerProfileResource
