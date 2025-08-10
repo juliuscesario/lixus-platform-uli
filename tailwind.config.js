@@ -1,12 +1,25 @@
 /** @type {import('tailwindcss').Config} */
 export default {
-    content: [
-        "./resources/**/*.blade.php",
-        "./resources/**/*.js",
-        "./resources/**/*.jsx",
-    ],
-    theme: {
-        extend: {},
+  future: {
+    //
+  },
+  content: [
+    './resources/**/*.blade.php',
+    './resources/**/*.js',
+    './resources/**/*.jsx',
+    './resources/**/*.ts',
+    './resources/**/*.tsx',
+  ],
+  theme: {
+    extend: {
+      //
     },
-    plugins: [],
+  },
+  plugins: [
+    require('@tailwindcss/forms'),
+    require('@tailwindcss/typography'),
+  ],
+  future: {
+    hoverOnlyWhenSupported: true,
+  },
 }
