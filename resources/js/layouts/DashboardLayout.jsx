@@ -12,19 +12,26 @@ const IconChartBar = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" he
 
 
 
-export default function DashboardLayout({ user, onLogout, children, setPage, activePage }) {
+import { Link, useNavigate } from 'react-router-dom';
+
+export default function DashboardLayout({ user, children }) {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
     const menuItems = [
-        { name: 'Dashboard', page: 'dashboard-overview', icon: <IconHome />, roles: ['admin', 'brand', 'influencer'] },
+        { name: 'Dashboard', to: '/dashboard', icon: <IconHome />, roles: ['admin', 'brand', 'influencer'] },
         // Menu Influencer
-        { name: 'Menuju ke Laman Utama', page: 'influencer-my-campaigns', icon: <IconMegaphone />, roles: ['influencer'] },
+        { name: 'My Campaigns', to: '/influencer/my-campaigns', icon: <IconMegaphone />, roles: ['influencer'] },
         // Menu Admin/Brand
-        { name: 'Manajemen Kampanye', page: 'admin-campaigns', icon: <IconMegaphone />, roles: ['admin', 'brand'] },// --- NEW LINK ---
-        { name: 'Manage Applicants', page: 'admin-manage-applications', icon: <IconUsers />,roles: ['admin', 'brand'] }, 
-        { name: 'Reporting', page: 'admin-analytics', icon: <IconChartBar />, roles: ['admin', 'brand'] },
-        { name: 'Manajemen User', page: 'admin-users', icon: <IconUsers />, roles: ['admin'] },
+        { name: 'Manage Campaigns', to: '/admin/campaigns', icon: <IconMegaphone />, roles: ['admin', 'brand'] },
+        { name: 'Manage Applicants', to: '/admin/applications', icon: <IconUsers />,roles: ['admin', 'brand'] }, 
+        { name: 'Reporting', to: '/admin/reporting', icon: <IconChartBar />, roles: ['admin', 'brand'] },
+        { name: 'Manage Users', to: '/admin/users', icon: <IconUsers />, roles: ['admin'] },
     ];
+
+    const handleLogout = () => {
+        localStorage.removeItem('authUser');
+        navigate('/login');
+    };
 
     const SidebarContent = () => (
         <>
@@ -35,18 +42,15 @@ export default function DashboardLayout({ user, onLogout, children, setPage, act
             <nav className="mt-5">
                 {menuItems.map(item => (
                     item.roles.includes(user.role) && (
-                        <a 
+                        <Link 
                             key={item.name}
-                            href="#"
-                            onClick={() => {
-                                setPage(item.page);
-                                setIsSidebarOpen(false);
-                            }}
-                            className={`flex items-center px-4 py-3 text-gray-700 hover:bg-gray-200 ${activePage === item.page ? 'bg-gray-200 border-r-4 border-pink-500' : ''}`}
+                            to={item.to}
+                            onClick={() => setIsSidebarOpen(false)}
+                            className={`flex items-center px-4 py-3 text-gray-700 hover:bg-gray-200 ${location.pathname === item.to ? 'bg-gray-200 border-r-4 border-pink-500' : ''}`}
                         >
                             {item.icon}
                             <span className="mx-4 font-medium">{item.name}</span>
-                        </a>
+                        </Link>
                     )
                 ))}
             </nav>
@@ -79,7 +83,7 @@ export default function DashboardLayout({ user, onLogout, children, setPage, act
                     <div className="hidden md:block"></div>
                     <div className="flex items-center">
                         <span className="mr-4 text-sm md:text-base">Welcome, {user.name}</span>
-                        <button onClick={onLogout} className="bg-gray-200 text-gray-700 px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-300">Logout</button>
+                        <button onClick={handleLogout} className="bg-gray-200 text-gray-700 px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-300">Logout</button>
                     </div>
                 </header>
                 <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 p-4 md:p-6">

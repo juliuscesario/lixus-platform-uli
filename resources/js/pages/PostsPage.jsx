@@ -3,7 +3,7 @@ import { apiService } from '../services/apiService';
 import PostCard from '../components/PostCard';
 import Pagination from '../components/Pagination'; // Import komponen baru
 
-export default function PostsPage({ setPage }) {
+export default function PostsPage() {
     const [posts, setPosts] = useState([]);
     const [pagination, setPagination] = useState(null); // State untuk data paginasi
     const [loading, setLoading] = useState(true);
@@ -46,7 +46,7 @@ export default function PostsPage({ setPage }) {
                     <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
                         {posts.length > 0 ? (
                             posts.map(post => (
-                                <PostCard key={post.id} post={post} setPage={setPage} />
+                                <PostCard key={post.id} post={post} />
                             ))
                         ) : (
                             <p className="col-span-full text-center text-gray-500">Saat ini belum ada postingan yang tersedia.</p>

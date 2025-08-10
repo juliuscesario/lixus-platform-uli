@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link, useParams } from 'react-router-dom';
 import { apiService, formatDate, formatCurrency } from '../services/apiService';
 
 const IconArrowLeft = () => ( <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg> );
@@ -25,7 +26,8 @@ function BriefingItem({ title, content, isTag = false }) {
     );
 }
 
-export default function CampaignDetailPage({ pageProps, setPage, user }) {
+export default function CampaignDetailPage({ user }) {
+    const { id } = useParams();
     const [campaign, setCampaign] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -38,14 +40,14 @@ export default function CampaignDetailPage({ pageProps, setPage, user }) {
 
     useEffect(() => {
         const fetchCampaignDetail = async () => {
-            if (!pageProps.id) {
+            if (!id) {
                 setError("ID Kampanye tidak ditemukan.");
                 setLoading(false);
                 return;
             }
             setLoading(true);
             setError(null);
-            const response = await apiService.getCampaignDetail(pageProps.id);
+            const response = await apiService.getCampaignDetail(id);
             if (response && response.data) {
                 setCampaign(response.data);
             } else {
@@ -54,7 +56,7 @@ export default function CampaignDetailPage({ pageProps, setPage, user }) {
             setLoading(false);
         };
         fetchCampaignDetail();
-    }, [pageProps.id]);
+    }, [id]);
 
      // ▼▼▼ FUNGSI BARU UNTUK PROSES APPLY DENGAN API ▼▼▼
     const handleConfirmApply = async () => {
@@ -84,28 +86,26 @@ export default function CampaignDetailPage({ pageProps, setPage, user }) {
     const briefing = campaign.briefing_content || {};
     const isBrandOrAdmin = user && (user.role === 'brand' || user.role === 'admin');
 
-    const handleManage = () => { setPage('edit-campaign', { id: campaign.id }); };
-
     const renderActionButton = () => {
         if (!user) {
-            return <button onClick={() => setPage('login')} className="bg-pink-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-pink-700 transition-colors duration-300 text-lg">Login untuk Mendaftar</button>;
+            return <Link to="/login" className="bg-pink-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-pink-700 transition-colors duration-300 text-lg">Login untuk Mendaftar</Link>;
         }
         if (user.role === 'influencer') {
             // ▼▼▼ Tombol ini sekarang membuka modal konfirmasi ▼▼▼
             return <button onClick={() => setIsConfirming(true)} className="bg-pink-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-pink-700 transition-colors duration-300 text-lg">Daftar untuk Kampanye Ini</button>;
         }
         if (isBrandOrAdmin) {
-            return <button onClick={handleManage} className="bg-blue-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-blue-700 transition-colors duration-300 text-lg">Kelola Campaign</button>;
+            return <Link to={`/admin/campaigns/edit/${campaign.id}`} className="bg-blue-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-blue-700 transition-colors duration-300 text-lg">Kelola Campaign</Link>;
         }
         return null;
     };
 
     return (
         <div className="max-w-4xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
-            <button onClick={() => setPage('home')} className="mb-8 inline-flex items-center gap-2 text-gray-600 hover:text-gray-900">
+            <Link to="/" className="mb-8 inline-flex items-center gap-2 text-gray-600 hover:text-gray-900">
                 <IconArrowLeft />
                 Kembali ke Daftar Kampanye
-            </button>
+            </Link>
             <div className="bg-white rounded-lg shadow-xl overflow-hidden">
                  <img className="h-64 w-full object-cover" src={campaign.image || `https://placehold.co/800x400/f472b6/ffffff?text=${encodeURIComponent(campaign.name)}`} alt={campaign.name} />
                  <div className="p-8">

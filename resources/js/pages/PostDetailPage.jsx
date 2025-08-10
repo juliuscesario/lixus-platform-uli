@@ -3,7 +3,9 @@ import { apiService, formatDate } from '../services/apiService';
 
 const IconArrowLeft = () => ( <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg> );
 
-export default function PostDetailPage({ pageProps, setPage }) {
+import { Link } from 'react-router-dom';
+
+export default function PostDetailPage({ pageProps }) {
     const [post, setPost] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -46,10 +48,10 @@ export default function PostDetailPage({ pageProps, setPage }) {
 
     return (
         <div className="max-w-4xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
-            <button onClick={() => setPage('posts')} className="mb-8 inline-flex items-center gap-2 text-gray-600 hover:text-gray-900">
+            <Link to="/posts" className="mb-8 inline-flex items-center gap-2 text-gray-600 hover:text-gray-900">
                 <IconArrowLeft />
                 Kembali ke Galeri
-            </button>
+            </Link>
             <div className="bg-white rounded-lg shadow-xl overflow-hidden">
                 <img className="w-full object-cover" src={post.media_url || 'https://placehold.co/800x600/cccccc/ffffff?text=Post'} alt={`Post by ${influencer.name}`} />
                 <div className="p-8">

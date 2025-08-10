@@ -17,7 +17,9 @@ const StatusBadge = ({ status }) => {
     );
 };
 
-export default function MyCampaignsPage({ setPage, user }) {
+import { Link } from 'react-router-dom';
+
+export default function MyCampaignsPage({ user }) {
     const [participations, setParticipations] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -114,9 +116,9 @@ export default function MyCampaignsPage({ setPage, user }) {
                                             <button onClick={() => handleWithdraw(p.id)} className="text-red-600 hover:underline">Withdraw</button>
                                         </div>
                                     ) : (
-                                        <button onClick={() => setPage('campaign-detail', { id: p.id })} className="text-indigo-600 hover:text-indigo-900">
+                                        <Link to={`/campaigns/${p.id}`} className="text-indigo-600 hover:text-indigo-900">
                                             Lihat Detail
-                                        </button>
+                                        </Link>
                                     )}
                                 </td>
                             </tr>

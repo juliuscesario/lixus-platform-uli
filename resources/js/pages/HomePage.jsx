@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { apiService } from '../services/apiService';
 import CampaignCard from '../components/CampaignCard';
 
-export default function HomePage({ setPage, user }) {
+export default function HomePage({ user }) {
     const [campaigns, setCampaigns] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -52,24 +53,24 @@ export default function HomePage({ setPage, user }) {
             if (user.role === 'influencer') {
                 return (
                     <div className="inline-flex rounded-md shadow">
-                        <button 
-                            onClick={() => setPage('dashboard-overview')} 
+                        <Link 
+                            to="/dashboard"
                             className="inline-flex items-center justify-center px-5 py-3 border border-transparent text-base font-medium rounded-md text-white bg-pink-500 hover:bg-pink-600"
                         >
                             Menuju Dashboard Saya
-                        </button>
+                        </Link>
                     </div>
                 );
             }
             if (user.role === 'brand' || user.role === 'admin') {
                 return (
                     <div className="inline-flex rounded-md shadow">
-                        <button 
-                            onClick={() => setPage('admin-create-campaign')} 
+                        <Link 
+                            to="/admin/campaigns/create"
                             className="inline-flex items-center justify-center px-5 py-3 border border-transparent text-base font-medium rounded-md text-white bg-pink-500 hover:bg-pink-600"
                         >
                             Buat Kampanye
-                        </button>
+                        </Link>
                     </div>
                 );
             }
@@ -78,20 +79,20 @@ export default function HomePage({ setPage, user }) {
         return (
             <>
                 <div className="inline-flex rounded-md shadow">
-                    <button 
-                        onClick={() => setPage('register')} 
+                    <Link 
+                        to="/register"
                         className="inline-flex items-center justify-center px-5 py-3 border border-transparent text-base font-medium rounded-md text-white bg-pink-500 hover:bg-pink-600"
                     >
                         Jadi Influencer
-                    </button>
+                    </Link>
                 </div>
                 <div className="ml-3 inline-flex">
-                    <button 
-                        onClick={() => setPage('login')} // Arahkan ke login untuk brand
+                    <Link 
+                        to="/login" // Arahkan ke login untuk brand
                         className="inline-flex items-center justify-center px-5 py-3 border border-transparent text-base font-medium rounded-md text-pink-700 bg-pink-100 hover:bg-pink-200"
                     >
                         Buat Kampanye
-                    </button>
+                    </Link>
                 </div>
             </>
         );
@@ -126,7 +127,7 @@ export default function HomePage({ setPage, user }) {
                      <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
                         {campaigns.length > 0 ? (
                             campaigns.map(campaign => (
-                                <CampaignCard key={campaign.id} campaign={campaign} setPage={setPage} user={user} />
+                                <CampaignCard key={campaign.id} campaign={campaign} user={user} />
                             ))
                         ) : (
                             <p className="col-span-full text-center text-gray-500">Saat ini belum ada kampanye yang tersedia.</p>

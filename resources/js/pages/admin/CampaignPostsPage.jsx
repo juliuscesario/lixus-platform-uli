@@ -18,7 +18,10 @@ const SocialIcon = ({ platform, className }) => {
     return null;
 };
 
-export default function CampaignPostsPage({ pageProps, setPage }) {
+import { Link, useNavigate } from 'react-router-dom';
+
+export default function CampaignPostsPage({ pageProps }) {
+    const navigate = useNavigate();
     const [posts, setPosts] = useState([]);
     const [pagination, setPagination] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -186,7 +189,7 @@ export default function CampaignPostsPage({ pageProps, setPage }) {
         <div>
             {/* ... (Header, Summary, Filter, dan Aksi Massal) ... */}
             <div className="mb-6">
-                <button onClick={() => setPage('admin-campaigns')} className="mb-4 inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 text-sm"><IconArrowLeft /> Kembali ke Manajemen Kampanye</button>
+                <Link to="/admin/campaigns" className="mb-4 inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 text-sm"><IconArrowLeft /> Kembali ke Manajemen Kampanye</Link>
                 <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
                     <div><h1 className="text-2xl font-bold text-gray-800">Postingan Kampanye</h1><p className="text-lg text-gray-600">{pageProps.name}</p></div>
                     <div className="flex items-center gap-2">

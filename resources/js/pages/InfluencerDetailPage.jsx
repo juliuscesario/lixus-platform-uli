@@ -23,7 +23,7 @@ const SocialIcon = ({ platform }) => {
     return null;
 };
 
-export default function InfluencerDetailPage({ pageProps, setPage }) {
+export default function InfluencerDetailPage({ pageProps }) {
     const [influencer, setInfluencer] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -57,10 +57,10 @@ export default function InfluencerDetailPage({ pageProps, setPage }) {
 
     return (
         <div className="max-w-4xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
-            <button onClick={() => setPage('influencers')} className="mb-8 inline-flex items-center gap-2 text-gray-600 hover:text-gray-900">
+            <Link to="/influencers" className="mb-8 inline-flex items-center gap-2 text-gray-600 hover:text-gray-900">
                 <IconArrowLeft />
                 Kembali ke Daftar Influencer
-            </button>
+            </Link>
             <div className="bg-white rounded-lg shadow-xl overflow-hidden">
                 <div className="p-8 text-center">
                     <img className="w-40 h-40 mx-auto rounded-full mb-4 border-4 border-white shadow-lg" src={imageUrl} alt={influencer.name} />

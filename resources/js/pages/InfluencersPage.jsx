@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { apiService } from '../services/apiService';
 import InfluencerCard from '../components/InfluencerCard';
 
-export default function InfluencersPage({ setPage }) {
+import { Link } from 'react-router-dom';
+export default function InfluencersPage() {
     const [influencers, setInfluencers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -31,7 +32,7 @@ export default function InfluencersPage({ setPage }) {
                  <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
                     {influencers.length > 0 ? (
                         influencers.map(influencer => (
-                            <InfluencerCard key={influencer.id} influencer={influencer} setPage={setPage} />
+                            <InfluencerCard key={influencer.id} influencer={influencer} />
                         ))
                     ) : (
                         <p className="col-span-full text-center text-gray-500">Saat ini belum ada influencer yang terdaftar.</p>

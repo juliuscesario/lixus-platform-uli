@@ -12,7 +12,9 @@ const SocialIcon = ({ platform, className }) => {
     return null;
 };
 
-export default function PostCard({ post, setPage }) {
+import { Link } from 'react-router-dom';
+
+export default function PostCard({ post }) {
     const influencer = post.influencer || {};
     const influencerProfile = influencer.influencer_profile || {};
     const campaign = post.campaign || {};
@@ -21,9 +23,9 @@ export default function PostCard({ post, setPage }) {
     const mediaUrl = post.media_url || `https://placehold.co/600x600/cccccc/ffffff?text=Post`;
 
     return (
-        <div 
+        <Link 
+            to={`/posts/${post.id}`} 
             className="bg-white rounded-lg shadow-lg overflow-hidden group cursor-pointer"
-            onClick={() => setPage('post-detail', { id: post.id })}
         >
             <div className="relative">
                 <img src={mediaUrl} alt={`Post by ${influencer.name}`} className="w-full h-64 object-cover" />

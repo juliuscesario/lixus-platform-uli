@@ -14,7 +14,7 @@ const TABS = {
 };
 
 // This component accepts `MapsTo` but does not use it, which is fine.
-export default function ReportingPage({ navigateTo }) {
+export default function ReportingPage() {
     const [activeTab, setActiveTab] = useState(TABS.BRAND_PERFORMANCE);
 
     const renderActiveTab = () => {

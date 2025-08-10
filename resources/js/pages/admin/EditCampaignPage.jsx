@@ -5,9 +5,11 @@ const IconArrowLeft = () => ( <svg xmlns="http://www.w3.org/2000/svg" width="24"
 const IconPlay = () => ( <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg> );
 const IconCheckCircle = () => ( <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> );
 
+import { Link, useNavigate } from 'react-router-dom';
+
 export default function EditCampaignPage(props) {
     const campaignId = props.pageProps?.id;
-    const setPage = props.setPage;
+    const navigate = useNavigate();
 
     const [formData, setFormData] = useState({
         name: '', description: '', start_date: '', end_date: '', budget: '', status: 'draft',
@@ -134,7 +136,7 @@ export default function EditCampaignPage(props) {
         try {
             await apiService.updateCampaign(campaignId, payload);
             alert('Kampanye berhasil diperbarui!');
-            setPage('admin-campaigns');
+            navigate('/admin/campaigns');
         } catch (err) {
             console.error("Submit Error:", err.response || err);
             if (err.response && err.response.data && err.response.data.errors) {
@@ -156,10 +158,10 @@ export default function EditCampaignPage(props) {
         <div>
             <div className="flex justify-between items-start mb-6">
                 <div>
-                    <button onClick={() => setPage('admin-campaigns')} className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900">
+                    <Link to="/admin/campaigns" className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900">
                         <IconArrowLeft />
                         Kembali ke Manajemen Kampanye
-                    </button>
+                    </Link>
                     <h1 className="text-2xl font-bold text-gray-800 mt-2">Edit Kampanye: {formData.name}</h1>
                 </div>
                 <div className="flex items-center gap-2">

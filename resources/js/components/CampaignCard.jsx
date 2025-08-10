@@ -1,7 +1,9 @@
 import React from 'react';
 import { formatDate, formatCurrency } from '../services/apiService';
 
-export default function CampaignCard({ campaign, setPage, user }) {
+import { Link } from 'react-router-dom';
+
+export default function CampaignCard({ campaign, user }) {
     // ... (Salin seluruh kode fungsi CampaignCard dari app.jsx lama ke sini) ...
     const statusStyles = {
         active: 'bg-green-100 text-green-800',
@@ -47,9 +49,9 @@ export default function CampaignCard({ campaign, setPage, user }) {
                             </div>
                         </div>
                     </div>
-                     <button onClick={() => setPage('campaign-detail', { id: campaign.id })} className="mt-4 w-full bg-pink-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-pink-600 transition-colors duration-300">
+                     <Link to={`/campaigns/${campaign.id}`} className="mt-4 w-full bg-pink-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-pink-600 transition-colors duration-300">
                         Lihat Detail
-                    </button>
+                    </Link>
                 </div>
             </div>
         </div>

@@ -3,7 +3,10 @@ import { apiService } from '../../services/apiService';
 
 const IconArrowLeft = () => ( <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg> );
 
-export default function CreateCampaignPage({ setPage }) {
+import { useNavigate } from 'react-router-dom';
+
+export default function CreateCampaignPage() {
+    const navigate = useNavigate();
     const [formData, setFormData] = useState({
         name: '',
         description: '',
@@ -73,7 +76,7 @@ export default function CreateCampaignPage({ setPage }) {
         try {
             await apiService.createCampaign(payload);
             alert('Kampanye berhasil dibuat!');
-            setPage('admin-campaigns');
+            navigate('/admin/campaigns');
         } catch (err) {
             setError(err.message || 'Terjadi kesalahan. Silakan coba lagi.');
         } finally {
@@ -83,7 +86,7 @@ export default function CreateCampaignPage({ setPage }) {
 
     return (
         <div>
-            <button onClick={() => setPage('admin-campaigns')} className="mb-6 inline-flex items-center gap-2 text-gray-600 hover:text-gray-900">
+            <button onClick={() => navigate('/admin/campaigns')} className="mb-6 inline-flex items-center gap-2 text-gray-600 hover:text-gray-900">
                 <IconArrowLeft />
                 Kembali ke Manajemen Kampanye
             </button>

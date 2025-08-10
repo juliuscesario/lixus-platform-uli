@@ -33,7 +33,10 @@ const SocialIcon = ({ platform, className }) => {
     return null;
 };
 
-export default function CampaignLeaderboardPage({ pageProps, setPage }) {
+import { Link, useNavigate } from 'react-router-dom';
+
+export default function CampaignLeaderboardPage({ pageProps }) {
+    const navigate = useNavigate();
     const [leaderboard, setLeaderboard] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -88,10 +91,10 @@ export default function CampaignLeaderboardPage({ pageProps, setPage }) {
 
    return (
         <div>
-            <button onClick={() => setPage('admin-campaigns')} className="mb-6 inline-flex items-center gap-2 text-gray-600 hover:text-gray-900">
+            <Link to="/admin/campaigns" className="mb-6 inline-flex items-center gap-2 text-gray-600 hover:text-gray-900">
                 <IconArrowLeft />
                 Kembali ke Manajemen Kampanye
-            </button>
+            </Link>
             <h1 className="text-2xl font-bold text-gray-800 mb-2">Leaderboard</h1>
             <p className="text-lg text-gray-600 mb-6">{pageProps.name}</p>
             

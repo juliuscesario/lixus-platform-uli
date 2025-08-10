@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { apiService, formatDate, formatCurrency } from '../../services/apiService';
 
-export default function AdminCampaignsPage({ setPage }) {
+import { Link, useNavigate } from 'react-router-dom';
+
+export default function AdminCampaignsPage() {
+    const navigate = useNavigate();
     const [campaigns, setCampaigns] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -28,12 +31,12 @@ export default function AdminCampaignsPage({ setPage }) {
         <div>
             <div className="flex justify-between items-center mb-6">
                 <h1 className="text-2xl font-bold text-gray-800">Manajemen Kampanye</h1>
-                <button 
-                    onClick={() => setPage('admin-create-campaign')}
+                <Link 
+                    to="/admin/campaigns/create"
                     className="bg-pink-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-pink-600 transition-colors"
                 >
                     + Buat Kampanye Baru
-                </button>
+                </Link>
             </div>
             <div className="bg-white shadow-md rounded-lg overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
@@ -58,29 +61,29 @@ export default function AdminCampaignsPage({ setPage }) {
                                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                     {/* PERBAIKAN: Mengubah link menjadi tombol yang rapi dan berwarna */}
                                     <div className="flex justify-end items-center gap-2">
-                                        <button 
-                                            onClick={() => setPage('admin-edit-campaign', { id: campaign.id })}
+                                        <Link 
+                                            to={`/admin/campaigns/edit/${campaign.id}`}
                                             className="py-1 px-3 bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-md hover:bg-indigo-200 transition-colors text-xs font-semibold"
                                         >
                                             Edit
-                                        </button>
-                                        <button 
-                                            onClick={() => setPage('admin-campaign-participants', { id: campaign.id, name: campaign.name })}
+                                        </Link>
+                                        <Link 
+                                            to={`/admin/campaigns/${campaign.id}/participants`}
                                             className="py-1 px-3 bg-green-100 text-green-700 border border-green-200 rounded-md hover:bg-green-200 transition-colors text-xs font-semibold"
                                         >
                                             Partisipan
-                                        </button>
-                                        <button 
-                                            onClick={() => setPage('admin-campaign-posts', { id: campaign.id, name: campaign.name })}
+                                        </Link>
+                                        <Link 
+                                            to={`/admin/campaigns/${campaign.id}/posts`}
                                             className="py-1 px-3 bg-purple-100 text-purple-700 border border-purple-200 rounded-md hover:bg-purple-200 transition-colors text-xs font-semibold"
                                         >
                                             Posts
-                                        </button>
-                                        <button onClick={() => setPage('admin-campaign-leaderboard', { id: campaign.id, name: campaign.name })} 
+                                        </Link>
+                                        <Link to={`/admin/campaigns/${campaign.id}/leaderboard`} 
                                         className="py-1 px-3 bg-yellow-100 text-yellow-700 border border-yellow-200 rounded-md hover:bg-yellow-200 transition-colors text-xs font-semibold"
                                             >
                                                 Leaderboard
-                                        </button>
+                                        </Link>
                                     </div>
                                 </td>
                             </tr>

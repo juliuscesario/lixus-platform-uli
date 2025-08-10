@@ -1,11 +1,27 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 
 // --- ICONS ---
 const IconMenu = () => ( <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg> );
 const IconX = () => ( <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> );
 
-export default function Navbar({ user, onLogout, setPage }) {
+export default function Navbar() {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const [user, setUser] = useState(null);
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        const storedUser = localStorage.getItem('authUser');
+        if (storedUser) {
+            setUser(JSON.parse(storedUser));
+        }
+    }, []);
+
+    const handleLogout = () => {
+        localStorage.removeItem('authUser');
+        setUser(null);
+        navigate('/login');
+    };
 
     return (
         <nav className="bg-white shadow-md sticky top-0 z-50">
@@ -13,15 +29,15 @@ export default function Navbar({ user, onLogout, setPage }) {
                 <div className="flex items-center justify-between h-16">
                     <div className="flex items-center">
                         <div className="flex-shrink-0">
-                            <a href="#" onClick={() => setPage('home')} className="text-2xl font-bold text-gray-800">
+                            <Link to="/" className="text-2xl font-bold text-gray-800">
                                 Lixus<span className="text-pink-500">.id</span>
-                            </a>
+                            </Link>
                         </div>
                         <div className="hidden md:block">
                             <div className="ml-10 flex items-baseline space-x-4">
-                                <a href="#" onClick={() => setPage('home')} className="text-gray-600 hover:bg-gray-100 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">Kampanye</a>
-                                <a href="#" onClick={() => setPage('influencers')} className="text-gray-600 hover:bg-gray-100 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">Influencers</a>
-                                <a href="#" onClick={() => setPage('posts')} className="text-gray-600 hover:bg-gray-100 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">Posts</a>
+                                <Link to="/" className="text-gray-600 hover:bg-gray-100 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">Kampanye</Link>
+                                <Link to="/influencers" className="text-gray-600 hover:bg-gray-100 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">Influencers</Link>
+                                <Link to="/posts" className="text-gray-600 hover:bg-gray-100 hover:text-ray-900 px-3 py-2 rounded-md text-sm font-medium">Posts</Link>
                             </div>
                         </div>
                     </div>
@@ -30,14 +46,13 @@ export default function Navbar({ user, onLogout, setPage }) {
                             {user ? (
                                 <>
                                     <span className="mr-4 text-gray-700">Welcome, {user.name}</span>
-                                    <button onClick={() => setPage('dashboard-overview')} className="bg-pink-500 text-white px-3 py-2 rounded-md text-sm font-medium hover:bg-pink-600 mr-2">Dashboard</button>
-                                    <button onClick={onLogout} className="bg-gray-200 text-gray-700 px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-300">Logout</button>
+                                    <Link to="/dashboard" className="bg-pink-500 text-white px-3 py-2 rounded-md text-sm font-medium hover:bg-pink-600 mr-2">Dashboard</Link>
+                                    <button onClick={handleLogout} className="bg-gray-200 text-gray-700 px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-300">Logout</button>
                                 </>
                             ) : (
                                 <>
-                                    <a href="#" onClick={() => setPage('login')} className="text-gray-600 hover:bg-gray-100 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">Login</a>
-                                    {/* MODIFIED: Changed Register to Apply Now */}
-                                    <a href="#" onClick={() => setPage('influencer-application')} className="ml-2 bg-pink-500 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-pink-600">Apply Now</a>
+                                    <Link to="/login" className="text-gray-600 hover:bg-gray-100 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">Login</Link>
+                                    <Link to="/apply-influencer" className="ml-2 bg-pink-500 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-pink-600">Apply Now</Link>
                                 </>
                             )}
                         </div>
@@ -54,9 +69,9 @@ export default function Navbar({ user, onLogout, setPage }) {
             {isMobileMenuOpen && (
                 <div className="md:hidden">
                     <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-                        <a href="#" onClick={() => { setPage('home'); setIsMobileMenuOpen(false); }} className="text-gray-600 hover:bg-gray-100 hover:text-gray-900 block px-3 py-2 rounded-md text-base font-medium">Kampanye</a>
-                        <a href="#" onClick={() => { setPage('influencers'); setIsMobileMenuOpen(false); }} className="text-gray-600 hover:bg-gray-100 hover:text-gray-900 block px-3 py-2 rounded-md text-base font-medium">Influencers</a>
-                        <a href="#" onClick={() => { setPage('posts'); setIsMobileMenuOpen(false); }} className="text-gray-600 hover:bg-gray-100 hover:text-gray-900 block px-3 py-2 rounded-md text-base font-medium">Posts</a>
+                        <Link to="/" onClick={() => setIsMobileMenuOpen(false)} className="text-gray-600 hover:bg-gray-100 hover:text-gray-900 block px-3 py-2 rounded-md text-base font-medium">Kampanye</Link>
+                        <Link to="/influencers" onClick={() => setIsMobileMenuOpen(false)} className="text-gray-600 hover:bg-gray-100 hover:text-gray-900 block px-3 py-2 rounded-md text-base font-medium">Influencers</Link>
+                        <Link to="/posts" onClick={() => setIsMobileMenuOpen(false)} className="text-gray-600 hover:bg-gray-100 hover:text-gray-900 block px-3 py-2 rounded-md text-base font-medium">Posts</Link>
                     </div>
                     <div className="pt-4 pb-3 border-t border-gray-200">
                         {user ? (
@@ -73,15 +88,14 @@ export default function Navbar({ user, onLogout, setPage }) {
                                     </div>
                                 </div>
                                 <div className="space-y-1">
-                                    <button onClick={() => { setPage('dashboard-overview'); setIsMobileMenuOpen(false); }} className="w-full text-left block bg-pink-500 text-white px-3 py-2 rounded-md text-base font-medium hover:bg-pink-600">Dashboard</button>
-                                    <button onClick={() => { onLogout(); setIsMobileMenuOpen(false); }} className="w-full text-left block bg-gray-200 text-gray-700 px-3 py-2 rounded-md text-base font-medium hover:bg-gray-300">Logout</button>
+                                    <Link to="/dashboard" onClick={() => setIsMobileMenuOpen(false)} className="w-full text-left block bg-pink-500 text-white px-3 py-2 rounded-md text-base font-medium hover:bg-pink-600">Dashboard</Link>
+                                    <button onClick={handleLogout} className="w-full text-left block bg-gray-200 text-gray-700 px-3 py-2 rounded-md text-base font-medium hover:bg-gray-300">Logout</button>
                                 </div>
                              </div>
                         ) : (
                             <div className="px-2 space-y-1">
-                                <a href="#" onClick={() => { setPage('login'); setIsMobileMenuOpen(false); }} className="block bg-gray-100 text-gray-800 px-3 py-2 rounded-md text-base font-medium">Login</a>
-                                {/* MODIFIED: Changed Register to Apply Now */}
-                                <a href="#" onClick={() => { setPage('influencer-application'); setIsMobileMenuOpen(false); }} className="block bg-pink-500 text-white px-3 py-2 rounded-md text-base font-medium">Apply Now</a>
+                                <Link to="/login" onClick={() => setIsMobileMenuOpen(false)} className="block bg-gray-100 text-gray-800 px-3 py-2 rounded-md text-base font-medium">Login</Link>
+                                <Link to="/apply-influencer" onClick={() => setIsMobileMenuOpen(false)} className="block bg-pink-500 text-white px-3 py-2 rounded-md text-base font-medium">Apply Now</Link>
                             </div>
                         )}
                     </div>

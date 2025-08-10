@@ -3,7 +3,9 @@ import React from 'react';
 const IconUsers = () => ( <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 mr-1.5 text-gray-400"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg> );
 const IconMapPin = () => ( <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 mr-1.5 text-gray-400"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg> );
 
-export default function InfluencerCard({ influencer, setPage }) {
+import { Link } from 'react-router-dom';
+
+export default function InfluencerCard({ influencer }) {
     // PERBAIKAN: Akses data profil dari object `influencer_profile`
     const profile = influencer.influencer_profile || {};
     const imageUrl = profile.profile_picture || `https://placehold.co/400x400/eab308/ffffff?text=${encodeURIComponent(influencer.name.charAt(0))}`;
@@ -22,12 +24,12 @@ export default function InfluencerCard({ influencer, setPage }) {
                         <IconMapPin /> {profile.city || 'N/A'}
                     </span>
                 </div>
-                <button 
-                    onClick={() => setPage('influencer-detail', { id: influencer.id })} 
+                <Link 
+                    to={`/influencers/${influencer.id}`} 
                     className="w-full bg-yellow-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-yellow-600 transition-colors duration-300"
                 >
                     Lihat Profil
-                </button>
+                </Link>
             </div>
         </div>
     );
