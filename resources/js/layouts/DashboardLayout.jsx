@@ -37,7 +37,7 @@ export default function DashboardLayout({ user, children }) {
         <>
             <div className="p-4">
                 <h1 className="text-2xl font-bold text-gray-800">Lixus<span className="text-pink-500">.id</span></h1>
-                <p className="text-sm text-gray-500 capitalize">{user.role} Dashboard</p>
+                <p className="text-sm text-gray-500 capitalize">{user?.role || 'Guest'} Dashboard</p>
             </div>
             <nav className="mt-5">
                 {menuItems.map(item => (
@@ -82,7 +82,7 @@ export default function DashboardLayout({ user, children }) {
                     </button>
                     <div className="hidden md:block"></div>
                     <div className="flex items-center">
-                        <span className="mr-4 text-sm md:text-base">Welcome, {user.name}</span>
+                        <span className="mr-4 text-sm md:text-base">Welcome, {user?.name || 'Guest'}</span>
                         <button onClick={handleLogout} className="bg-gray-200 text-gray-700 px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-300">Logout</button>
                     </div>
                 </header>

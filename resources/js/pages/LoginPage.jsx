@@ -20,7 +20,7 @@ export default function LoginPage() {
             await apiService.getCsrfCookie();
             const data = await apiService.login(email, password);
             localStorage.setItem('authUser', JSON.stringify(data.user));
-            navigate('/dashboard');
+            window.location.reload();
             //onLoginSuccess(data.user);
             //setPage('dashboard-overview');
         } catch (err) {
