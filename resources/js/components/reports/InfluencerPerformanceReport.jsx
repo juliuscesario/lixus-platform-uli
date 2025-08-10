@@ -154,7 +154,13 @@ export default function InfluencerPerformanceAnalytics() {
       </div>
       
       <div className="mt-3 flex gap-2">
-        <button className="flex-1 bg-indigo-600 text-white py-1.5 px-3 rounded text-xs sm:text-sm hover:bg-indigo-700">
+        <button
+          onClick={() => {
+            setViewMode('single');
+            setSelectedInfluencerId(influencer.id);
+          }}
+          className="flex-1 bg-indigo-600 text-white py-1.5 px-3 rounded text-xs sm:text-sm hover:bg-indigo-700"
+        >
           Details
         </button>
         <button

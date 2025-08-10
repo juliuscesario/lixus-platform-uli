@@ -137,7 +137,15 @@ export default function EnhancedCampaignComparison() {
   const [selectedCampaignB, setSelectedCampaignB] = useState(null);
   const [showDropdownA, setShowDropdownA] = useState(false);
   const [showDropdownB, setShowDropdownB] = useState(false);
-  const [comparisonData, setComparisonData] = useState(null);
+
+    useEffect(() => {
+    // Set default campaigns on initial render
+    const campaignIds = Object.keys(campaignDatabase);
+    if (campaignIds.length >= 2) {
+      setSelectedCampaignA(campaignDatabase[campaignIds[0]]);
+      setSelectedCampaignB(campaignDatabase[campaignIds[1]]);
+    }
+  }, []);
 
   const formatNumber = (num) => {
     if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';

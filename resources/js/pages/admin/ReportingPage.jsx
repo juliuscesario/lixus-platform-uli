@@ -50,9 +50,9 @@ export default function ReportingPage() {
                         onChange={(e) => setActiveTab(e.target.value)}
                         value={activeTab}
                     >
-                        <option value={TABS.BRAND_PERFORMANCE}>Brand Performance</option>
-                        <option value={TABS.CAMPAIGN_COMPARISON}>Campaign Comparison</option>
-                        <option value={TABS.INFLUENCER_PERFORMANCE}>Influencer Performance</option>
+                        <option value={TABS.BRAND_PERFORMANCE}>{TABS.BRAND_PERFORMANCE}</option>
+                        <option value={TABS.CAMPAIGN_COMPARISON}>{TABS.CAMPAIGN_COMPARISON}</option>
+                        <option value={TABS.INFLUENCER_PERFORMANCE}>{TABS.INFLUENCER_PERFORMANCE}</option>
                     </select>
                 </div>
                 <div className="hidden sm:block">
