@@ -43,7 +43,7 @@ export default function LoginPage() {
                 <p className="mt-2 text-center text-sm text-gray-600">
                     Atau{' '}
                     {/* MODIFIED: Changed link to the application page */}
-                    <Link to="/influencer-application" className="font-medium text-pink-600 hover:text-pink-500">
+                    <Link to="/apply-influencer" className="font-medium text-pink-600 hover:text-pink-500">
                         daftar sebagai influencer baru
                     </Link>
                 </p>

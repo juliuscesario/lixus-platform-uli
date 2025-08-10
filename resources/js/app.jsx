@@ -1,7 +1,7 @@
 import './bootstrap';
 import React, { Suspense, lazy } from 'react';
 import ReactDOM from 'react-dom/client';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import { AuthProvider } from './contexts/AuthContext';
@@ -11,7 +11,6 @@ import DashboardLayout from './layouts/DashboardLayout';
 
 const HomePage = lazy(() => import('./pages/HomePage'));
 const LoginPage = lazy(() => import('./pages/LoginPage'));
-const RegisterPage = lazy(() => import('./pages/RegisterPage'));
 const DashboardPage = lazy(() => import('./pages/DashboardPage'));
 const InfluencersPage = lazy(() => import('./pages/InfluencersPage'));
 const InfluencerDetailPage = lazy(() => import('./pages/InfluencerDetailPage'));
@@ -93,15 +92,7 @@ function App() {
                                 <Footer />
                             </>
                         } />
-                        <Route path="/register" element={
-                            <>
-                                <Navbar />
-                                <main className="flex-grow">
-                                    <RegisterPage />
-                                </main>
-                                <Footer />
-                            </>
-                        } />
+                        <Route path="/register" element={<Navigate to="/apply-influencer" replace />} />
                         <Route path="/influencers" element={
                             <>
                                 <Navbar />
