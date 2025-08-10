@@ -142,55 +142,55 @@ export default function BrandPerformanceReport() {
     const renderExecutiveDashboard = () => (
         <div className="space-y-6">
             {/* KPI Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div className="bg-gradient-to-r from-blue-500 to-blue-600 p-6 rounded-xl text-white">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="bg-gradient-to-r from-blue-500 to-blue-600 p-4 rounded-xl text-white">
                     <div className="flex items-center justify-between">
                         <div>
-                            <p className="text-blue-100 text-sm">Total Investment</p>
-                            <p className="text-2xl font-bold">{formatCurrency(executiveMetrics.totalInvestment)}</p>
+                            <p className="text-blue-100 text-xs sm:text-sm">Total Investment</p>
+                            <p className="text-xl sm:text-2xl font-bold">{formatCurrency(executiveMetrics.totalInvestment)}</p>
                             <p className="text-blue-100 text-xs mt-1">+12% vs last period</p>
                         </div>
-                        <IconDollar />
+                        <IconDollar className="w-6 h-6 sm:w-8 sm:h-8" />
                     </div>
                 </div>
                 
-                <div className="bg-gradient-to-r from-green-500 to-green-600 p-6 rounded-xl text-white">
+                <div className="bg-gradient-to-r from-green-500 to-green-600 p-4 rounded-xl text-white">
                     <div className="flex items-center justify-between">
                         <div>
-                            <p className="text-green-100 text-sm">ROI</p>
-                            <p className="text-2xl font-bold">{executiveMetrics.roi}x</p>
+                            <p className="text-green-100 text-xs sm:text-sm">ROI</p>
+                            <p className="text-xl sm:text-2xl font-bold">{executiveMetrics.roi}x</p>
                             <p className="text-green-100 text-xs mt-1">+0.5x vs target</p>
                         </div>
-                        <IconTrendingUp />
+                        <IconTrendingUp className="w-6 h-6 sm:w-8 sm:h-8" />
                     </div>
                 </div>
                 
-                <div className="bg-gradient-to-r from-purple-500 to-purple-600 p-6 rounded-xl text-white">
+                <div className="bg-gradient-to-r from-purple-500 to-purple-600 p-4 rounded-xl text-white">
                     <div className="flex items-center justify-between">
                         <div>
-                            <p className="text-purple-100 text-sm">Total Reach</p>
-                            <p className="text-2xl font-bold">{formatNumber(executiveMetrics.estimatedReach)}</p>
+                            <p className="text-purple-100 text-xs sm:text-sm">Total Reach</p>
+                            <p className="text-xl sm:text-2xl font-bold">{formatNumber(executiveMetrics.estimatedReach)}</p>
                             <p className="text-purple-100 text-xs mt-1">156 influencers</p>
                         </div>
-                        <IconUsers />
+                        <IconUsers className="w-6 h-6 sm:w-8 sm:h-8" />
                     </div>
                 </div>
                 
-                <div className="bg-gradient-to-r from-orange-500 to-orange-600 p-6 rounded-xl text-white">
+                <div className="bg-gradient-to-r from-orange-500 to-orange-600 p-4 rounded-xl text-white">
                     <div className="flex items-center justify-between">
                         <div>
-                            <p className="text-orange-100 text-sm">Avg Engagement</p>
-                            <p className="text-2xl font-bold">{executiveMetrics.avgEngagementRate}%</p>
+                            <p className="text-orange-100 text-xs sm:text-sm">Avg Engagement</p>
+                            <p className="text-xl sm:text-2xl font-bold">{executiveMetrics.avgEngagementRate}%</p>
                             <p className="text-orange-100 text-xs mt-1">Above industry avg</p>
                         </div>
-                        <IconCalendar />
+                        <IconCalendar className="w-6 h-6 sm:w-8 sm:h-8" />
                     </div>
                 </div>
             </div>
 
             {/* Campaign Comparison Chart */}
-            <div className="bg-white p-6 rounded-xl shadow-sm">
-                <h3 className="text-lg font-semibold mb-4">Campaign Performance Comparison</h3>
+            <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm">
+                <h3 className="text-base sm:text-lg font-semibold mb-4">Campaign Performance Comparison</h3>
                 <Bar data={campaignComparison} options={{
                     responsive: true,
                     plugins: {
@@ -204,9 +204,9 @@ export default function BrandPerformanceReport() {
             </div>
 
             {/* Influencer Tier Performance */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="bg-white p-6 rounded-xl shadow-sm">
-                    <h3 className="text-lg font-semibold mb-4">Influencer Tier Performance</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm">
+                    <h3 className="text-base sm:text-lg font-semibold mb-4">Influencer Tier Performance</h3>
                     <Doughnut data={influencerTierData} options={{
                         responsive: true,
                         plugins: {
@@ -215,8 +215,8 @@ export default function BrandPerformanceReport() {
                     }} />
                 </div>
                 
-                <div className="bg-white p-6 rounded-xl shadow-sm">
-                    <h3 className="text-lg font-semibold mb-4">Content Type Effectiveness</h3>
+                <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm">
+                    <h3 className="text-base sm:text-lg font-semibold mb-4">Content Type Effectiveness</h3>
                     <Radar data={contentPerformanceData} options={{
                         responsive: true,
                         plugins: {
@@ -238,9 +238,9 @@ export default function BrandPerformanceReport() {
     const renderEngagementAnalytics = () => (
         <div className="space-y-6">
             {/* Engagement Heatmap */}
-            <div className="bg-white p-6 rounded-xl shadow-sm">
-                <h3 className="text-lg font-semibold mb-4">Engagement Heatmap - Best Posting Times</h3>
-                <p className="text-sm text-gray-600 mb-4">Darker colors indicate higher engagement rates</p>
+            <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm">
+                <h3 className="text-base sm:text-lg font-semibold mb-4">Engagement Heatmap - Best Times</h3>
+                <p className="text-xs sm:text-sm text-gray-600 mb-4">Darker colors indicate higher engagement</p>
                 <Bar data={engagementHeatmap} options={{
                     responsive: true,
                     plugins: {
@@ -260,9 +260,9 @@ export default function BrandPerformanceReport() {
             </div>
 
             {/* Engagement Velocity */}
-            <div className="bg-white p-6 rounded-xl shadow-sm">
-                <h3 className="text-lg font-semibold mb-4">Engagement Velocity Curve</h3>
-                <p className="text-sm text-gray-600 mb-4">How quickly content reaches its peak engagement</p>
+            <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm">
+                <h3 className="text-base sm:text-lg font-semibold mb-4">Engagement Velocity Curve</h3>
+                <p className="text-xs sm:text-sm text-gray-600 mb-4">Content engagement accumulation rate</p>
                 <Line data={engagementVelocityData} options={{
                     responsive: true,
                     plugins: {
@@ -283,23 +283,23 @@ export default function BrandPerformanceReport() {
             </div>
 
             {/* Optimal Posting Windows */}
-            <div className="bg-white p-6 rounded-xl shadow-sm">
-                <h3 className="text-lg font-semibold mb-4">AI-Recommended Posting Schedule</h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="border-l-4 border-green-500 pl-4">
-                        <p className="text-sm text-gray-600">Primary Window</p>
-                        <p className="text-lg font-semibold">18:00 - 21:00</p>
-                        <p className="text-xs text-gray-500">95% engagement potential</p>
+            <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm">
+                <h3 className="text-base sm:text-lg font-semibold mb-4">AI Posting Schedule</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div className="border-l-4 border-green-500 p-3">
+                        <p className="text-xs sm:text-sm text-gray-600">Primary Window</p>
+                        <p className="text-base sm:text-lg font-semibold">18:00-21:00</p>
+                        <p className="text-xs text-gray-500">95% potential</p>
                     </div>
-                    <div className="border-l-4 border-yellow-500 pl-4">
-                        <p className="text-sm text-gray-600">Secondary Window</p>
-                        <p className="text-lg font-semibold">12:00 - 13:00</p>
-                        <p className="text-xs text-gray-500">78% engagement potential</p>
+                    <div className="border-l-4 border-yellow-500 p-3">
+                        <p className="text-xs sm:text-sm text-gray-600">Secondary Window</p>
+                        <p className="text-base sm:text-lg font-semibold">12:00-13:00</p>
+                        <p className="text-xs text-gray-500">78% potential</p>
                     </div>
-                    <div className="border-l-4 border-blue-500 pl-4">
-                        <p className="text-sm text-gray-600">Weekend Window</p>
-                        <p className="text-lg font-semibold">20:00 - 22:00</p>
-                        <p className="text-xs text-gray-500">88% engagement potential</p>
+                    <div className="border-l-4 border-blue-500 p-3">
+                        <p className="text-xs sm:text-sm text-gray-600">Weekend Window</p>
+                        <p className="text-base sm:text-lg font-semibold">20:00-22:00</p>
+                        <p className="text-xs text-gray-500">88% potential</p>
                     </div>
                 </div>
             </div>
@@ -309,94 +309,90 @@ export default function BrandPerformanceReport() {
     const renderPredictiveAnalytics = () => (
         <div className="space-y-6">
             {/* Campaign Success Predictor */}
-            <div className="bg-gradient-to-r from-indigo-500 to-purple-600 p-6 rounded-xl text-white">
-                <h3 className="text-xl font-semibold mb-4">Campaign Success Predictions</h3>
+            <div className="bg-gradient-to-r from-indigo-500 to-purple-600 p-4 sm:p-6 rounded-xl text-white">
+                <h3 className="text-base sm:text-xl font-semibold mb-4">Campaign Success Predictions</h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="bg-white/10 backdrop-blur rounded-lg p-4">
-                        <p className="text-indigo-100 text-sm">Pepsodent Campaign</p>
-                        <p className="text-2xl font-bold">87%</p>
-                        <p className="text-indigo-100 text-xs">Likelihood to exceed target</p>
+                    <div className="bg-white/10 backdrop-blur rounded-lg p-3 sm:p-4">
+                        <p className="text-indigo-100 text-xs sm:text-sm">Pepsodent Campaign</p>
+                        <p className="text-xl sm:text-2xl font-bold">87%</p>
+                        <p className="text-indigo-100 text-xs">Likelihood to succeed</p>
                     </div>
-                    <div className="bg-white/10 backdrop-blur rounded-lg p-4">
-                        <p className="text-indigo-100 text-sm">Predicted Final Reach</p>
-                        <p className="text-2xl font-bold">12.5M</p>
-                        <p className="text-indigo-100 text-xs">Based on current velocity</p>
+                    <div className="bg-white/10 backdrop-blur rounded-lg p-3 sm:p-4">
+                        <p className="text-indigo-100 text-xs sm:text-sm">Predicted Reach</p>
+                        <p className="text-xl sm:text-2xl font-bold">12.5M</p>
+                        <p className="text-indigo-100 text-xs">Based on velocity</p>
                     </div>
-                    <div className="bg-white/10 backdrop-blur rounded-lg p-4">
-                        <p className="text-indigo-100 text-sm">Recommended Action</p>
-                        <p className="text-lg font-bold">Add 5 Micro Influencers</p>
-                        <p className="text-indigo-100 text-xs">To ensure target achievement</p>
+                    <div className="bg-white/10 backdrop-blur rounded-lg p-3 sm:p-4">
+                        <p className="text-indigo-100 text-xs sm:text-sm">Recommendation</p>
+                        <p className="text-base sm:text-lg font-bold">Add 5 Micro Influencers</p>
+                        <p className="text-indigo-100 text-xs">To ensure target</p>
                     </div>
                 </div>
             </div>
 
             {/* Budget Optimization Recommendations */}
-            <div className="bg-white p-6 rounded-xl shadow-sm">
-                <h3 className="text-lg font-semibold mb-4">Budget Optimization Recommendations</h3>
+            <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm">
+                <h3 className="text-base sm:text-lg font-semibold mb-4">Budget Optimization</h3>
                 <div className="space-y-3">
-                    <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
-                        <div>
-                            <p className="font-medium">Increase Nano Influencer allocation</p>
-                            <p className="text-sm text-gray-600">Current ROI: 4.2x | Recommended: +20% budget</p>
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 bg-green-50 rounded-lg">
+                        <div className="mb-2 sm:mb-0">
+                            <p className="font-medium text-sm sm:text-base">Increase Nano allocation</p>
+                            <p className="text-xs sm:text-sm text-gray-600">ROI: 4.2x | Rec: +20% budget</p>
                         </div>
-                        <span className="bg-green-500 text-white px-3 py-1 rounded-full text-sm">High Priority</span>
+                        <span className="bg-green-500 text-white px-2 py-1 rounded-full text-xs">High</span>
                     </div>
-                    <div className="flex items-center justify-between p-3 bg-yellow-50 rounded-lg">
-                        <div>
-                            <p className="font-medium">Optimize Macro Influencer selection</p>
-                            <p className="text-sm text-gray-600">Current ROI: 2.1x | Consider performance-based contracts</p>
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 bg-yellow-50 rounded-lg">
+                        <div className="mb-2 sm:mb-0">
+                            <p className="font-medium text-sm sm:text-base">Optimize Macro selection</p>
+                            <p className="text-xs sm:text-sm text-gray-600">ROI: 2.1x | Use performance contracts</p>
                         </div>
-                        <span className="bg-yellow-500 text-white px-3 py-1 rounded-full text-sm">Medium Priority</span>
+                        <span className="bg-yellow-500 text-white px-2 py-1 rounded-full text-xs">Medium</span>
                     </div>
-                    <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
-                        <div>
-                            <p className="font-medium">Test TikTok micro-campaigns</p>
-                            <p className="text-sm text-gray-600">Predicted ROI: 3.8x | Recommended test budget: 5M IDR</p>
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 bg-blue-50 rounded-lg">
+                        <div className="mb-2 sm:mb-0">
+                            <p className="font-medium text-sm sm:text-base">Test TikTok campaigns</p>
+                            <p className="text-xs sm:text-sm text-gray-600">Predicted ROI: 3.8x | Test budget: 5M</p>
                         </div>
-                        <span className="bg-blue-500 text-white px-3 py-1 rounded-full text-sm">Opportunity</span>
+                        <span className="bg-blue-500 text-white px-2 py-1 rounded-full text-xs">Opportunity</span>
                     </div>
                 </div>
             </div>
 
             {/* Influencer Recommendations */}
-            <div className="bg-white p-6 rounded-xl shadow-sm">
-                <h3 className="text-lg font-semibold mb-4">Top Influencer Recommendations for Next Campaign</h3>
+            <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm">
+                <h3 className="text-base sm:text-lg font-semibold mb-4">Top Influencer Recommendations</h3>
                 <div className="overflow-x-auto">
-                    <table className="min-w-full">
+                    <table className="w-full">
                         <thead className="bg-gray-50">
                             <tr>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Influencer</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tier</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Avg Engagement</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Est. ROI</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Match Score</th>
+                                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Influencer</th>
+                                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase hidden sm:table-cell">Tier</th>
+                                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Eng.</th>
+                                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Match</th>
                             </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
                             <tr>
-                                <td className="px-6 py-4 whitespace-nowrap">@fashion_jakarta</td>
-                                <td className="px-6 py-4 whitespace-nowrap">Micro</td>
-                                <td className="px-6 py-4 whitespace-nowrap">8.5%</td>
-                                <td className="px-6 py-4 whitespace-nowrap">4.5x</td>
-                                <td className="px-6 py-4 whitespace-nowrap">
+                                <td className="px-4 py-2 whitespace-nowrap text-sm">@fashion_jakarta</td>
+                                <td className="px-4 py-2 whitespace-nowrap text-sm hidden sm:table-cell">Micro</td>
+                                <td className="px-4 py-2 whitespace-nowrap text-sm">8.5%</td>
+                                <td className="px-4 py-2 whitespace-nowrap">
                                     <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs">95%</span>
                                 </td>
                             </tr>
                             <tr>
-                                <td className="px-6 py-4 whitespace-nowrap">@healthy_life_id</td>
-                                <td className="px-6 py-4 whitespace-nowrap">Nano</td>
-                                <td className="px-6 py-4 whitespace-nowrap">12.3%</td>
-                                <td className="px-6 py-4 whitespace-nowrap">5.2x</td>
-                                <td className="px-6 py-4 whitespace-nowrap">
+                                <td className="px-4 py-2 whitespace-nowrap text-sm">@healthy_life_id</td>
+                                <td className="px-4 py-2 whitespace-nowrap text-sm hidden sm:table-cell">Nano</td>
+                                <td className="px-4 py-2 whitespace-nowrap text-sm">12.3%</td>
+                                <td className="px-4 py-2 whitespace-nowrap">
                                     <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs">92%</span>
                                 </td>
                             </tr>
                             <tr>
-                                <td className="px-6 py-4 whitespace-nowrap">@jakarta_foodie</td>
-                                <td className="px-6 py-4 whitespace-nowrap">Mid-tier</td>
-                                <td className="px-6 py-4 whitespace-nowrap">6.7%</td>
-                                <td className="px-6 py-4 whitespace-nowrap">3.8x</td>
-                                <td className="px-6 py-4 whitespace-nowrap">
+                                <td className="px-4 py-2 whitespace-nowrap text-sm">@jakarta_foodie</td>
+                                <td className="px-4 py-2 whitespace-nowrap text-sm hidden sm:table-cell">Mid-tier</td>
+                                <td className="px-4 py-2 whitespace-nowrap text-sm">6.7%</td>
+                                <td className="px-4 py-2 whitespace-nowrap">
                                     <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs">88%</span>
                                 </td>
                             </tr>
@@ -408,22 +404,22 @@ export default function BrandPerformanceReport() {
     );
 
     return (
-        <div className="min-h-screen bg-gray-50 p-6">
+        <div className="bg-gray-50 p-4 md:p-6">
             <div className="max-w-7xl mx-auto">
                 {/* Header */}
-                <div className="mb-8">
-                    <h1 className="text-3xl font-bold text-gray-900">Strategic Analytics Dashboard</h1>
-                    <p className="text-gray-600 mt-2">Real-time insights and predictive analytics for campaign optimization</p>
+                <div className="mb-6">
+                    <h1 className="text-xl md:text-3xl font-bold text-gray-900">Strategic Analytics</h1>
+                    <p className="text-gray-600 mt-1 md:mt-2 text-sm md:text-base">Real-time insights for campaign optimization</p>
                 </div>
 
                 {/* Date Range Selector */}
-                <div className="bg-white p-4 rounded-xl shadow-sm mb-6 flex flex-wrap gap-4 items-center">
-                    <div className="flex items-center gap-2">
-                        <label className="text-sm font-medium text-gray-700">Period:</label>
-                        <select 
-                            value={dateRange} 
+                <div className="bg-white p-3 md:p-4 rounded-xl shadow-sm mb-6 flex flex-col sm:flex-row flex-wrap gap-4 items-center">
+                    <div className="flex w-full sm:w-auto items-center gap-2">
+                        <label className="text-xs sm:text-sm font-medium text-gray-700">Period:</label>
+                        <select
+                            value={dateRange}
                             onChange={(e) => setDateRange(e.target.value)}
-                            className="rounded-md border-gray-300 text-sm"
+                            className="rounded-md border-gray-300 text-xs sm:text-sm w-full"
                         >
                             <option value="week">Last Week</option>
                             <option value="month">Last Month</option>
@@ -431,12 +427,12 @@ export default function BrandPerformanceReport() {
                             <option value="year">Last Year</option>
                         </select>
                     </div>
-                    <div className="flex items-center gap-2">
-                        <label className="text-sm font-medium text-gray-700">Compare with:</label>
-                        <select 
-                            value={comparisonPeriod} 
+                    <div className="flex w-full sm:w-auto items-center gap-2">
+                        <label className="text-xs sm:text-sm font-medium text-gray-700">Compare:</label>
+                        <select
+                            value={comparisonPeriod}
                             onChange={(e) => setComparisonPeriod(e.target.value)}
-                            className="rounded-md border-gray-300 text-sm"
+                            className="rounded-md border-gray-300 text-xs sm:text-sm w-full"
                         >
                             <option value="previous">Previous Period</option>
                             <option value="year">Same Period Last Year</option>
@@ -446,26 +442,41 @@ export default function BrandPerformanceReport() {
                 </div>
 
                 {/* Tab Navigation */}
-                <div className="bg-white rounded-xl shadow-sm mb-6">
-                    <div className="flex flex-wrap border-b">
-                        <button 
-                            onClick={() => setActiveTab('executive')}
-                            className={`px-6 py-3 text-sm font-medium transition-colors ${activeTab === 'executive' ? 'border-b-2 border-indigo-500 text-indigo-600' : 'text-gray-600 hover:text-gray-900'}`}
+                <div className="mb-6">
+                    <div className="sm:hidden">
+                        <select
+                            id="report-tabs"
+                            name="report-tabs"
+                            className="block w-full rounded-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
+                            onChange={(e) => setActiveTab(e.target.value)}
+                            value={activeTab}
                         >
-                            Executive Overview
-                        </button>
-                        <button 
-                            onClick={() => setActiveTab('engagement')}
-                            className={`px-6 py-3 text-sm font-medium transition-colors ${activeTab === 'engagement' ? 'border-b-2 border-indigo-500 text-indigo-600' : 'text-gray-600 hover:text-gray-900'}`}
-                        >
-                            Engagement Analytics
-                        </button>
-                        <button 
-                            onClick={() => setActiveTab('predictive')}
-                            className={`px-6 py-3 text-sm font-medium transition-colors ${activeTab === 'predictive' ? 'border-b-2 border-indigo-500 text-indigo-600' : 'text-gray-600 hover:text-gray-900'}`}
-                        >
-                            Predictive Insights
-                        </button>
+                            <option value="executive">Executive Overview</option>
+                            <option value="engagement">Engagement Analytics</option>
+                            <option value="predictive">Predictive Insights</option>
+                        </select>
+                    </div>
+                    <div className="hidden sm:block bg-white rounded-xl shadow-sm">
+                        <div className="flex flex-wrap border-b">
+                            <button
+                                onClick={() => setActiveTab('executive')}
+                                className={`px-4 py-2 sm:px-6 sm:py-3 text-xs sm:text-sm font-medium transition-colors ${activeTab === 'executive' ? 'border-b-2 border-indigo-500 text-indigo-600' : 'text-gray-600 hover:text-gray-900'}`}
+                            >
+                                Overview
+                            </button>
+                            <button
+                                onClick={() => setActiveTab('engagement')}
+                                className={`px-4 py-2 sm:px-6 sm:py-3 text-xs sm:text-sm font-medium transition-colors ${activeTab === 'engagement' ? 'border-b-2 border-indigo-500 text-indigo-600' : 'text-gray-600 hover:text-gray-900'}`}
+                            >
+                                Engagement
+                            </button>
+                            <button
+                                onClick={() => setActiveTab('predictive')}
+                                className={`px-4 py-2 sm:px-6 sm:py-3 text-xs sm:text-sm font-medium transition-colors ${activeTab === 'predictive' ? 'border-b-2 border-indigo-500 text-indigo-600' : 'text-gray-600 hover:text-gray-900'}`}
+                            >
+                                Predictive
+                            </button>
+                        </div>
                     </div>
                 </div>
 

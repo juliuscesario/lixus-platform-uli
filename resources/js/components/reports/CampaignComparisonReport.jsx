@@ -172,18 +172,18 @@ export default function EnhancedCampaignComparison() {
       <div className="relative">
         <button
           onClick={() => setShowDropdown(!showDropdown)}
-          className="w-full bg-white border-2 border-gray-200 rounded-xl p-4 text-left hover:border-indigo-400 transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          className="w-full bg-white border-2 border-gray-200 rounded-xl p-3 sm:p-4 text-left hover:border-indigo-400 transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500"
         >
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-500 mb-1">Campaign {isA ? 'A' : 'B'}</p>
+              <p className="text-xs sm:text-sm text-gray-500 mb-1">Campaign {isA ? 'A' : 'B'}</p>
               {selected ? (
                 <div>
-                  <p className="font-semibold text-gray-900">{selected.name}</p>
-                  <p className="text-xs text-gray-500 mt-1">{selected.brand} • {selected.status}</p>
+                  <p className="font-semibold text-sm sm:text-base text-gray-900">{selected.name}</p>
+                  <p className="text-xs text-gray-500 mt-1 hidden sm:block">{selected.brand} • {selected.status}</p>
                 </div>
               ) : (
-                <p className="text-gray-400">Select a campaign...</p>
+                <p className="text-sm sm:text-base text-gray-400">Select a campaign...</p>
               )}
             </div>
             <ChevronDown className={`w-5 h-5 text-gray-400 transition-transform ${showDropdown ? 'rotate-180' : ''}`} />
@@ -223,20 +223,20 @@ export default function EnhancedCampaignComparison() {
     const colorClass = getComparisonColor(valueA, valueB);
 
     return (
-      <div className="bg-white rounded-xl p-4 border border-gray-200">
-        <div className="flex items-center justify-between mb-3">
-          <p className="text-sm text-gray-600">{label}</p>
+      <div className="bg-white rounded-xl p-3 sm:p-4 border border-gray-200">
+        <div className="flex items-center justify-between mb-2">
+          <p className="text-xs sm:text-sm text-gray-600">{label}</p>
           {Icon && <Icon className="w-4 h-4 text-gray-400" />}
         </div>
-        <div className="flex flex-wrap justify-between items-baseline gap-x-4 gap-y-2">
+        <div className="flex flex-wrap justify-between items-baseline gap-x-2 gap-y-1">
           <div className={`${selectedCampaignA ? colorClass : 'text-gray-300'}`}>
-            <p className="text-2xl font-bold">{selectedCampaignA ? formattedA : '-'}</p>
+            <p className="text-lg sm:text-2xl font-bold">{selectedCampaignA ? formattedA : '-'}</p>
             {selectedCampaignA && selectedCampaignB && diff !== '0.0' && (
               <p className="text-xs mt-1">{diff > 0 ? '+' : ''}{diff}%</p>
             )}
           </div>
           <div className="text-gray-900">
-            <p className="text-2xl font-bold">{selectedCampaignB ? formattedB : '-'}</p>
+            <p className="text-lg sm:text-2xl font-bold">{selectedCampaignB ? formattedB : '-'}</p>
           </div>
         </div>
       </div>
@@ -323,17 +323,17 @@ export default function EnhancedCampaignComparison() {
   } : null;
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="bg-gray-50 p-4 md:p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Campaign Comparison Dashboard</h1>
-          <p className="text-gray-600 mt-2">Select two campaigns to compare performance metrics and gain strategic insights</p>
+        <div className="mb-6">
+          <h1 className="text-xl md:text-3xl font-bold text-gray-900">Campaign Comparison</h1>
+          <p className="text-gray-600 mt-1 md:mt-2 text-sm md:text-base">Select two campaigns to compare performance</p>
         </div>
 
         {/* Campaign Selectors */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-          <CampaignSelector 
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mb-6">
+          <CampaignSelector
             selected={selectedCampaignA}
             onSelect={setSelectedCampaignA}
             isA={true}
@@ -353,11 +353,11 @@ export default function EnhancedCampaignComparison() {
         {(selectedCampaignA || selectedCampaignB) && (
           <>
             {/* Key Metrics Comparison */}
-            <div className="mb-8">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">Key Performance Metrics</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <MetricCard 
-                  label="Total Budget" 
+            <div className="mb-6">
+              <h2 className="text-lg md:text-xl font-semibold text-gray-900 mb-4">Key Metrics</h2>
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
+                <MetricCard
+                  label="Budget"
                   valueA={selectedCampaignA?.budget} 
                   valueB={selectedCampaignB?.budget}
                   format="currency"
@@ -376,9 +376,9 @@ export default function EnhancedCampaignComparison() {
                   valueB={selectedCampaignB?.totalReach}
                   icon={Eye}
                 />
-                <MetricCard 
-                  label="Engagement Rate" 
-                  valueA={selectedCampaignA?.avgEngagementRate} 
+                <MetricCard
+                  label="Eng. Rate"
+                  valueA={selectedCampaignA?.avgEngagementRate}
                   valueB={selectedCampaignB?.avgEngagementRate}
                   format="percent"
                   icon={Activity}
@@ -387,9 +387,9 @@ export default function EnhancedCampaignComparison() {
             </div>
 
             {/* Engagement Metrics */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-              <div className="lg:col-span-2 bg-white rounded-xl p-6 shadow-sm">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Weekly Engagement Trend</h3>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6 mb-6">
+              <div className="lg:col-span-2 bg-white rounded-xl p-4 sm:p-6 shadow-sm">
+                <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">Weekly Engagement</h3>
                 {engagementComparisonData ? (
                   <Line data={engagementComparisonData} options={{
                     responsive: true,
@@ -410,19 +410,19 @@ export default function EnhancedCampaignComparison() {
                 )}
               </div>
 
-              <div className="bg-white rounded-xl p-6 shadow-sm">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Content Metrics</h3>
-                <div className="space-y-4">
+              <div className="bg-white rounded-xl p-4 sm:p-6 shadow-sm">
+                <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">Content Metrics</h3>
+                <div className="space-y-3">
                   <div className="flex justify-between items-center">
                     <div className="flex items-center gap-2">
                       <Heart className="w-4 h-4 text-red-500" />
-                      <span className="text-sm text-gray-600">Likes</span>
+                      <span className="text-xs sm:text-sm text-gray-600">Likes</span>
                     </div>
-                    <div className="flex gap-4">
-                      <span className="font-semibold text-indigo-600">
+                    <div className="flex gap-2 sm:gap-4">
+                      <span className="font-semibold text-indigo-600 text-sm sm:text-base">
                         {selectedCampaignA ? formatNumber(selectedCampaignA.metrics.likes) : '-'}
                       </span>
-                      <span className="font-semibold text-pink-600">
+                      <span className="font-semibold text-pink-600 text-sm sm:text-base">
                         {selectedCampaignB ? formatNumber(selectedCampaignB.metrics.likes) : '-'}
                       </span>
                     </div>
@@ -430,13 +430,13 @@ export default function EnhancedCampaignComparison() {
                   <div className="flex justify-between items-center">
                     <div className="flex items-center gap-2">
                       <MessageCircle className="w-4 h-4 text-blue-500" />
-                      <span className="text-sm text-gray-600">Comments</span>
+                      <span className="text-xs sm:text-sm text-gray-600">Comments</span>
                     </div>
-                    <div className="flex gap-4">
-                      <span className="font-semibold text-indigo-600">
+                    <div className="flex gap-2 sm:gap-4">
+                      <span className="font-semibold text-indigo-600 text-sm sm:text-base">
                         {selectedCampaignA ? formatNumber(selectedCampaignA.metrics.comments) : '-'}
                       </span>
-                      <span className="font-semibold text-pink-600">
+                      <span className="font-semibold text-pink-600 text-sm sm:text-base">
                         {selectedCampaignB ? formatNumber(selectedCampaignB.metrics.comments) : '-'}
                       </span>
                     </div>
@@ -444,13 +444,13 @@ export default function EnhancedCampaignComparison() {
                   <div className="flex justify-between items-center">
                     <div className="flex items-center gap-2">
                       <Share2 className="w-4 h-4 text-green-500" />
-                      <span className="text-sm text-gray-600">Shares</span>
+                      <span className="text-xs sm:text-sm text-gray-600">Shares</span>
                     </div>
-                    <div className="flex gap-4">
-                      <span className="font-semibold text-indigo-600">
+                    <div className="flex gap-2 sm:gap-4">
+                      <span className="font-semibold text-indigo-600 text-sm sm:text-base">
                         {selectedCampaignA ? formatNumber(selectedCampaignA.metrics.shares) : '-'}
                       </span>
-                      <span className="font-semibold text-pink-600">
+                      <span className="font-semibold text-pink-600 text-sm sm:text-base">
                         {selectedCampaignB ? formatNumber(selectedCampaignB.metrics.shares) : '-'}
                       </span>
                     </div>
@@ -460,9 +460,9 @@ export default function EnhancedCampaignComparison() {
             </div>
 
             {/* Platform and Influencer Analysis */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-              <div className="bg-white rounded-xl p-6 shadow-sm">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Platform Distribution (%)</h3>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 mb-6">
+              <div className="bg-white rounded-xl p-4 sm:p-6 shadow-sm">
+                <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">Platform Distribution</h3>
                 {platformComparisonData ? (
                   <Bar data={platformComparisonData} options={{
                     responsive: true,
@@ -484,8 +484,8 @@ export default function EnhancedCampaignComparison() {
                 )}
               </div>
 
-              <div className="bg-white rounded-xl p-6 shadow-sm">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Influencer Tier Distribution</h3>
+              <div className="bg-white rounded-xl p-4 sm:p-6 shadow-sm">
+                <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">Tier Distribution</h3>
                 {influencerTierData ? (
                   <Radar data={influencerTierData} options={{
                     responsive: true,
@@ -509,32 +509,32 @@ export default function EnhancedCampaignComparison() {
 
             {/* Strategic Insights */}
             {selectedCampaignA && selectedCampaignB && (
-              <div className="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl p-6 text-white">
-                <h3 className="text-xl font-semibold mb-4">Strategic Insights & Recommendations</h3>
+              <div className="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl p-4 sm:p-6 text-white">
+                <h3 className="text-lg md:text-xl font-semibold mb-4">Strategic Insights</h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="bg-white/10 backdrop-blur rounded-lg p-4">
-                    <p className="text-indigo-100 text-sm mb-1">Best Performing</p>
-                    <p className="text-lg font-bold">
+                  <div className="bg-white/10 backdrop-blur rounded-lg p-3 sm:p-4">
+                    <p className="text-indigo-100 text-xs sm:text-sm mb-1">Best Performer (ROI)</p>
+                    <p className="text-base sm:text-lg font-bold truncate">
                       {selectedCampaignA.roi > selectedCampaignB.roi ? selectedCampaignA.name : selectedCampaignB.name}
                     </p>
                     <p className="text-indigo-100 text-xs mt-1">
-                      Higher ROI by {Math.abs(calculatePercentageDiff(selectedCampaignA.roi, selectedCampaignB.roi))}%
+                      +{Math.abs(calculatePercentageDiff(selectedCampaignA.roi, selectedCampaignB.roi))}% ROI
                     </p>
                   </div>
-                  <div className="bg-white/10 backdrop-blur rounded-lg p-4">
-                    <p className="text-indigo-100 text-sm mb-1">Efficiency Leader</p>
-                    <p className="text-lg font-bold">
-                      {(selectedCampaignA.totalEngagement/selectedCampaignA.budget) > 
-                       (selectedCampaignB.totalEngagement/selectedCampaignB.budget) 
+                  <div className="bg-white/10 backdrop-blur rounded-lg p-3 sm:p-4">
+                    <p className="text-indigo-100 text-xs sm:text-sm mb-1">Efficiency Leader</p>
+                    <p className="text-base sm:text-lg font-bold truncate">
+                      {(selectedCampaignA.totalEngagement/selectedCampaignA.budget) >
+                       (selectedCampaignB.totalEngagement/selectedCampaignB.budget)
                        ? selectedCampaignA.name : selectedCampaignB.name}
                     </p>
-                    <p className="text-indigo-100 text-xs mt-1">Better engagement per IDR spent</p>
+                    <p className="text-indigo-100 text-xs mt-1">Better engagement/IDR</p>
                   </div>
-                  <div className="bg-white/10 backdrop-blur rounded-lg p-4">
-                    <p className="text-indigo-100 text-sm mb-1">Recommended Strategy</p>
-                    <p className="text-lg font-bold">
-                      {selectedCampaignA.avgEngagementRate > selectedCampaignB.avgEngagementRate 
-                       ? 'Replicate Campaign A' : 'Replicate Campaign B'}
+                  <div className="bg-white/10 backdrop-blur rounded-lg p-3 sm:p-4">
+                    <p className="text-indigo-100 text-xs sm:text-sm mb-1">Recommended Strategy</p>
+                    <p className="text-base sm:text-lg font-bold">
+                      {selectedCampaignA.avgEngagementRate > selectedCampaignB.avgEngagementRate
+                       ? 'Replicate A' : 'Replicate B'}
                     </p>
                     <p className="text-indigo-100 text-xs mt-1">For future campaigns</p>
                   </div>
@@ -544,22 +544,22 @@ export default function EnhancedCampaignComparison() {
 
             {/* Top Performers Comparison */}
             {(selectedCampaignA || selectedCampaignB) && (
-              <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
                 {selectedCampaignA && (
-                  <div className="bg-white rounded-xl p-6 shadow-sm">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                      Top Performers - {selectedCampaignA.name}
+                  <div className="bg-white rounded-xl p-4 sm:p-6 shadow-sm">
+                    <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4 truncate">
+                      Top Performers: {selectedCampaignA.name}
                     </h3>
                     <div className="space-y-3">
                       {selectedCampaignA.topPerformers.map((performer, idx) => (
-                        <div key={idx} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <div key={idx} className="flex items-center justify-between p-2 sm:p-3 bg-gray-50 rounded-lg">
                           <div>
-                            <p className="font-medium text-gray-900">{performer.name}</p>
-                            <p className="text-sm text-gray-500">{performer.tier} • {performer.posts} posts</p>
+                            <p className="font-medium text-gray-900 text-sm sm:text-base">{performer.name}</p>
+                            <p className="text-xs text-gray-500">{performer.tier} • {performer.posts} posts</p>
                           </div>
                           <div className="text-right">
-                            <p className="font-semibold text-indigo-600">{performer.engagement}%</p>
-                            <p className="text-xs text-gray-500">Engagement</p>
+                            <p className="font-semibold text-indigo-600 text-sm sm:text-base">{performer.engagement}%</p>
+                            <p className="text-xs text-gray-500">Eng.</p>
                           </div>
                         </div>
                       ))}
@@ -568,20 +568,20 @@ export default function EnhancedCampaignComparison() {
                 )}
 
                 {selectedCampaignB && (
-                  <div className="bg-white rounded-xl p-6 shadow-sm">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                      Top Performers - {selectedCampaignB.name}
+                  <div className="bg-white rounded-xl p-4 sm:p-6 shadow-sm">
+                    <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4 truncate">
+                      Top Performers: {selectedCampaignB.name}
                     </h3>
                     <div className="space-y-3">
                       {selectedCampaignB.topPerformers.map((performer, idx) => (
-                        <div key={idx} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <div key={idx} className="flex items-center justify-between p-2 sm:p-3 bg-gray-50 rounded-lg">
                           <div>
-                            <p className="font-medium text-gray-900">{performer.name}</p>
-                            <p className="text-sm text-gray-500">{performer.tier} • {performer.posts} posts</p>
+                            <p className="font-medium text-gray-900 text-sm sm:text-base">{performer.name}</p>
+                            <p className="text-xs text-gray-500">{performer.tier} • {performer.posts} posts</p>
                           </div>
                           <div className="text-right">
-                            <p className="font-semibold text-pink-600">{performer.engagement}%</p>
-                            <p className="text-xs text-gray-500">Engagement</p>
+                            <p className="font-semibold text-pink-600 text-sm sm:text-base">{performer.engagement}%</p>
+                            <p className="text-xs text-gray-500">Eng.</p>
                           </div>
                         </div>
                       ))}

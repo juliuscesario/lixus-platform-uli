@@ -27,23 +27,44 @@ export default function ReportingPage() {
     };
 
     const TabButton = ({ title, icon, isActive, onClick }) => (
-        <button onClick={onClick} className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md transition-colors ${isActive ? 'bg-indigo-600 text-white' : 'text-gray-600 hover:bg-gray-200'}`}>
-            {icon} {title}
+        <button onClick={onClick} className={`flex items-center justify-center sm:justify-start gap-2 px-3 sm:px-4 py-2 text-sm font-medium rounded-md transition-colors w-full sm:w-auto ${isActive ? 'bg-indigo-600 text-white' : 'text-gray-600 hover:bg-gray-200'}`}>
+            <span className="sm:hidden">{icon}</span>
+            <span className="hidden sm:inline-block">{icon}</span>
+            {title}
         </button>
     );
 
     return (
         <div>
-            <div className="mb-8">
-                <h1 className="text-3xl font-bold text-gray-800">Analytics & Reports</h1>
-                <p className="text-gray-600 mt-1">Gain strategic insights from your campaign and influencer data.</p>
+            <div className="mb-6 md:mb-8">
+                <h1 className="text-2xl md:text-3xl font-bold text-gray-800">Analytics & Reports</h1>
+                <p className="text-gray-600 mt-1 text-sm md:text-base">Gain strategic insights from your campaign and influencer data.</p>
             </div>
-            <div className="flex items-center gap-2 mb-6 border-b border-gray-200 pb-4">
-                <TabButton title={TABS.BRAND_PERFORMANCE} icon={<IconChart />} isActive={activeTab === TABS.BRAND_PERFORMANCE} onClick={() => setActiveTab(TABS.BRAND_PERFORMANCE)} />
-                <TabButton title={TABS.CAMPAIGN_COMPARISON} icon={<IconCompare />} isActive={activeTab === TABS.CAMPAIGN_COMPARISON} onClick={() => setActiveTab(TABS.CAMPAIGN_COMPARISON)} />
-                <TabButton title={TABS.INFLUENCER_PERFORMANCE} icon={<IconUserCheck />} isActive={activeTab === TABS.INFLUENCER_PERFORMANCE} onClick={() => setActiveTab(TABS.INFLUENCER_PERFORMANCE)} />
+
+            <div className="mb-6">
+                <div className="sm:hidden">
+                    <select
+                        id="tabs"
+                        name="tabs"
+                        className="block w-full rounded-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
+                        onChange={(e) => setActiveTab(e.target.value)}
+                        value={activeTab}
+                    >
+                        <option value={TABS.BRAND_PERFORMANCE}>Brand Performance</option>
+                        <option value={TABS.CAMPAIGN_COMPARISON}>Campaign Comparison</option>
+                        <option value={TABS.INFLUENCER_PERFORMANCE}>Influencer Performance</option>
+                    </select>
+                </div>
+                <div className="hidden sm:block">
+                    <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 border-b border-gray-200 pb-4">
+                        <TabButton title={TABS.BRAND_PERFORMANCE} icon={<IconChart />} isActive={activeTab === TABS.BRAND_PERFORMANCE} onClick={() => setActiveTab(TABS.BRAND_PERFORMANCE)} />
+                        <TabButton title={TABS.CAMPAIGN_COMPARISON} icon={<IconCompare />} isActive={activeTab === TABS.CAMPAIGN_COMPARISON} onClick={() => setActiveTab(TABS.CAMPAIGN_COMPARISON)} />
+                        <TabButton title={TABS.INFLUENCER_PERFORMANCE} icon={<IconUserCheck />} isActive={activeTab === TABS.INFLUENCER_PERFORMANCE} onClick={() => setActiveTab(TABS.INFLUENCER_PERFORMANCE)} />
+                    </div>
+                </div>
             </div>
-            <div className="bg-white p-6 rounded-lg shadow-md">
+
+            <div className="bg-white p-4 md:p-6 rounded-lg shadow-md">
                 {renderActiveTab()}
             </div>
         </div>

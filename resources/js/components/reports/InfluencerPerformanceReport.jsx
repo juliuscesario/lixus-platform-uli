@@ -122,52 +122,52 @@ export default function InfluencerPerformanceAnalytics() {
   };
 
   const renderInfluencerCard = (influencer, index) => (
-    <div key={influencer.id} className="bg-white rounded-lg shadow-sm p-4 hover:shadow-md transition-shadow">
+    <div key={influencer.id} className="bg-white rounded-lg shadow-sm p-3 sm:p-4 hover:shadow-md transition-shadow">
       <div className="flex items-start justify-between mb-3">
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-bold">
+          <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-bold text-sm sm:text-base">
             {index + 1}
           </div>
           <div>
-            <h4 className="font-semibold text-gray-900">{influencer.name}</h4>
-            <p className="text-sm text-gray-500">{influencer.tier} • {formatNumber(influencer.followers)} followers</p>
+            <h4 className="font-semibold text-gray-900 text-sm sm:text-base">{influencer.name}</h4>
+            <p className="text-xs sm:text-sm text-gray-500">{influencer.tier} • {formatNumber(influencer.followers)}</p>
           </div>
         </div>
         <div className="flex items-center gap-1">
-          {influencer.platform === 'instagram' ? <IconInstagram /> : <IconTiktok />}
+          {influencer.platform === 'instagram' ? <IconInstagram className="w-4 h-4 sm:w-5 sm:h-5" /> : <IconTiktok className="w-4 h-4 sm:w-5 sm:h-5" />}
         </div>
       </div>
       
       <div className="grid grid-cols-3 gap-2 text-center">
         <div className="bg-gray-50 rounded p-2">
-          <p className="text-xs text-gray-500">Engagement</p>
-          <p className="text-lg font-bold text-green-600">{influencer.avgEngagement}%</p>
+          <p className="text-xs text-gray-500">Eng.</p>
+          <p className="text-base sm:text-lg font-bold text-green-600">{influencer.avgEngagement}%</p>
         </div>
         <div className="bg-gray-50 rounded p-2">
           <p className="text-xs text-gray-500">Posts</p>
-          <p className="text-lg font-bold text-blue-600">{influencer.totalPosts}</p>
+          <p className="text-base sm:text-lg font-bold text-blue-600">{influencer.totalPosts}</p>
         </div>
         <div className="bg-gray-50 rounded p-2">
           <p className="text-xs text-gray-500">Reach</p>
-          <p className="text-lg font-bold text-purple-600">{formatNumber(influencer.totalReach)}</p>
+          <p className="text-base sm:text-lg font-bold text-purple-600">{formatNumber(influencer.totalReach)}</p>
         </div>
       </div>
       
       <div className="mt-3 flex gap-2">
-        <button className="flex-1 bg-indigo-600 text-white py-1 px-3 rounded text-sm hover:bg-indigo-700">
-          View Details
+        <button className="flex-1 bg-indigo-600 text-white py-1.5 px-3 rounded text-xs sm:text-sm hover:bg-indigo-700">
+          Details
         </button>
-        <button 
+        <button
           onClick={() => {
             if (selectedInfluencers.find(i => i.id === influencer.id)) {
               setSelectedInfluencers(selectedInfluencers.filter(i => i.id !== influencer.id));
-            } else {
+            } else if (selectedInfluencers.length < 2) {
               setSelectedInfluencers([...selectedInfluencers, influencer]);
             }
           }}
-          className={`flex-1 py-1 px-3 rounded text-sm border ${
-            selectedInfluencers.find(i => i.id === influencer.id) 
-              ? 'bg-green-50 border-green-500 text-green-700' 
+          className={`flex-1 py-1.5 px-3 rounded text-xs sm:text-sm border ${
+            selectedInfluencers.find(i => i.id === influencer.id)
+              ? 'bg-green-50 border-green-500 text-green-700'
               : 'border-gray-300 text-gray-700 hover:bg-gray-50'
           }`}
         >
@@ -178,22 +178,22 @@ export default function InfluencerPerformanceAnalytics() {
   );
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
+    <div className="p-4 md:p-6 bg-gray-50 min-h-screen">
       {/* Header Section */}
       <div className="mb-6">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Influencer Performance Analytics</h1>
-            <p className="text-gray-600 mt-1">Comprehensive insights across all influencers and platforms</p>
+            <h1 className="text-xl md:text-2xl font-bold text-gray-900">Influencer Performance</h1>
+            <p className="text-gray-600 mt-1 text-sm md:text-base">Analytics across all influencers and platforms</p>
           </div>
-          <div className="flex gap-2">
-            <button className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">
+          <div className="flex gap-2 w-full sm:w-auto">
+            <button className="flex-1 sm:flex-initial flex items-center justify-center gap-2 px-3 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 text-sm">
               <IconFilter />
-              Advanced Filters
+              <span className="hidden sm:inline">Filters</span>
             </button>
-            <button className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">
+            <button className="flex-1 sm:flex-initial flex items-center justify-center gap-2 px-3 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-sm">
               <IconDownload />
-              Export Report
+              <span className="hidden sm:inline">Export</span>
             </button>
           </div>
         </div>
@@ -201,11 +201,11 @@ export default function InfluencerPerformanceAnalytics() {
 
       {/* Filter Bar */}
       <div className="bg-white rounded-xl shadow-sm p-4 mb-6">
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
           {/* View Mode */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">View Mode</label>
-            <select 
+            <label className="block text-xs font-medium text-gray-700 mb-1">View</label>
+            <select
               value={viewMode}
               onChange={(e) => setViewMode(e.target.value)}
               className="w-full rounded-md border-gray-300 text-sm"
@@ -218,8 +218,8 @@ export default function InfluencerPerformanceAnalytics() {
 
           {/* Platform Filter */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Platform</label>
-            <select 
+            <label className="block text-xs font-medium text-gray-700 mb-1">Platform</label>
+            <select
               value={filterPlatform}
               onChange={(e) => setFilterPlatform(e.target.value)}
               className="w-full rounded-md border-gray-300 text-sm"
@@ -227,15 +227,13 @@ export default function InfluencerPerformanceAnalytics() {
               <option value="all">All Platforms</option>
               <option value="instagram">Instagram</option>
               <option value="tiktok">TikTok</option>
-              <option value="youtube">YouTube</option>
-              <option value="facebook">Facebook</option>
             </select>
           </div>
 
           {/* Campaign Filter */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Campaign</label>
-            <select 
+            <label className="block text-xs font-medium text-gray-700 mb-1">Campaign</label>
+            <select
               value={filterCampaign}
               onChange={(e) => setFilterCampaign(e.target.value)}
               className="w-full rounded-md border-gray-300 text-sm"
@@ -249,27 +247,24 @@ export default function InfluencerPerformanceAnalytics() {
 
           {/* Time Frame */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Time Frame</label>
-            <select 
+            <label className="block text-xs font-medium text-gray-700 mb-1">Time</label>
+            <select
               value={timeFrame}
               onChange={(e) => setTimeFrame(e.target.value)}
               className="w-full rounded-md border-gray-300 text-sm"
             >
-              <option value="7days">Last 7 Days</option>
               <option value="30days">Last 30 Days</option>
               <option value="90days">Last 90 Days</option>
-              <option value="6months">Last 6 Months</option>
               <option value="1year">Last Year</option>
-              <option value="custom">Custom Range</option>
             </select>
           </div>
 
           {/* Search */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Search</label>
-            <input 
+          <div className="sm:col-span-2 md:col-span-1 lg:col-span-1">
+            <label className="block text-xs font-medium text-gray-700 mb-1">Search</label>
+            <input
               type="text"
-              placeholder="Search influencer..."
+              placeholder="Find influencer..."
               value={influencerSearch}
               onChange={(e) => setInfluencerSearch(e.target.value)}
               className="w-full rounded-md border-gray-300 text-sm"
@@ -280,21 +275,21 @@ export default function InfluencerPerformanceAnalytics() {
         {/* Selected for Comparison */}
         {viewMode !== 'comparison' && selectedInfluencers.length > 0 && (
           <div className="mt-4 p-3 bg-blue-50 rounded-lg">
-            <div className="flex items-center justify-between">
-              <p className="text-sm font-medium text-blue-900">
-                {selectedInfluencers.length} influencers selected for comparison
+            <div className="flex flex-col sm:flex-row items-center justify-between">
+              <p className="text-sm font-medium text-blue-900 mb-2 sm:mb-0">
+                {selectedInfluencers.length} selected for comparison
               </p>
-              <div className="flex gap-2">
+              <div className="flex gap-2 self-stretch sm:self-auto">
                 <button
                   onClick={() => setViewMode('comparison')}
-                  className="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700"
+                  className="flex-1 sm:flex-initial px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700"
                   disabled={selectedInfluencers.length < 2}
                 >
-                  Compare ({selectedInfluencers.length}/2)
+                  Compare ({selectedInfluencers.length})
                 </button>
                 <button
                   onClick={() => setSelectedInfluencers([])}
-                  className="px-3 py-1 bg-white text-blue-600 border border-blue-300 rounded text-sm hover:bg-blue-50"
+                  className="flex-1 sm:flex-initial px-3 py-1 bg-white text-blue-600 border border-blue-300 rounded text-sm hover:bg-blue-50"
                 >
                   Clear
                 </button>
@@ -305,63 +300,59 @@ export default function InfluencerPerformanceAnalytics() {
       </div>
 
       {/* Key Metrics Summary */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <div className="bg-white rounded-xl shadow-sm p-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div className="bg-white rounded-xl shadow-sm p-3 sm:p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">Total Influencers</p>
-              <p className="text-2xl font-bold text-gray-900">{filteredInfluencers.length}</p>
-              <p className="text-xs text-green-600 mt-1">+12% from last month</p>
+              <p className="text-xs sm:text-sm text-gray-600">Influencers</p>
+              <p className="text-xl sm:text-2xl font-bold text-gray-900">{filteredInfluencers.length}</p>
             </div>
-            <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-              <IconUsers className="text-blue-600" />
+            <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+              <IconUsers className="text-blue-600 w-5 h-5" />
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-xl shadow-sm p-4">
+        <div className="bg-white rounded-xl shadow-sm p-3 sm:p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">Avg Engagement Rate</p>
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="text-xs sm:text-sm text-gray-600">Avg. Eng.</p>
+              <p className="text-xl sm:text-2xl font-bold text-gray-900">
                 {(filteredInfluencers.reduce((acc, curr) => acc + curr.avgEngagement, 0) / filteredInfluencers.length).toFixed(1) || 0}%
               </p>
-              <p className="text-xs text-green-600 mt-1">Above industry avg</p>
             </div>
-            <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-              <IconTrendingUp className="text-green-600" />
+            <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+              <IconTrendingUp className="text-green-600 w-5 h-5" />
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-xl shadow-sm p-4">
+        <div className="bg-white rounded-xl shadow-sm p-3 sm:p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">Total Reach</p>
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="text-xs sm:text-sm text-gray-600">Total Reach</p>
+              <p className="text-xl sm:text-2xl font-bold text-gray-900">
                 {formatNumber(filteredInfluencers.reduce((acc, curr) => acc + curr.totalReach, 0))}
               </p>
-              <p className="text-xs text-green-600 mt-1">+23% growth</p>
             </div>
-            <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-              <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+              <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
               </svg>
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-xl shadow-sm p-4">
+        <div className="bg-white rounded-xl shadow-sm p-3 sm:p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">Content Created</p>
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="text-xs sm:text-sm text-gray-600">Content</p>
+              <p className="text-xl sm:text-2xl font-bold text-gray-900">
                 {formatNumber(filteredInfluencers.reduce((acc, curr) => acc + curr.totalPosts, 0))}
               </p>
-              <p className="text-xs text-green-600 mt-1">This month</p>
             </div>
-            <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
-              <svg className="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
+              <svg className="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
             </div>
@@ -373,9 +364,9 @@ export default function InfluencerPerformanceAnalytics() {
       {viewMode === 'all' && (
         <>
           {/* Charts Row */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-            <div className="bg-white rounded-xl shadow-sm p-6">
-              <h3 className="text-lg font-semibold mb-4">Platform Distribution</h3>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+            <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
+              <h3 className="text-base sm:text-lg font-semibold mb-4">Platform Distribution</h3>
               <Doughnut data={platformDistribution} options={{
                 responsive: true,
                 plugins: {
@@ -384,8 +375,8 @@ export default function InfluencerPerformanceAnalytics() {
               }} />
             </div>
 
-            <div className="bg-white rounded-xl shadow-sm p-6">
-              <h3 className="text-lg font-semibold mb-4">Performance Trends</h3>
+            <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
+              <h3 className="text-base sm:text-lg font-semibold mb-4">Performance Trends</h3>
               <Line data={performanceOverTime} options={{
                 responsive: true,
                 interaction: {
@@ -420,10 +411,10 @@ export default function InfluencerPerformanceAnalytics() {
           </div>
 
           {/* Tier Performance Analysis */}
-          <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
-            <h3 className="text-lg font-semibold mb-4">Influencer Tier Performance Analysis</h3>
-            <div className="mb-4 text-sm text-gray-600">
-              <p>Compare performance metrics across different influencer tiers to optimize your campaign strategy</p>
+          <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6 mb-6">
+            <h3 className="text-base sm:text-lg font-semibold mb-4">Tier Performance Analysis</h3>
+            <div className="mb-4 text-xs sm:text-sm text-gray-600">
+              <p>Compare performance metrics across influencer tiers to optimize strategy.</p>
             </div>
             <Radar data={tierPerformance} options={{
               responsive: true,
@@ -441,18 +432,17 @@ export default function InfluencerPerformanceAnalytics() {
           </div>
 
           {/* Top Performing Influencers */}
-          <div className="bg-white rounded-xl shadow-sm p-6">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold">Top Performing Influencers</h3>
-              <select className="text-sm border-gray-300 rounded">
+          <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
+              <h3 className="text-base sm:text-lg font-semibold">Top Performing Influencers</h3>
+              <select className="text-sm border-gray-300 rounded-md w-full sm:w-auto">
                 <option>Sort by Engagement</option>
                 <option>Sort by Reach</option>
                 <option>Sort by Posts</option>
-                <option>Sort by ROI</option>
               </select>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {filteredInfluencers.map((influencer, index) => renderInfluencerCard(influencer, index))}
             </div>
           </div>
@@ -460,44 +450,38 @@ export default function InfluencerPerformanceAnalytics() {
       )}
 
       {viewMode === 'comparison' && selectedInfluencers.length > 0 && (
-        <div className="bg-white rounded-xl shadow-sm p-6">
-          <h3 className="text-lg font-semibold mb-4">Influencer Comparison</h3>
+        <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
+          <h3 className="text-base sm:text-lg font-semibold mb-4">Influencer Comparison</h3>
           <div className="overflow-x-auto">
-            <table className="min-w-full">
+            <table className="w-full text-sm">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Influencer</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Platform</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tier</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Followers</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Avg Engagement</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Total Posts</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Total Reach</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Performance Score</th>
+                  <th className="px-2 py-2 sm:px-4 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase">Influencer</th>
+                  <th className="px-2 py-2 sm:px-4 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase hidden md:table-cell">Platform</th>
+                  <th className="px-2 py-2 sm:px-4 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase">Eng.</th>
+                  <th className="px-2 py-2 sm:px-4 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase hidden sm:table-cell">Reach</th>
+                  <th className="px-2 py-2 sm:px-4 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase">Score</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {selectedInfluencers.map((inf) => (
                   <tr key={inf.id}>
-                    <td className="px-6 py-4 whitespace-nowrap font-medium">{inf.name}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-2 py-3 sm:px-4 sm:py-4 whitespace-nowrap font-medium">{inf.name}</td>
+                    <td className="px-2 py-3 sm:px-4 sm:py-4 whitespace-nowrap hidden md:table-cell">
                       <span className="capitalize">{inf.platform}</span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">{inf.tier}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">{formatNumber(inf.followers)}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-2 py-3 sm:px-4 sm:py-4 whitespace-nowrap">
                       <span className="text-green-600 font-semibold">{inf.avgEngagement}%</span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">{inf.totalPosts}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">{formatNumber(inf.totalReach)}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-2 py-3 sm:px-4 sm:py-4 whitespace-nowrap hidden sm:table-cell">{formatNumber(inf.totalReach)}</td>
+                    <td className="px-2 py-3 sm:px-4 sm:py-4 whitespace-nowrap">
                       <div className="flex items-center">
-                        <span className="text-sm font-semibold">
-                          {Math.round(inf.avgEngagement * 10 + (inf.totalReach / 1000000))}
+                        <span className="font-semibold">
+                          {Math.round(inf.avgEngagement * 5 + (inf.totalReach / 500000))}
                         </span>
-                        <div className="ml-2 w-16 bg-gray-200 rounded-full h-2">
-                          <div 
-                            className="bg-green-500 h-2 rounded-full" 
+                        <div className="ml-2 w-12 sm:w-16 bg-gray-200 rounded-full h-1.5">
+                          <div
+                            className="bg-green-500 h-1.5 rounded-full"
                             style={{width: `${Math.min(100, inf.avgEngagement * 10)}%`}}
                           ></div>
                         </div>
@@ -564,20 +548,20 @@ export default function InfluencerPerformanceAnalytics() {
       {viewMode === 'single' && (
         <div className="space-y-6">
           {/* Single Influencer Selector */}
-          <div className="bg-white rounded-xl shadow-sm p-6">
-            <h3 className="text-lg font-semibold mb-4">Select Influencer for Detailed Analysis</h3>
+          <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
+            <h3 className="text-base sm:text-lg font-semibold mb-4">Detailed Influencer Analysis</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Choose Influencer</label>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Choose Influencer</label>
                 <select
-                  className="w-full rounded-md border-gray-300"
+                  className="w-full rounded-md border-gray-300 text-sm"
                   value={selectedInfluencerId || ''}
                   onChange={(e) => setSelectedInfluencerId(Number(e.target.value))}
                 >
                   <option value="" disabled>Select an influencer...</option>
                   {filteredInfluencers.map(inf => (
                     <option key={inf.id} value={inf.id}>
-                      {inf.name} - {inf.platform} ({inf.tier})
+                      {inf.name}
                     </option>
                   ))}
                 </select>
@@ -587,80 +571,73 @@ export default function InfluencerPerformanceAnalytics() {
 
           {/* Detailed Performance Metrics */}
           {selectedInfluencer && (
-          <div className="bg-white rounded-xl shadow-sm p-6">
-            <div className="flex items-center justify-between mb-6">
+          <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
               <div className="flex items-center gap-4">
-                <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white text-2xl font-bold">
+                <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white text-xl sm:text-2xl font-bold">
                   {selectedInfluencer.name.substring(1, 3).toUpperCase()}
                 </div>
                 <div>
-                  <h3 className="text-xl font-semibold">{selectedInfluencer.name}</h3>
-                  <p className="text-gray-500 capitalize">{selectedInfluencer.platform} • {selectedInfluencer.tier} Influencer</p>
+                  <h3 className="text-lg sm:text-xl font-semibold">{selectedInfluencer.name}</h3>
+                  <p className="text-sm text-gray-500 capitalize">{selectedInfluencer.platform} • {selectedInfluencer.tier}</p>
                 </div>
               </div>
-              <div className="text-right">
-                <p className="text-sm text-gray-500">Performance Score</p>
-                <p className="text-3xl font-bold text-green-600">
-                  {Math.round(selectedInfluencer.avgEngagement * 10 + (selectedInfluencer.totalReach / 1000000))}/100
+              <div className="text-left sm:text-right w-full sm:w-auto">
+                <p className="text-xs sm:text-sm text-gray-500">Performance Score</p>
+                <p className="text-2xl sm:text-3xl font-bold text-green-600">
+                  {Math.round(selectedInfluencer.avgEngagement * 5 + (selectedInfluencer.totalReach / 500000))}/100
                 </p>
               </div>
             </div>
 
             {/* Performance Metrics Grid */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-              <div className="bg-gray-50 rounded-lg p-4">
-                <p className="text-sm text-gray-600">Total Followers</p>
-                <p className="text-2xl font-bold">{formatNumber(selectedInfluencer.followers)}</p>
-                <p className="text-xs text-green-600">+5.2% this month</p>
+              <div className="bg-gray-50 rounded-lg p-3 sm:p-4">
+                <p className="text-xs sm:text-sm text-gray-600">Followers</p>
+                <p className="text-lg sm:text-2xl font-bold">{formatNumber(selectedInfluencer.followers)}</p>
               </div>
-              <div className="bg-gray-50 rounded-lg p-4">
-                <p className="text-sm text-gray-600">Avg Engagement</p>
-                <p className="text-2xl font-bold">{selectedInfluencer.avgEngagement}%</p>
-                <p className="text-xs text-green-600">Above average</p>
+              <div className="bg-gray-50 rounded-lg p-3 sm:p-4">
+                <p className="text-xs sm:text-sm text-gray-600">Avg Eng.</p>
+                <p className="text-lg sm:text-2xl font-bold">{selectedInfluencer.avgEngagement}%</p>
               </div>
-              <div className="bg-gray-50 rounded-lg p-4">
-                <p className="text-sm text-gray-600">Content Created</p>
-                <p className="text-2xl font-bold">{selectedInfluencer.totalPosts}</p>
-                <p className="text-xs text-gray-500">Total posts</p>
+              <div className="bg-gray-50 rounded-lg p-3 sm:p-4">
+                <p className="text-xs sm:text-sm text-gray-600">Content</p>
+                <p className="text-lg sm:text-2xl font-bold">{selectedInfluencer.totalPosts}</p>
               </div>
-              <div className="bg-gray-50 rounded-lg p-4">
-                <p className="text-sm text-gray-600">Est. Monthly Reach</p>
-                <p className="text-2xl font-bold">{formatNumber(selectedInfluencer.totalReach)}</p>
-                <p className="text-xs text-green-600">+12% growth</p>
+              <div className="bg-gray-50 rounded-lg p-3 sm:p-4">
+                <p className="text-xs sm:text-sm text-gray-600">Est. Reach</p>
+                <p className="text-lg sm:text-2xl font-bold">{formatNumber(selectedInfluencer.totalReach)}</p>
               </div>
             </div>
 
             {/* Campaign Performance History */}
             <div className="border-t pt-6">
-              <h4 className="text-lg font-semibold mb-4">Campaign Performance History</h4>
+              <h4 className="text-base sm:text-lg font-semibold mb-4">Campaign History</h4>
               <div className="space-y-3">
-                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg text-sm">
                   <div>
-                    <p className="font-medium">Pepsodent Senyum Indonesia</p>
-                    <p className="text-sm text-gray-500">June 2024 • 12 posts</p>
+                    <p className="font-medium truncate">Pepsodent Senyum Indonesia</p>
+                    <p className="text-xs text-gray-500">Jun 2024 • 12 posts</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-sm text-gray-500">Engagement</p>
                     <p className="font-bold text-green-600">8.2%</p>
                   </div>
                 </div>
-                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg text-sm">
                   <div>
-                    <p className="font-medium">Lifebuoy Sehat</p>
-                    <p className="text-sm text-gray-500">May 2024 • 8 posts</p>
+                    <p className="font-medium truncate">Lifebuoy Sehat</p>
+                    <p className="text-xs text-gray-500">May 2024 • 8 posts</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-sm text-gray-500">Engagement</p>
                     <p className="font-bold text-green-600">7.5%</p>
                   </div>
                 </div>
-                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg text-sm">
                   <div>
-                    <p className="font-medium">Rinso Active Clean</p>
-                    <p className="text-sm text-gray-500">April 2024 • 15 posts</p>
+                    <p className="font-medium truncate">Rinso Active Clean</p>
+                    <p className="text-xs text-gray-500">Apr 2024 • 15 posts</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-sm text-gray-500">Engagement</p>
                     <p className="font-bold text-green-600">6.9%</p>
                   </div>
                 </div>
