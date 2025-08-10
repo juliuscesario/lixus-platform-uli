@@ -19,6 +19,13 @@ export default function InfluencerPerformanceAnalytics() {
   const [timeFrame, setTimeFrame] = useState('30days');
   const [selectedInfluencers, setSelectedInfluencers] = useState([]);
   const [influencerSearch, setInfluencerSearch] = useState('');
+  const [selectedInfluencerId, setSelectedInfluencerId] = useState(null);
+
+  useEffect(() => {
+    if (selectedInfluencers.length === 2) {
+      setViewMode('comparison');
+    }
+  }, [selectedInfluencers]);
   
   // Mock data - in production this would come from your API
   const influencersData = [
@@ -39,9 +46,13 @@ export default function InfluencerPerformanceAnalytics() {
   // Filter influencers based on selected filters
   const filteredInfluencers = influencersData.filter(inf => {
     if (filterPlatform !== 'all' && inf.platform !== filterPlatform) return false;
+    // Note: Campaign filtering logic is mocked. In a real app, you'd have influencer-campaign relations.
+    if (filterCampaign !== 'all' && inf.id % 2 === 0) return false; // Example logic
     if (influencerSearch && !inf.name.toLowerCase().includes(influencerSearch.toLowerCase())) return false;
     return true;
   });
+
+  const selectedInfluencer = influencersData.find(inf => inf.id === selectedInfluencerId);
 
   // Platform distribution chart
   const platformDistribution = {
@@ -267,24 +278,25 @@ export default function InfluencerPerformanceAnalytics() {
         </div>
 
         {/* Selected for Comparison */}
-        {selectedInfluencers.length > 0 && (
+        {viewMode !== 'comparison' && selectedInfluencers.length > 0 && (
           <div className="mt-4 p-3 bg-blue-50 rounded-lg">
             <div className="flex items-center justify-between">
               <p className="text-sm font-medium text-blue-900">
                 {selectedInfluencers.length} influencers selected for comparison
               </p>
               <div className="flex gap-2">
-                <button 
+                <button
                   onClick={() => setViewMode('comparison')}
                   className="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700"
+                  disabled={selectedInfluencers.length < 2}
                 >
-                  Compare Now
+                  Compare ({selectedInfluencers.length}/2)
                 </button>
-                <button 
+                <button
                   onClick={() => setSelectedInfluencers([])}
                   className="px-3 py-1 bg-white text-blue-600 border border-blue-300 rounded text-sm hover:bg-blue-50"
                 >
-                  Clear Selection
+                  Clear
                 </button>
               </div>
             </div>
@@ -298,7 +310,7 @@ export default function InfluencerPerformanceAnalytics() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600">Total Influencers</p>
-              <p className="text-2xl font-bold text-gray-900">156</p>
+              <p className="text-2xl font-bold text-gray-900">{filteredInfluencers.length}</p>
               <p className="text-xs text-green-600 mt-1">+12% from last month</p>
             </div>
             <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
@@ -311,7 +323,9 @@ export default function InfluencerPerformanceAnalytics() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600">Avg Engagement Rate</p>
-              <p className="text-2xl font-bold text-gray-900">8.7%</p>
+              <p className="text-2xl font-bold text-gray-900">
+                {(filteredInfluencers.reduce((acc, curr) => acc + curr.avgEngagement, 0) / filteredInfluencers.length).toFixed(1) || 0}%
+              </p>
               <p className="text-xs text-green-600 mt-1">Above industry avg</p>
             </div>
             <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
@@ -324,7 +338,9 @@ export default function InfluencerPerformanceAnalytics() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600">Total Reach</p>
-              <p className="text-2xl font-bold text-gray-900">45.2M</p>
+              <p className="text-2xl font-bold text-gray-900">
+                {formatNumber(filteredInfluencers.reduce((acc, curr) => acc + curr.totalReach, 0))}
+              </p>
               <p className="text-xs text-green-600 mt-1">+23% growth</p>
             </div>
             <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
@@ -339,7 +355,9 @@ export default function InfluencerPerformanceAnalytics() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600">Content Created</p>
-              <p className="text-2xl font-bold text-gray-900">1,234</p>
+              <p className="text-2xl font-bold text-gray-900">
+                {formatNumber(filteredInfluencers.reduce((acc, curr) => acc + curr.totalPosts, 0))}
+              </p>
               <p className="text-xs text-green-600 mt-1">This month</p>
             </div>
             <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
@@ -551,8 +569,12 @@ export default function InfluencerPerformanceAnalytics() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Choose Influencer</label>
-                <select className="w-full rounded-md border-gray-300">
-                  <option>Select an influencer...</option>
+                <select
+                  className="w-full rounded-md border-gray-300"
+                  value={selectedInfluencerId || ''}
+                  onChange={(e) => setSelectedInfluencerId(Number(e.target.value))}
+                >
+                  <option value="" disabled>Select an influencer...</option>
                   {filteredInfluencers.map(inf => (
                     <option key={inf.id} value={inf.id}>
                       {inf.name} - {inf.platform} ({inf.tier})
@@ -564,20 +586,23 @@ export default function InfluencerPerformanceAnalytics() {
           </div>
 
           {/* Detailed Performance Metrics */}
+          {selectedInfluencer && (
           <div className="bg-white rounded-xl shadow-sm p-6">
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-4">
                 <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white text-2xl font-bold">
-                  JF
+                  {selectedInfluencer.name.substring(1, 3).toUpperCase()}
                 </div>
                 <div>
-                  <h3 className="text-xl font-semibold">@jakarta_foodie</h3>
-                  <p className="text-gray-500">Instagram • Mid-tier Influencer</p>
+                  <h3 className="text-xl font-semibold">{selectedInfluencer.name}</h3>
+                  <p className="text-gray-500 capitalize">{selectedInfluencer.platform} • {selectedInfluencer.tier} Influencer</p>
                 </div>
               </div>
               <div className="text-right">
                 <p className="text-sm text-gray-500">Performance Score</p>
-                <p className="text-3xl font-bold text-green-600">92/100</p>
+                <p className="text-3xl font-bold text-green-600">
+                  {Math.round(selectedInfluencer.avgEngagement * 10 + (selectedInfluencer.totalReach / 1000000))}/100
+                </p>
               </div>
             </div>
 
@@ -585,22 +610,22 @@ export default function InfluencerPerformanceAnalytics() {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
               <div className="bg-gray-50 rounded-lg p-4">
                 <p className="text-sm text-gray-600">Total Followers</p>
-                <p className="text-2xl font-bold">125K</p>
+                <p className="text-2xl font-bold">{formatNumber(selectedInfluencer.followers)}</p>
                 <p className="text-xs text-green-600">+5.2% this month</p>
               </div>
               <div className="bg-gray-50 rounded-lg p-4">
                 <p className="text-sm text-gray-600">Avg Engagement</p>
-                <p className="text-2xl font-bold">6.7%</p>
+                <p className="text-2xl font-bold">{selectedInfluencer.avgEngagement}%</p>
                 <p className="text-xs text-green-600">Above average</p>
               </div>
               <div className="bg-gray-50 rounded-lg p-4">
                 <p className="text-sm text-gray-600">Content Created</p>
-                <p className="text-2xl font-bold">203</p>
+                <p className="text-2xl font-bold">{selectedInfluencer.totalPosts}</p>
                 <p className="text-xs text-gray-500">Total posts</p>
               </div>
               <div className="bg-gray-50 rounded-lg p-4">
                 <p className="text-sm text-gray-600">Est. Monthly Reach</p>
-                <p className="text-2xl font-bold">2.8M</p>
+                <p className="text-2xl font-bold">{formatNumber(selectedInfluencer.totalReach)}</p>
                 <p className="text-xs text-green-600">+12% growth</p>
               </div>
             </div>
@@ -699,7 +724,29 @@ export default function InfluencerPerformanceAnalytics() {
                 </div>
               </div>
             </div>
+
+            {/* Recommendations */}
+            <div className="border-t pt-6 mt-6">
+              <h4 className="text-lg font-semibold mb-4">AI Recommendations</h4>
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div className="flex items-start gap-3">
+                  <svg className="w-6 h-6 text-blue-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <div>
+                    <p className="font-medium text-blue-900">Performance Insights</p>
+                    <ul className="mt-2 space-y-1 text-sm text-blue-800">
+                      <li>• Video content performs 36% better than photos for this influencer</li>
+                      <li>• Best posting time: 7-9 PM on weekdays</li>
+                      <li>• Food and lifestyle content generates highest engagement</li>
+                      <li>• Consider increasing video content allocation by 20%</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
+          )}
         </div>
       )}
 
