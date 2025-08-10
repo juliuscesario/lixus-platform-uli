@@ -21,6 +21,7 @@ class PostResource extends JsonResource
             'social_media_account_id' => $this->social_media_account_id,
             'platform' => $this->platform,
             'post_url' => $this->post_url,
+            'media_url' => $this->media_url ?? null, // Add media_url for displaying post images
             'metrics' => $this->metrics ?? [], // Akan menjadi array/JSON
             'score' => $this->score,
             'is_valid_for_campaign' => $this->is_valid_for_campaign ?? false, // Pastikan kolom ini ada di DB dan model

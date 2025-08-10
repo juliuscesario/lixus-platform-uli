@@ -28,6 +28,7 @@ const InfluencerApplicationPage = lazy(() => import('./pages/InfluencerApplicati
 const ManageApplicationsPage = lazy(() => import('./pages/admin/ManageApplicationsPage'));
 const PostsPage = lazy(() => import('./pages/PostsPage'));
 const PostDetailPage = lazy(() => import('./pages/PostDetailPage'));
+const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
 
 // Wrapper components to pass user data to pages that need it
 const DashboardWrapper = () => {
@@ -238,6 +239,9 @@ function App() {
                                 </DashboardLayout>
                             </ProtectedRoute>
                         } />
+
+                        {/* Catch-all route for not found pages */}
+                        <Route path="*" element={<NotFoundPage />} />
                     </Routes>
                 </Suspense>
             </AuthProvider>

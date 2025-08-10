@@ -33,10 +33,12 @@ const SocialIcon = ({ platform, className }) => {
     return null;
 };
 
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 
-export default function CampaignLeaderboardPage({ pageProps }) {
+export default function CampaignLeaderboardPage() {
     const navigate = useNavigate();
+    const { id: campaignId } = useParams();
+    const [campaign, setCampaign] = useState(null);
     const [leaderboard, setLeaderboard] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -48,11 +50,20 @@ export default function CampaignLeaderboardPage({ pageProps }) {
     const [selectedInfluencerName, setSelectedInfluencerName] = useState('');
 
     useEffect(() => {
+        const fetchCampaignData = async () => {
+            try {
+                const response = await apiService.getAdminCampaignDetail(campaignId);
+                setCampaign(response.data);
+            } catch (err) {
+                console.error('Failed to fetch campaign:', err);
+            }
+        };
+
         const fetchLeaderboard = async () => {
             setLoading(true);
             setError(null);
             try {
-                const response = await apiService.getCampaignLeaderboard(pageProps.id);
+                const response = await apiService.getCampaignLeaderboard(campaignId);
                 setLeaderboard(response.data || []);
             } catch (err) {
                 setError('Gagal memuat data leaderboard.');
@@ -60,15 +71,19 @@ export default function CampaignLeaderboardPage({ pageProps }) {
                 setLoading(false);
             }
         };
-        fetchLeaderboard();
-    }, [pageProps.id]);
+        
+        if (campaignId) {
+            fetchCampaignData();
+            fetchLeaderboard();
+        }
+    }, [campaignId]);
 
     const handleViewPosts = async (userId, userName) => {
         setIsModalOpen(true);
         setIsModalLoading(true);
         setSelectedInfluencerName(userName);
         try {
-            const response = await apiService.getPostsForInfluencerInCampaign(pageProps.id, userId);
+            const response = await apiService.getPostsForInfluencerInCampaign(campaignId, userId);
             setModalPosts(response.data || []);
         } catch (err) {
             console.error("Gagal memuat postingan untuk modal:", err);
@@ -96,7 +111,7 @@ export default function CampaignLeaderboardPage({ pageProps }) {
                 Kembali ke Manajemen Kampanye
             </Link>
             <h1 className="text-2xl font-bold text-gray-800 mb-2">Leaderboard</h1>
-            <p className="text-lg text-gray-600 mb-6">{pageProps.name}</p>
+            <p className="text-lg text-gray-600 mb-6">{campaign?.name || 'Loading...'}</p>
             
             <div className="bg-white shadow-md rounded-lg overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
@@ -149,7 +164,7 @@ export default function CampaignLeaderboardPage({ pageProps }) {
                 posts={modalPosts}
                 loading={isModalLoading}
                 influencerName={selectedInfluencerName}
-                campaignName={pageProps.name} // Kirim nama kampanye ke modal
+                campaignName={campaign?.name || ''} // Kirim nama kampanye ke modal
             />
         </div>
     );

@@ -18,10 +18,12 @@ const SocialIcon = ({ platform, className }) => {
     return null;
 };
 
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 
-export default function CampaignPostsPage({ pageProps }) {
+export default function CampaignPostsPage() {
     const navigate = useNavigate();
+    const { id: campaignId } = useParams();
+    const [campaign, setCampaign] = useState(null);
     const [posts, setPosts] = useState([]);
     const [pagination, setPagination] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -50,12 +52,21 @@ export default function CampaignPostsPage({ pageProps }) {
             });
     }, [posts, platformFilter, dateRange]);
 
+    const fetchCampaignData = async () => {
+        try {
+            const response = await apiService.getAdminCampaignDetail(campaignId);
+            setCampaign(response.data);
+        } catch (err) {
+            console.error('Failed to fetch campaign:', err);
+        }
+    };
+
     const fetchPosts = async (url = null) => {
         setLoading(true);
         setError(null);
         window.scrollTo(0, 0);
         try {
-            const response = await apiService.getCampaignPosts(pageProps.id, url);
+            const response = await apiService.getCampaignPosts(campaignId, url);
             setPosts(response.data || []);
             setPagination({ links: response.links, meta: response.meta });
         } catch (err) {
@@ -66,8 +77,11 @@ export default function CampaignPostsPage({ pageProps }) {
     };
 
     useEffect(() => {
-        fetchPosts();
-    }, [pageProps.id]);
+        if (campaignId) {
+            fetchCampaignData();
+            fetchPosts();
+        }
+    }, [campaignId]);
 
     const handleValidate = async (postId, isValid, notes) => {
         try {
@@ -191,7 +205,7 @@ export default function CampaignPostsPage({ pageProps }) {
             <div className="mb-6">
                 <Link to="/admin/campaigns" className="mb-4 inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 text-sm"><IconArrowLeft /> Kembali ke Manajemen Kampanye</Link>
                 <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
-                    <div><h1 className="text-2xl font-bold text-gray-800">Postingan Kampanye</h1><p className="text-lg text-gray-600">{pageProps.name}</p></div>
+                    <div><h1 className="text-2xl font-bold text-gray-800">Postingan Kampanye</h1><p className="text-lg text-gray-600">{campaign?.name || 'Loading...'}</p></div>
                     <div className="flex items-center gap-2">
                         <div className="relative"><div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><IconSearch /></div><input type="text" placeholder="Cari postingan..." className="w-full md:w-64 rounded-md border-gray-300 shadow-sm pl-10 py-2"/></div>
                         <div className="flex items-center rounded-md shadow-sm bg-white border border-gray-300"><button onClick={() => setViewMode('grid')} className={`p-2 rounded-l-md ${viewMode === 'grid' ? 'bg-indigo-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}><IconGrid /></button><button onClick={() => setViewMode('list')} className={`p-2 rounded-r-md ${viewMode === 'list' ? 'bg-indigo-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}><IconList /></button></div>

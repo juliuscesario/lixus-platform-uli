@@ -74,8 +74,19 @@ class AuthController extends Controller
 
     public function logout(Request $request)
     {
-        // Menghapus token saat ini yang digunakan user
-        $request->user()->currentAccessToken()->delete();
+        // Check if the user has a current access token (for API token authentication)
+        if ($request->user()->currentAccessToken()) {
+            // Only delete if it's a real PersonalAccessToken, not a TransientToken
+            if (method_exists($request->user()->currentAccessToken(), 'delete')) {
+                $request->user()->currentAccessToken()->delete();
+            }
+        }
+        
+        // For SPA authentication, we should also invalidate the session
+        if ($request->hasSession()) {
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+        }
 
         return response()->json([
             'message' => 'Logged out successfully.'
