@@ -2,6 +2,20 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 
 export default function DashboardPage({ user }) {
+    // Handle case where user is not yet available
+    if (!user) {
+        return (
+            <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+                <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
+                <div className="mt-8 bg-white p-8 rounded-lg shadow-lg">
+                    <div className="flex justify-center items-center h-32">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-500"></div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
             <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>

@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 
 // --- Ikon ---
 const IconHome = () => ( <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg> );
@@ -10,12 +12,11 @@ const IconMegaphone = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" h
 const IconPower = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"/><line x1="12" x2="12" y1="2" y2="12"/></svg>;
 const IconChartBar = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>;
 
-
-
-import { Link, useNavigate } from 'react-router-dom';
-
-export default function DashboardLayout({ user, children }) {
+export default function DashboardLayout({ children }) {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const { user, logout } = useAuth();
+    const navigate = useNavigate();
+    const location = useLocation();
 
     const menuItems = [
         { name: 'Dashboard', to: '/dashboard', icon: <IconHome />, roles: ['admin', 'brand', 'influencer'] },
@@ -29,8 +30,7 @@ export default function DashboardLayout({ user, children }) {
     ];
 
     const handleLogout = () => {
-        localStorage.removeItem('authUser');
-        navigate('/login');
+        logout();
     };
 
     const SidebarContent = () => (
@@ -41,7 +41,7 @@ export default function DashboardLayout({ user, children }) {
             </div>
             <nav className="mt-5">
                 {menuItems.map(item => (
-                    item.roles.includes(user.role) && (
+                    item.roles.includes(user?.role) && (
                         <Link 
                             key={item.name}
                             to={item.to}
