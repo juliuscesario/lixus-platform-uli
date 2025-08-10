@@ -16,32 +16,22 @@ export const useAuth = () => {
 // AuthProvider component
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
 
     // Check if user is authenticated on app load
     useEffect(() => {
-        const checkAuthStatus = async () => {
+        // Only check localStorage, don't make API calls on mount
+        const storedUser = localStorage.getItem('authUser');
+        if (storedUser) {
             try {
-                // Check if user data exists in localStorage
-                const storedUser = localStorage.getItem('authUser');
-                if (storedUser) {
-                    setUser(JSON.parse(storedUser));
-                } else {
-                    // If no user in localStorage, check with API
-                    const userData = await apiService.checkAuthStatus();
-                    setUser(userData.user);
-                    localStorage.setItem('authUser', JSON.stringify(userData.user));
-                }
+                setUser(JSON.parse(storedUser));
             } catch (error) {
-                // If API check fails, clear any stored user data
+                console.error('Error parsing stored user:', error);
                 localStorage.removeItem('authUser');
                 setUser(null);
-            } finally {
-                setLoading(false);
             }
-        };
-
-        checkAuthStatus();
+        }
+        // Don't make API calls here to avoid 401 loops on public pages
     }, []);
 
     // Login function
@@ -86,7 +76,7 @@ export const AuthProvider = ({ children }) => {
 
     return (
         <AuthContext.Provider value={value}>
-            {!loading && children}
+            {children}
         </AuthContext.Provider>
     );
 };

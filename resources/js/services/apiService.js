@@ -77,15 +77,33 @@ async function apiFetch(url, options = {}) {
 
     const response = await fetch(url, defaultOptions);
 
+    // Check if it's a public route by examining the URL
+    const isPublicRoute = url.includes('/public/') || url.includes('/sanctum/');
+    
     // If the session has expired, Laravel returns 401 or 419.
-    // This will clear the user from local storage and force a page reload to the login screen.
-    if (response.status === 401 || response.status === 419) {
+    // Only redirect to login if it's not a public route
+    if ((response.status === 401 || response.status === 419) && !isPublicRoute) {
         localStorage.removeItem('authUser');
         window.location.replace('/');
         throw new Error('Your session has expired. Please log in again.');
     }
 
-    const data = await response.json();
+    // For public routes, let 401 errors pass through without redirecting
+    if (!response.ok && (response.status === 401 || response.status === 419) && isPublicRoute) {
+        throw new Error('Unauthorized');
+    }
+
+    // Handle empty response
+    let data;
+    try {
+        data = await response.json();
+    } catch (e) {
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        data = {};
+    }
+
     if (!response.ok) {
         const message = data.message || `HTTP error! Status: ${response.status}`;
         const validationErrors = data.errors ? Object.values(data.errors).flat().join(' ') : '';
