@@ -26,6 +26,11 @@ class CampaignParticipantResource extends JsonResource
             // Pastikan relasi 'user' sudah di-eager load di controller
             // UserResource akan menangani pemuatan influencerProfile dan socialMediaAccounts jika di-eager load
             'influencer' => UserResource::make($this->whenLoaded('user')),
+            
+            'permissions' => [
+                'can_update' => auth()->user()->can('update', $this->resource),
+                'can_delete' => auth()->user()->can('delete', $this->resource),
+            ],
         ];
     }
 }

@@ -8,6 +8,7 @@ import { AuthProvider } from './contexts/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import { useAuth } from './contexts/AuthContext';
 import DashboardLayout from './layouts/DashboardLayout';
+import SessionExpiredModal from './components/SessionExpiredModal';
 
 const HomePage = lazy(() => import('./pages/HomePage'));
 const LoginPage = lazy(() => import('./pages/LoginPage'));
@@ -28,6 +29,7 @@ const ManageApplicationsPage = lazy(() => import('./pages/admin/ManageApplicatio
 const PostsPage = lazy(() => import('./pages/PostsPage'));
 const PostDetailPage = lazy(() => import('./pages/PostDetailPage'));
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
+const UnauthorizedPage = lazy(() => import('./pages/UnauthorizedPage'));
 
 // Wrapper components to pass user data to pages that need it
 const DashboardWrapper = () => {
@@ -55,189 +57,63 @@ const CampaignParticipantsWrapper = () => {
     return <CampaignParticipantsPage user={user} />;
 };
 
-// Layout wrapper component for authenticated routes
-const AuthenticatedLayout = ({ children }) => {
-    const { isAuthenticated } = useAuth();
-    
-    // Only show DashboardLayout for authenticated users
-    if (isAuthenticated) {
-        return <DashboardLayout>{children}</DashboardLayout>;
-    }
-    
-    return children;
-};
-
 function App() {
     return (
         <Router>
             <AuthProvider>
-                <Suspense fallback={<div className="flex justify-center items-center h-screen"><div>Loading...</div></div>}>
-                    <Routes>
-                        {/* Public routes without DashboardLayout */}
-                        <Route path="/" element={
-                            <>
-                                <Navbar />
-                                <main className="flex-grow">
-                                    <HomePageWrapper />
-                                </main>
-                                <Footer />
-                            </>
-                        } />
-                        <Route path="/login" element={
-                            <>
-                                <Navbar />
-                                <main className="flex-grow">
-                                    <LoginPage />
-                                </main>
-                                <Footer />
-                            </>
-                        } />
-                        <Route path="/register" element={<Navigate to="/apply-influencer" replace />} />
-                        <Route path="/influencers" element={
-                            <>
-                                <Navbar />
-                                <main className="flex-grow">
-                                    <InfluencersPage />
-                                </main>
-                                <Footer />
-                            </>
-                        } />
-                        <Route path="/influencers/:id" element={
-                            <>
-                                <Navbar />
-                                <main className="flex-grow">
-                                    <InfluencerDetailPage />
-                                </main>
-                                <Footer />
-                            </>
-                        } />
-                        <Route path="/posts" element={
-                            <>
-                                <Navbar />
-                                <main className="flex-grow">
-                                    <PostsPage />
-                                </main>
-                                <Footer />
-                            </>
-                        } />
-                        <Route path="/posts/:id" element={
-                            <>
-                                <Navbar />
-                                <main className="flex-grow">
-                                    <PostDetailPage />
-                                </main>
-                                <Footer />
-                            </>
-                        } />
-                        <Route path="/campaigns/:id" element={
-                            <>
-                                <Navbar />
-                                <main className="flex-grow">
-                                    <CampaignDetailWrapper />
-                                </main>
-                                <Footer />
-                            </>
-                        } />
-                        <Route path="/apply-influencer" element={
-                            <>
-                                <Navbar />
-                                <main className="flex-grow">
-                                    <InfluencerApplicationPage />
-                                </main>
-                                <Footer />
-                            </>
-                        } />
-                        
-                        {/* Protected routes with DashboardLayout */}
-                        <Route path="/dashboard" element={
-                            <ProtectedRoute>
-                                <DashboardLayout>
-                                    <DashboardWrapper />
-                                </DashboardLayout>
-                            </ProtectedRoute>
-                        } />
-                        
-                        {/* Influencer Routes */}
-                        <Route path="/my-campaigns" element={
-                            <ProtectedRoute>
-                                <DashboardLayout>
-                                    <MyCampaignsWrapper />
-                                </DashboardLayout>
-                            </ProtectedRoute>
-                        } />
-                        <Route path="/influencer/my-campaigns" element={
-                            <ProtectedRoute>
-                                <DashboardLayout>
-                                    <MyCampaignsWrapper />
-                                </DashboardLayout>
-                            </ProtectedRoute>
-                        } />
-                        
-                        {/* Admin/Brand Routes */}
-                        <Route path="/admin/campaigns" element={
-                            <ProtectedRoute>
-                                <DashboardLayout>
-                                    <AdminCampaignsPage />
-                                </DashboardLayout>
-                            </ProtectedRoute>
-                        } />
-                        <Route path="/admin/campaigns/create" element={
-                            <ProtectedRoute>
-                                <DashboardLayout>
-                                    <CreateCampaignPage />
-                                </DashboardLayout>
-                            </ProtectedRoute>
-                        } />
-                        <Route path="/admin/campaigns/edit/:id" element={
-                            <ProtectedRoute>
-                                <DashboardLayout>
-                                    <EditCampaignPage />
-                                </DashboardLayout>
-                            </ProtectedRoute>
-                        } />
-                        <Route path="/admin/campaigns/:id/participants" element={
-                            <ProtectedRoute>
-                                <DashboardLayout>
-                                    <CampaignParticipantsWrapper />
-                                </DashboardLayout>
-                            </ProtectedRoute>
-                        } />
-                        <Route path="/admin/campaigns/:id/posts" element={
-                            <ProtectedRoute>
-                                <DashboardLayout>
-                                    <CampaignPostsPage />
-                                </DashboardLayout>
-                            </ProtectedRoute>
-                        } />
-                        <Route path="/admin/campaigns/:id/leaderboard" element={
-                            <ProtectedRoute>
-                                <DashboardLayout>
-                                    <CampaignLeaderboardPage />
-                                </DashboardLayout>
-                            </ProtectedRoute>
-                        } />
-                        <Route path="/admin/reporting" element={
-                            <ProtectedRoute>
-                                <DashboardLayout>
-                                    <ReportingPage />
-                                </DashboardLayout>
-                            </ProtectedRoute>
-                        } />
-                        <Route path="/admin/applications" element={
-                            <ProtectedRoute>
-                                <DashboardLayout>
-                                    <ManageApplicationsPage />
-                                </DashboardLayout>
-                            </ProtectedRoute>
-                        } />
-
-                        {/* Catch-all route for not found pages */}
-                        <Route path="*" element={<NotFoundPage />} />
-                    </Routes>
-                </Suspense>
+                <AppContent />
             </AuthProvider>
         </Router>
     );
 }
+
+function AppContent() {
+    const { sessionExpired, setSessionExpired, logout } = useAuth();
+
+    const handleCloseModal = () => {
+        logout();
+        setSessionExpired(false);
+    };
+
+    return (
+        <>
+            <Suspense fallback={<div className="flex justify-center items-center h-screen"><div>Loading...</div></div>}>
+                <Routes>
+                    <Route path="/" element={<PublicLayout><HomePageWrapper /></PublicLayout>} />
+                    <Route path="/login" element={<PublicLayout><LoginPage /></PublicLayout>} />
+                    <Route path="/register" element={<Navigate to="/apply-influencer" replace />} />
+                    <Route path="/influencers" element={<PublicLayout><InfluencersPage /></PublicLayout>} />
+                    <Route path="/influencers/:id" element={<PublicLayout><InfluencerDetailPage /></PublicLayout>} />
+                    <Route path="/posts" element={<PublicLayout><PostsPage /></PublicLayout>} />
+                    <Route path="/posts/:id" element={<PublicLayout><PostDetailPage /></PublicLayout>} />
+                    <Route path="/campaigns/:id" element={<PublicLayout><CampaignDetailWrapper /></PublicLayout>} />
+                    <Route path="/apply-influencer" element={<PublicLayout><InfluencerApplicationPage /></PublicLayout>} />
+                    <Route path="/dashboard" element={<ProtectedRoute><DashboardLayout><DashboardWrapper /></DashboardLayout></ProtectedRoute>} />
+                    <Route path="/my-campaigns" element={<ProtectedRoute><DashboardLayout><MyCampaignsWrapper /></DashboardLayout></ProtectedRoute>} />
+                    <Route path="/influencer/my-campaigns" element={<ProtectedRoute><DashboardLayout><MyCampaignsWrapper /></DashboardLayout></ProtectedRoute>} />
+                    <Route path="/admin/campaigns" element={<ProtectedRoute><DashboardLayout><AdminCampaignsPage /></DashboardLayout></ProtectedRoute>} />
+                    <Route path="/admin/campaigns/create" element={<ProtectedRoute><DashboardLayout><CreateCampaignPage /></DashboardLayout></ProtectedRoute>} />
+                    <Route path="/admin/campaigns/edit/:id" element={<ProtectedRoute><DashboardLayout><EditCampaignPage /></DashboardLayout></ProtectedRoute>} />
+                    <Route path="/admin/campaigns/:id/participants" element={<ProtectedRoute><DashboardLayout><CampaignParticipantsWrapper /></DashboardLayout></ProtectedRoute>} />
+                    <Route path="/admin/campaigns/:id/posts" element={<ProtectedRoute><DashboardLayout><CampaignPostsPage /></DashboardLayout></ProtectedRoute>} />
+                    <Route path="/admin/campaigns/:id/leaderboard" element={<ProtectedRoute><DashboardLayout><CampaignLeaderboardPage /></DashboardLayout></ProtectedRoute>} />
+                    <Route path="/admin/reporting" element={<ProtectedRoute><DashboardLayout><ReportingPage /></DashboardLayout></ProtectedRoute>} />
+                    <Route path="/admin/applications" element={<ProtectedRoute><DashboardLayout><ManageApplicationsPage /></DashboardLayout></ProtectedRoute>} />
+                    <Route path="/unauthorized" element={<UnauthorizedPage />} />
+                    <Route path="*" element={<NotFoundPage />} />
+                </Routes>
+            </Suspense>
+            <SessionExpiredModal isOpen={sessionExpired} onClose={handleCloseModal} />
+        </>
+    );
+}
+
+const PublicLayout = ({ children }) => (
+    <>
+        <Navbar />
+        <main className="flex-grow">{children}</main>
+        <Footer />
+    </>
+);
 
 ReactDOM.createRoot(document.getElementById('app')).render(<App />);

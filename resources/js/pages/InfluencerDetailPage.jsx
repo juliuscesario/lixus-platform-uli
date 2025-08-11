@@ -24,30 +24,32 @@ const SocialIcon = ({ platform }) => {
     return null;
 };
 
-export default function InfluencerDetailPage({ pageProps }) {
+export default function InfluencerDetailPage() {
+    const { id } = useParams();
     const [influencer, setInfluencer] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
     useEffect(() => {
         const fetchInfluencerDetail = async () => {
-            if (!pageProps.id) {
+             if (!id) {
                 setError("ID Influencer tidak ditemukan.");
                 setLoading(false);
                 return;
             }
             setLoading(true);
             setError(null);
-            const response = await apiService.getInfluencerDetail(pageProps.id);
-            if (response && response.data) {
+            try {
+                const response = await apiService.getInfluencerDetail(id);
                 setInfluencer(response.data);
-            } else {
-                setError("Tidak dapat memuat detail influencer.");
+            } catch (err) {
+                setError(err.message || 'Gagal memuat detail influencer.');
+            } finally {
+                setLoading(false);
             }
-            setLoading(false);
         };
         fetchInfluencerDetail();
-    }, [pageProps.id]);
+    }, [id]);
 
     if (loading) { return <div className="max-w-4xl mx-auto py-12 px-4 text-center">Memuat profil influencer...</div>; }
     if (error) { return <div className="max-w-4xl mx-auto py-12 px-4 text-center text-red-500 bg-red-100 p-4 rounded-md">{error}</div>; }

@@ -92,14 +92,18 @@ const apiFetch = async (url, options = {}, auth) => {
     // If the session has expired, Laravel returns 401 or 419.
     // Only redirect to login if it's not a public route
     if ((response.status === 401 || response.status === 419) && !isPublicRoute) {
-        if (auth) {
+        if (auth && typeof auth.showSessionExpiredModal === 'function') {
             auth.showSessionExpiredModal();
+        } else {
+            // Fallback for when auth context is not available
+            console.error('Session expired, but no auth context was provided to show the modal.');
         }
-        throw new Error('Your session has expired. Please log in again.');
+        throw new Error(`Your session has expired. Please log in again. Status: ${response.status}`);
     }
 
     // For public routes, let 401 errors pass through without redirecting
     if (!response.ok && (response.status === 401 || response.status === 419) && isPublicRoute) {
+        localStorage.removeItem('authUser');
         throw new Error('Unauthorized');
     }
 
@@ -115,6 +119,9 @@ const apiFetch = async (url, options = {}, auth) => {
     }
 
     if (!response.ok) {
+        if (response.status === 403) {
+            throw new Error(data.message || 'Forbidden: You do not have permission to access this resource.');
+        }
         const message = data.message || `HTTP error! Status: ${response.status}`;
         const validationErrors = data.errors ? Object.values(data.errors).flat().join(' ') : '';
         throw new Error(`${message} ${validationErrors}`);
@@ -139,96 +146,29 @@ export const apiService = {
         });
     },
 
-    getApplications: async (status = 'pending', page = 1) => {
-        const xsrfToken = getCookie('XSRF-TOKEN');
-        try {
-            const response = await fetch(`${API_BASE_URL}/admin/influencer-applications?status=${status}&page=${page}`, {
-                method: 'GET',
-                credentials: 'include',
-                headers: {
-                    'Accept': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'X-XSRF-TOKEN': xsrfToken ? decodeURIComponent(xsrfToken) : '',
-                },
-            });
-            if (!response.ok) throw new Error('Failed to fetch applications.');
-            return await response.json();
-        } catch (error) {
-            console.error('API Error getApplications:', error);
-            throw error;
-        }
+    getApplications: (status = 'pending', page = 1) => {
+        return apiFetch(`${API_BASE_URL}/admin/influencer-applications?status=${status}&page=${page}`, {});
     },
 
-    approveApplication: async (applicationId) => {
-        const xsrfToken = getCookie('XSRF-TOKEN');
-        try {
-            const response = await fetch(`${API_BASE_URL}/admin/influencer-applications/${applicationId}/approve`, {
-                method: 'POST',
-                credentials: 'include',
-                headers: {
-                    'Accept': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'X-XSRF-TOKEN': xsrfToken ? decodeURIComponent(xsrfToken) : '',
-                },
-            });
-            const data = await response.json();
-            if (!response.ok) throw new Error(data.message || 'Failed to approve application.');
-            return data;
-        } catch (error) {
-            console.error('API Error approveApplication:', error);
-            throw error;
-        }
+    approveApplication: (applicationId) => {
+        return apiFetch(`${API_BASE_URL}/admin/influencer-applications/${applicationId}/approve`, {
+            method: 'POST'
+        });
     },
 
-    rejectApplication: async (applicationId, rejection_reason) => {
-        const xsrfToken = getCookie('XSRF-TOKEN');
-        try {
-            const response = await fetch(`${API_BASE_URL}/admin/influencer-applications/${applicationId}/reject`, {
-                method: 'POST',
-                credentials: 'include',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'X-XSRF-TOKEN': xsrfToken ? decodeURIComponent(xsrfToken) : '',
-                },
-                body: JSON.stringify({ rejection_reason }),
-            });
-            const data = await response.json();
-            if (!response.ok) throw new Error(data.message || 'Failed to reject application.');
-            return data;
-        } catch (error) {
-            console.error('API Error rejectApplication:', error);
-            throw error;
-        }
+    rejectApplication: (applicationId, rejection_reason) => {
+        return apiFetch(`${API_BASE_URL}/admin/influencer-applications/${applicationId}/reject`, {
+            method: 'POST',
+            body: { rejection_reason },
+        });
     },
 
     // NEW METHOD
-    applyAsInfluencer: async (applicationData) => {
-        const xsrfToken = getCookie('XSRF-TOKEN');
-        try {
-            const response = await fetch(`${API_BASE_URL}/public/influencer-applications`, {
-                method: 'POST',
-                credentials: 'include',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'X-XSRF-TOKEN': xsrfToken ? decodeURIComponent(xsrfToken) : '',
-                },
-                body: JSON.stringify(applicationData),
-            });
-            const responseData = await response.json();
-            if (!response.ok) {
-                const message = responseData.message || `HTTP error! status: ${response.status}`;
-                const errors = responseData.errors ? Object.values(responseData.errors).flat().join(' ') : '';
-                throw new Error(`${message} ${errors}`);
-            }
-            return responseData;
-        } catch (error) {
-            console.error("Gagal mengirim aplikasi influencer:", error);
-            throw error;
-        }
+    applyAsInfluencer: (applicationData) => {
+        return apiFetch(`${API_BASE_URL}/public/influencer-applications`, {
+            method: 'POST',
+            body: applicationData,
+        });
     },
     
     register: (name, email, password, password_confirmation) => {
@@ -244,11 +184,16 @@ export const apiService = {
         });
     },
 
-    checkAuthStatus: async () => {
-        // This endpoint will return user data if authenticated, or 401 if not.
-        const response = await apiFetch(`${API_BASE_URL}/user/profile`, {});
-        // Extract user from response since UserResource wraps it
-        return { user: response.user };
+    checkAuthStatus: async (auth) => {
+        try {
+            const user = await apiFetch(`${API_BASE_URL}/user`, {}, auth);
+            return { user };
+        } catch (error) {
+            if (error.message.includes('401') || error.message.includes('419') || error.message.includes('expired')) {
+                return { user: null };
+            }
+            throw error;
+        }
     },
 
     // ===================================
@@ -284,13 +229,41 @@ export const apiService = {
     getAdminCampaigns: () => apiFetch(`${API_BASE_URL}/admin/campaigns`, {}),
     getBrandCampaigns: () => apiFetch(`${API_BASE_URL}/brand/campaigns`, {}),
     getAdminCampaignDetail: (id) => apiFetch(`${API_BASE_URL}/admin/campaigns/${id}`, {}),
-    createCampaign: async (campaignData) => {
-        await apiService.getCsrfCookie();
-        return apiFetch(`${API_BASE_URL}/admin/campaigns`, { method: 'POST', body: campaignData });
+    createCampaign: (campaignData) => {
+        return apiFetch(`${API_BASE_URL}/admin/campaigns`, {
+            method: 'POST',
+            body: campaignData
+        });
     },
-    updateCampaign: async (id, campaignData) => {
-        await apiService.getCsrfCookie();
-        return apiFetch(`${API_BASE_URL}/admin/campaigns/${id}`, { method: 'PUT', body: campaignData });
+    updateCampaign: (id, campaignData) => {
+        const {
+            name,
+            description,
+            start_date,
+            end_date,
+            budget,
+            briefing_content,
+            scoring_rules,
+            status
+        } = campaignData;
+
+        const payload = {
+            name,
+            description,
+            start_date,
+            end_date,
+            budget,
+            briefing_content,
+            scoring_rules,
+            status
+        };
+
+        // If you are using PUT, Laravel expects the _method field for form-data, but for JSON it's fine.
+        // For partial updates, PATCH is more appropriate. The backend route must support PATCH.
+        return apiFetch(`${API_BASE_URL}/admin/campaigns/${id}`, {
+            method: 'PUT', // or 'PATCH'
+            body: payload,
+        });
     },
     updateCampaignStatus: (id, status) => apiFetch(`${API_BASE_URL}/admin/campaigns/${id}/status`, { method: 'PATCH', body: { status } }),
     getCampaignParticipants: (campaignId) => apiFetch(`${API_BASE_URL}/admin/campaigns/${campaignId}/participants`, {}),

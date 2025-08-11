@@ -16,39 +16,50 @@ export const useAuth = () => {
 // AuthProvider component
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
-    const [loading, setLoading] = useState(false);
-    const [sessionExpired, setSessionExpired] = useState(false); // New state for session status
-    
-    // Check if user is authenticated on app load
-    useEffect(() => {
-        // Only check localStorage, don't make API calls on mount
-        const storedUser = localStorage.getItem('authUser');
-        if (storedUser) {
-            try {
-                setUser(JSON.parse(storedUser));
-            } catch (error) {
-                console.error('Error parsing stored user:', error);
+    const [loading, setLoading] = useState(true); // Set initial loading to true
+    const [sessionExpired, setSessionExpired] = useState(false);
+
+    // This function will be called to check auth status
+    const checkAuth = async () => {
+        setLoading(true);
+        try {
+            const { user } = await apiService.checkAuthStatus({ showSessionExpiredModal });
+            if (user) {
+                setUser(user);
+                localStorage.setItem('authUser', JSON.stringify(user));
+            } else {
                 localStorage.removeItem('authUser');
                 setUser(null);
             }
+        } catch (error) {
+            console.error('Authentication check failed:', error);
+            localStorage.removeItem('authUser');
+            setUser(null);
+        } finally {
+            setLoading(false);
         }
-        // Don't make API calls here to avoid 401 loops on public pages
-    }, []);
+    };
     
+    // Check authentication status when the app loads
+    useEffect(() => {
+        checkAuth();
+    }, []);
+
     const showSessionExpiredModal = () => {
         setSessionExpired(true);
+        localStorage.removeItem('authUser');
+        setUser(null);
     };
     
     // Login function
     const login = async (email, password) => {
         setLoading(true);
         try {
-            // Pass auth context directly to the apiService call
-            const data = await apiService.login(email, password);
-                setUser(data.user);
-                localStorage.setItem('authUser', JSON.stringify(data.user));
-                return data;
+            await apiService.login(email, password);
+            await checkAuth();
         } catch (error) {
+            setUser(null);
+            localStorage.removeItem('authUser');
             throw error;
         } finally {
             setLoading(false);
@@ -83,7 +94,8 @@ export const AuthProvider = ({ children }) => {
         isAuthenticated: !!user,
         sessionExpired,
         showSessionExpiredModal,
-        setSessionExpired
+        setSessionExpired,
+        checkAuth // Expose checkAuth to be used manually if needed
     };
 
     return (

@@ -15,9 +15,14 @@ class IsAdmin
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (!auth()->user() || !auth()->user()->isAdmin()) {
-            return response()->json(['message' => 'Unauthorized'], 403);
+        if ($request->user()->isAdmin()) {
+            return $next($request);
         }
+        
+        return response()->json([
+            'status' => 'error',
+            'message' => 'Forbidden: You do not have administrative privileges.'
+        ], 403);
 
         return $next($request);
     }

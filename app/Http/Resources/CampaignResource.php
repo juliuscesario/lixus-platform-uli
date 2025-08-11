@@ -28,10 +28,10 @@ class CampaignResource extends JsonResource
             'status' => $this->status,
             'created_at' => $this->created_at ? $this->created_at->format('Y-m-d H:i:s') : null,
             'updated_at' => $this->updated_at ? $this->updated_at->format('Y-m-d H:i:s') : null,
-            // Tambahkan field status partisipasi
             'participant_status' => $this->whenLoaded('currentParticipant', function () {
                 return $this->currentParticipant ? $this->currentParticipant->status : null;
             }),
+            'user' => new UserResource($this->whenLoaded('user')),
         ];
     }
 }
