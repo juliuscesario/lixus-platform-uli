@@ -21,18 +21,27 @@ export const AuthProvider = ({ children }) => {
 
     // Check if user is authenticated on app load
     useEffect(() => {
-        // Only check localStorage, don't make API calls on mount
-        const storedUser = localStorage.getItem('authUser');
-        if (storedUser) {
+        const checkUser = async () => {
+            setLoading(true);
             try {
-                setUser(JSON.parse(storedUser));
+                // Now we can safely call this on load.
+                const { user } = await apiService(value).checkAuthStatus();
+                if (user) {
+                    setUser(user);
+                    localStorage.setItem('authUser', JSON.stringify(user));
+                } else {
+                    localStorage.removeItem('authUser');
+                    setUser(null);
+                }
             } catch (error) {
-                console.error('Error parsing stored user:', error);
+                console.error("Authentication check failed:", error);
                 localStorage.removeItem('authUser');
                 setUser(null);
+            } finally {
+                setLoading(false);
             }
-        }
-        // Don't make API calls here to avoid 401 loops on public pages
+        };
+        checkUser();
     }, []);
 
     const showSessionExpiredModal = () => {
@@ -61,6 +70,7 @@ export const AuthProvider = ({ children }) => {
         } finally {
             localStorage.removeItem('authUser');
             setUser(null);
+            setSessionExpired(false); // Clear session expired flag on logout
             // Navigation will be handled by the component that calls logout
         }
     };

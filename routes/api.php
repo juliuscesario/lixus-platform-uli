@@ -82,7 +82,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/influencer/campaigns', [CampaignController::class, 'indexForInfluencer']); // Campaigns available to influencer
         Route::get('/influencer/campaigns/{campaign}', [CampaignController::class, 'showForInfluencer']); // Detail of a campaign for influencer
         Route::post('/influencer/campaigns/{campaign}/apply', [CampaignController::class, 'applyForCampaign']); // Influencer apply for a campaign
-        Route::post('/influencer/campaigns/{campaign}/withdraw', [CampaignController::class, 'withdrawApplication']); // Influencer withdraws (menggunakan nama method yang kita sepakati)
+        Route::post('/influencer/campaigns/{campaign}/withdraw', [CampaignController::class, 'withdrawFromCampaign']); // Influencer withdraws (menggunakan nama method yang kita sepakati)
 
         // Post Management (for posts created by the authenticated influencer)
         // Sesuai roadmap 4.3 - 4.7
