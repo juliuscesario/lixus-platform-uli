@@ -31,6 +31,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'auth:sanctum' => \Laravel\Sanctum\Http\Middleware\AuthenticateWithSanctum::class,
             'debug.auth' => \App\Http\Middleware\DebugAuth::class, // <-- TAMBAHKAN BARIS INI
+            'admin' => \App\Http\Middleware\IsAdmin::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

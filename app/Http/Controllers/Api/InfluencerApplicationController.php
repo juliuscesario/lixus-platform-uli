@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use App\Services\EmailService;
 
 class InfluencerApplicationController extends Controller
 {
@@ -68,7 +69,7 @@ class InfluencerApplicationController extends Controller
     /**
      * [Admin/Brand] Approve an influencer application and create a user account.
      */
-    public function approve(Request $request, InfluencerApplication $application)
+    public function approve(Request $request, InfluencerApplication $application, EmailService $emailService)
     {
         if ($application->status === 'approved') {
             return response()->json(['message' => 'This application has already been approved.'], 409);
@@ -107,14 +108,12 @@ class InfluencerApplicationController extends Controller
 
             DB::commit();
 
-            // Here you would typically send an email to the influencer
-            // with their login details (email and the generated password).
-            // Mail::to($user->email)->send(new InfluencerWelcomeEmail($user, $password));
+            // Send the welcome email with the generated password.
+            $emailService->sendInfluencerWelcomeEmail($user, $password);
 
             return response()->json([
-                'message' => 'Influencer application approved successfully. User account has been created.',
+                'message' => 'Influencer application approved successfully. User account has been created and a welcome email has been sent.',
                 'user' => $user->load('influencerProfile'),
-                'generated_password' => $password, // Return password for the brand to share
             ], 200);
 
         } catch (\Exception $e) {

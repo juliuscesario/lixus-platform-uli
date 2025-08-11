@@ -137,9 +137,9 @@ class CampaignController extends Controller
         Log::info('Fetching campaigns for admin/brand.', ['user_id' => $request->user()->id]);
         $user = $request->user();
 
-        if ($user->role->name === 'admin') {
+        if ($user->isAdmin()) {
             $campaigns = Campaign::orderBy('created_at', 'desc')->paginate(15); // Admin lihat semua
-        } elseif ($user->role->name === 'brand') {
+        } elseif ($user->isBrand()) {
             $campaigns = Campaign::where('brand_id', $user->id) // Brand hanya lihat miliknya
                                  ->orderBy('created_at', 'desc')
                                  ->paginate(15);
@@ -218,7 +218,7 @@ class CampaignController extends Controller
         $user = request()->user();
 
         // Pastikan admin bisa melihat semua, brand hanya yang miliknya
-        if ($user->role->name === 'brand' && $campaign->brand_id !== $user->id) {
+        if ($user->isBrand() && $campaign->brand_id !== $user->id) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Unauthorized access to this campaign.'
@@ -236,7 +236,7 @@ class CampaignController extends Controller
         Log::info('Attempting to update campaign.', ['campaign_id' => $campaign->id, 'request' => $request->all()]);
 
         $user = $request->user();
-        if ($user->role->name === 'brand' && $campaign->brand_id !== $user->id) {
+        if ($user->isBrand() && $campaign->brand_id !== $user->id) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Unauthorized to update this campaign.'
@@ -308,7 +308,7 @@ class CampaignController extends Controller
         $user = request()->user();
 
         // Hanya admin yang bisa menghapus kampanye (atau admin dan brand yang memiliki kampanye)
-        if ($user->role->name === 'brand' && $campaign->brand_id !== $user->id) {
+        if ($user->isBrand() && $campaign->brand_id !== $user->id) {
              return response()->json([
                 'status' => 'error',
                 'message' => 'Unauthorized to delete this campaign.'
@@ -339,7 +339,7 @@ class CampaignController extends Controller
         Log::info('Attempting to update campaign status.', ['campaign_id' => $campaign->id, 'request_status' => $request->status]);
 
         $user = $request->user();
-        if ($user->role->name === 'brand' && $campaign->brand_id !== $user->id) {
+        if ($user->isBrand() && $campaign->brand_id !== $user->id) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Unauthorized to update status for this campaign.'
@@ -385,7 +385,7 @@ class CampaignController extends Controller
         Log::info('Fetching campaign participants.', ['campaign_id' => $campaign->id, 'user_id' => request()->user()->id]);
         $user = request()->user();
 
-        if ($user->role->name === 'brand' && $campaign->brand_id !== $user->id) {
+        if ($user->isBrand() && $campaign->brand_id !== $user->id) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Unauthorized to view participants for this campaign.'
@@ -408,7 +408,7 @@ class CampaignController extends Controller
         Log::info('Attempting to update participant status.', ['campaign_id' => $campaign->id, 'user_id' => $user->id, 'request_status' => $request->status]);
 
         $authUser = $request->user();
-        if ($authUser->role->name === 'brand' && $campaign->brand_id !== $authUser->id) {
+        if ($authUser->isBrand() && $campaign->brand_id !== $authUser->id) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Unauthorized to update participant status for this campaign.'

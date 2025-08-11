@@ -27,13 +27,15 @@ class SocialMediaAccountController extends Controller
             'platform' => 'required|string|in:instagram,tiktok',
             'platform_user_id' => 'required|string|unique:social_media_accounts,platform_user_id',
             'username' => 'required|string',
-            'access_token' => 'required|string', // Pastikan ini dienkripsi sebelum disimpan di produksi!
+            'access_token' => 'required|string',
             'token_expires_at' => 'nullable|date',
             'instagram_business_account_id' => 'nullable|string',
             'facebook_page_id' => 'nullable|string',
         ]);
 
-        $account = $user->socialMediaAccounts()->create($request->all());
+        $data = $request->all();
+        $data['access_token'] = encrypt($data['access_token']);
+        $account = $user->socialMediaAccounts()->create($data);
 
         return response()->json($account, 201);
     }
@@ -65,7 +67,11 @@ class SocialMediaAccountController extends Controller
             // ... kolom lain yang bisa diupdate
         ]);
 
-        $socialMediaAccount->update($request->all());
+        $data = $request->all();
+        if ($request->has('access_token')) {
+            $data['access_token'] = encrypt($data['access_token']);
+        }
+        $socialMediaAccount->update($data);
         return response()->json($socialMediaAccount);
     }
 

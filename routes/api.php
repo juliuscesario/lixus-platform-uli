@@ -68,74 +68,66 @@ Route::middleware('auth:sanctum')->group(function () {
 
 
     // --- INFLUENCER SPECIFIC ROUTES ---
-    Route::middleware('can:influencer')->group(function () {
-        // Influencer Profile (for the authenticated influencer's own profile)
-        Route::get('/influencer/profile', [InfluencerProfileController::class, 'showAuthenticatedInfluencerProfile']);
-        Route::put('/influencer/profile', [InfluencerProfileController::class, 'updateAuthenticatedInfluencerProfile']);
+    Route::prefix('admin')->middleware('admin')->group(function () {
+        // Campaign Management
+        Route::apiResource('campaigns', CampaignController::class);
+        Route::patch('campaigns/{campaign}/status', [CampaignController::class, 'updateStatus']);
+        Route::get('campaigns/{campaign}/participants', [CampaignController::class, 'getParticipants']);
+        Route::patch('campaigns/{campaign}/participants/{user}/status', [CampaignController::class, 'updateParticipantStatus']);
+        Route::post('/campaigns/{campaign}/recalculate-scores', [PostController::class, 'recalculateAllCampaignScores']);
+        Route::post('/campaigns/{campaign}/fetch-metrics', [PostController::class, 'fetchAllCampaignMetrics']);
 
-        // Social Media Account Management
-        // Menggunakan apiResource untuk CRUD dasar, lalu tambahkan custom
-        Route::apiResource('social-media-accounts', SocialMediaAccountController::class);
-        Route::post('/social-media-accounts/{social_media_account}/sync-posts', [SocialMediaAccountController::class, 'syncPosts']);
-
-        // Campaign Actions for Influencer
-        Route::get('/influencer/campaigns', [CampaignController::class, 'indexForInfluencer']); // Campaigns available to influencer
-        Route::get('/influencer/campaigns/{campaign}', [CampaignController::class, 'showForInfluencer']); // Detail of a campaign for influencer
-        Route::post('/influencer/campaigns/{campaign}/apply', [CampaignController::class, 'applyForCampaign']); // Influencer apply for a campaign
-        Route::post('/influencer/campaigns/{campaign}/withdraw', [CampaignController::class, 'withdrawApplication']); // Influencer withdraws (menggunakan nama method yang kita sepakati)
-
-        // Post Management (for posts created by the authenticated influencer)
-        // Sesuai roadmap 4.3 - 4.7
-        Route::post('/my-posts', [PostController::class, 'store']); // 4.4 Menambahkan postingan baru
-        Route::get('/my-posts', [PostController::class, 'index']); // 4.3 Daftar postingan Influencer terautentikasi
-        Route::get('/my-posts/{post}', [PostController::class, 'show']); // 4.5 Detail postingan milik saya
-        Route::put('/my-posts/{post}', [PostController::class, 'update']); // 4.6 Memperbarui postingan
-        Route::delete('/my-posts/{post}', [PostController::class, 'destroy']); // 4.7 Menghapus postingan
-    });
-
-
-    // --- ADMIN / BRAND SPECIFIC ROUTES ---
-    Route::middleware('can:admin_or_brand')->prefix('admin')->group(function () {
-        // Campaign Management (Full CRUD for Admin/Brand)
-        Route::apiResource('campaigns', CampaignController::class); // Meliputi index, store, show, update, destroy
-
-        // Specific campaign actions for Admin/Brand
-        Route::patch('campaigns/{campaign}/status', [CampaignController::class, 'updateStatus']); // Update campaign status
-        Route::get('campaigns/{campaign}/participants', [CampaignController::class, 'getParticipants']); // Get participants for a campaign
-        Route::patch('campaigns/{campaign}/participants/{user}/status', [CampaignController::class, 'updateParticipantStatus']); // Update participant status
-
-        // Post Management (Admin/Brand view and manage all posts)
-        // Sesuai roadmap 4.8 - 4.11
-        Route::get('/posts', [PostController::class, 'indexForAdmin']); // 4.8 Daftar semua postingan
-        // Roadmap 4.9: Validasi postingan oleh Admin (Tetap untuk single post)
+        // Post Management
+        Route::get('/posts', [PostController::class, 'indexForAdmin']);
         Route::put('/posts/{post}', [PostController::class, 'validatePost']);
-
-        // Roadmap 4.10: Hitung ulang skor untuk SEMUA postingan dalam kampanye tertentu
-        Route::post('/campaigns/{campaign}/recalculate-scores', [PostController::class, 'recalculateAllCampaignScores']); // <-- ROUTE BARU
-
-        // Roadmap 4.11: Mendapatkan metrik postingan (admin view) - tetap di PostController
         Route::get('/posts/{post}', [PostController::class, 'showAdminPost']);
 
-        // Roadmap 4.12: Meminta metrik live untuk SEMUA postingan dalam kampanye tertentu
-        Route::post('/campaigns/{campaign}/fetch-metrics', [PostController::class, 'fetchAllCampaignMetrics']); // <-- ROUTE BARU
+        // Influencer Management
+        Route::get('/influencers', [InfluencerController::class, 'indexAdmin']);
+        Route::get('/influencers/{user}', [InfluencerController::class, 'showAdmin']);
 
-        // Influencer Management (Admin/Brand view all influencers)h;
-        Route::get('/influencers', [InfluencerController::class, 'indexAdmin']); // Admin/Brand can view all influencers
-        Route::get('/influencers/{user}', [InfluencerController::class, 'showAdmin']); // <-- Anda mungkin ingin membuat showAdmin untuk detail influencer dari sisi admin
-
-        // --- NEW REPORTING ROUTES ---
+        // Reporting
         Route::prefix('reports')->name('reports.')->group(function () {
             Route::get('/brand-performance', [ReportController::class, 'getBrandPerformanceReport'])->name('brand-performance');
             Route::get('/campaign-comparison', [ReportController::class, 'getCampaignComparisonReport'])->name('campaign-comparison');
             Route::get('/influencer-performance/{user}', [ReportController::class, 'getInfluencerPerformanceReport'])->name('influencer-performance');
         });
-        // --- END OF NEW REPORTING ROUTES ---
 
-        // NEW INFLUENCER APPLICATION MANAGEMENT ROUTES
+        // Influencer Applications
         Route::get('/influencer-applications', [InfluencerApplicationController::class, 'index']);
         Route::get('/influencer-applications/{application}', [InfluencerApplicationController::class, 'show']);
         Route::post('/influencer-applications/{application}/approve', [InfluencerApplicationController::class, 'approve']);
         Route::post('/influencer-applications/{application}/reject', [InfluencerApplicationController::class, 'reject']);
+    });
 
+    Route::prefix('brand')->middleware('can:brand')->group(function () {
+        // Campaign Management
+        Route::apiResource('campaigns', CampaignController::class)->only(['index', 'show', 'store', 'update']);
+        Route::patch('campaigns/{campaign}/status', [CampaignController::class, 'updateStatus']);
+        Route::get('campaigns/{campaign}/participants', [CampaignController::class, 'getParticipants']);
+        Route::patch('campaigns/{campaign}/participants/{user}/status', [CampaignController::class, 'updateParticipantStatus']);
+    });
+
+    Route::prefix('influencer')->middleware('can:influencer')->group(function () {
+        // Profile
+        Route::get('/profile', [InfluencerProfileController::class, 'showAuthenticatedInfluencerProfile']);
+        Route::put('/profile', [InfluencerProfileController::class, 'updateAuthenticatedInfluencerProfile']);
+
+        // social media
+        Route::apiResource('social-media-accounts', SocialMediaAccountController::class);
+        Route::post('/social-media-accounts/{social_media_account}/sync-posts', [SocialMediaAccountController::class, 'syncPosts']);
+
+        // Campaigns
+        Route::get('/campaigns', [CampaignController::class, 'indexForInfluencer']);
+        Route::get('/campaigns/{campaign}', [CampaignController::class, 'showForInfluencer']);
+        Route::post('/campaigns/{campaign}/apply', [CampaignController::class, 'applyForCampaign']);
+        Route::post('/campaigns/{campaign}/withdraw', [CampaignController::class, 'withdrawApplication']);
+
+        // Posts
+        Route::apiResource('my-posts', PostController::class)->except(['index', 'show', 'update', 'destroy']);
+        Route::get('/my-posts', [PostController::class, 'index']);
+        Route::get('/my-posts/{post}', [PostController::class, 'show']);
+        Route::put('/my-posts/{post}', [PostController::class, 'update']);
+        Route::delete('/my-posts/{post}', [PostController::class, 'destroy']);
     });
 });

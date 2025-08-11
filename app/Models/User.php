@@ -81,4 +81,9 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->role && $this->role->name === 'influencer';
     }
+
+    public function isBrand(): bool
+    {
+        return $this->role && $this->role->name === 'brand';
+    }
 }
