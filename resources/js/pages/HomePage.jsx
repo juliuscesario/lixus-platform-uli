@@ -18,12 +18,13 @@ export default function HomePage({ user }) {
             try {
                 let response;
 
-                if (user?.role === 'brand' || user?.role === 'admin') {
+                if (user?.role === 'admin') {
                     response = await apiService.getAdminCampaigns();
-                } else if (user?.role === 'influencer') {
-                    response = await apiService.getPublicCampaignsbyStatus();
-                } else {
-                    // This will run if 'user' is null or has a different role
+                } else if (user?.role === 'brand' || user?.role === 'influencer') {
+                    // Menggunakan endpoint rekomendasi baru untuk brand dan influencer
+                    response = await apiService.getCampaignRecommendations();
+                }  else {
+                    // Untuk publik atau user tidak dikenal
                     response = await apiService.getPublicCampaigns();
                 }
 

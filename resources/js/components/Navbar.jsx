@@ -10,10 +10,38 @@ export default function Navbar() {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const { user, logout } = useAuth();
     const navigate = useNavigate();
+    const userRole = user?.role?.name;
 
     const handleLogout = async () => {
+        setIsMobileMenuOpen(false);
         await logout();
         navigate('/login');
+    };
+
+    const renderDashboardLink = () => {
+        if (!user) return null;
+        
+        let path = "/dashboard"; // Fallback, though DashboardPage should redirect
+        if (userRole === 'admin') path = '/admin/campaigns';
+        if (userRole === 'influencer') path = '/my-campaigns';
+        if (userRole === 'brand') path = '/brand/campaigns';
+
+        return (
+             <Link to={path} className="bg-pink-500 text-white px-3 py-2 rounded-md text-sm font-medium hover:bg-pink-600 mr-2">Dashboard</Link>
+        );
+    };
+    
+    const renderMobileDashboardLink = () => {
+        if (!user) return null;
+
+        let path = "/dashboard";
+        if (userRole === 'admin') path = '/admin/campaigns';
+        if (userRole === 'influencer') path = '/my-campaigns';
+        if (userRole === 'brand') path = '/brand/campaigns';
+        
+        return (
+            <Link to={path} onClick={() => setIsMobileMenuOpen(false)} className="w-full text-left block bg-pink-500 text-white px-3 py-2 rounded-md text-base font-medium hover:bg-pink-600">Dashboard</Link>
+        );
     };
 
     return (
@@ -22,7 +50,7 @@ export default function Navbar() {
                 <div className="flex items-center justify-between h-16">
                     <div className="flex items-center">
                         <div className="flex-shrink-0">
-                            <Link to="/" className="text-2xl font-bold text-gray-800">
+                             <Link to="/" className="text-2xl font-bold text-gray-800">
                                 Lixus<span className="text-pink-500">.id</span>
                             </Link>
                         </div>
@@ -30,7 +58,13 @@ export default function Navbar() {
                             <div className="ml-10 flex items-baseline space-x-4">
                                 <Link to="/" className="text-gray-600 hover:bg-gray-100 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">Kampanye</Link>
                                 <Link to="/influencers" className="text-gray-600 hover:bg-gray-100 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">Influencers</Link>
-                                <Link to="/posts" className="text-gray-600 hover:bg-gray-100 hover:text-ray-900 px-3 py-2 rounded-md text-sm font-medium">Posts</Link>
+                                <Link to="/posts" className="text-gray-600 hover:bg-gray-100 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">Posts</Link>
+                                {userRole === 'admin' && (
+                                    <>
+                                        <Link to="/admin/applications" className="text-gray-600 hover:bg-gray-100 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">Applicants</Link>
+                                        <Link to="/admin/reporting" className="text-gray-600 hover:bg-gray-100 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">Reporting</Link>
+                                    </>
+                                )}
                             </div>
                         </div>
                     </div>
@@ -38,8 +72,8 @@ export default function Navbar() {
                         <div className="ml-4 flex items-center md:ml-6">
                             {user ? (
                                 <>
-                                    <span className="mr-4 text-gray-700">Welcome, {user.name}</span>
-                                    <Link to="/dashboard" className="bg-pink-500 text-white px-3 py-2 rounded-md text-sm font-medium hover:bg-pink-600 mr-2">Dashboard</Link>
+                                    <span className="mr-4 text-gray-700">Welcome, {user.name} ({userRole})</span>
+                                    {renderDashboardLink()}
                                     <button onClick={handleLogout} className="bg-gray-200 text-gray-700 px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-300">Logout</button>
                                 </>
                             ) : (

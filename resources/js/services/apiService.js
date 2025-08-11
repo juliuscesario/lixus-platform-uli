@@ -51,74 +51,67 @@ export const formatCompactNumber = (number) => {
 };
 
 
-/**
- * A global fetch wrapper that handles credentials, headers, and authentication errors.
- * This is the core of the fix.
- * @param {string} url - The URL to fetch.
- * @param {object} options - The fetch options.
- * @returns {Promise<Response>}
- */
 const apiFetch = async (url, options = {}, auth) => {
-    // Get XSRF token for POST/PUT/PATCH/DELETE requests
-    const xsrfToken = getCookie('XSRF-TOKEN');
-    
+    // Get the auth token from localStorage
+    const token = localStorage.getItem('authToken');
+
     const defaultOptions = {
-        // **THE FIX**: This ensures cookies (session, XSRF-TOKEN) are sent with every request.
-        credentials: 'include',
         headers: {
             'Accept': 'application/json',
-            'X-Requested-With': 'XMLHttpRequest',
-            'Content-Type': 'application/json', // Assume JSON content type for POST/PUT/PATCH
+            'Content-Type': 'application/json',
             ...options.headers,
         },
         ...options,
     };
-    
-    // Add XSRF token for state-changing requests
-    if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(options.method?.toUpperCase()) && xsrfToken) {
-        defaultOptions.headers['X-XSRF-TOKEN'] = decodeURIComponent(xsrfToken);
+
+    // If a token exists, add it to the Authorization header
+    if (token) {
+        defaultOptions.headers['Authorization'] = `Bearer ${token}`;
     }
     
-    // Automatically stringify body if it's an object
-    if (defaultOptions.body && typeof defaultOptions.body === 'object') {
+    // Automatically stringify body if it's an object and not FormData
+    if (defaultOptions.body && typeof defaultOptions.body === 'object' && !(defaultOptions.body instanceof FormData)) {
         defaultOptions.body = JSON.stringify(defaultOptions.body);
     }
 
     const response = await fetch(url, defaultOptions);
 
     // Check if it's a public route by examining the URL
-    const isPublicRoute = url.includes('/public/') || url.includes('/sanctum/');
+    const isPublicRoute = url.includes('/public/') || url.includes('/sanctum/csrf-cookie');
     
-    // If the session has expired, Laravel returns 401 or 419.
-    // Only redirect to login if it's not a public route
-    if ((response.status === 401 || response.status === 419) && !isPublicRoute) {
+    // If the session has expired (401) and it's not a public route, trigger session expired modal
+    if (response.status === 401 && !isPublicRoute) {
         if (auth && typeof auth.showSessionExpiredModal === 'function') {
             auth.showSessionExpiredModal();
-        } else {
-            // Fallback for when auth context is not available
-            console.error('Session expired, but no auth context was provided to show the modal.');
         }
-        throw new Error(`Your session has expired. Please log in again. Status: ${response.status}`);
+        // This throw will be caught by the calling function, which should handle the redirect.
+        throw new Error('Session expired.');
     }
 
-    // For public routes, let 401 errors pass through without redirecting
-    if (!response.ok && (response.status === 401 || response.status === 419) && isPublicRoute) {
-        localStorage.removeItem('authUser');
-        throw new Error('Unauthorized');
-    }
-
-    // Handle empty response
+    // Handle empty or non-JSON responses
     let data;
-    try {
-        data = await response.json();
-    } catch (e) {
+    const contentType = response.headers.get('content-type');
+    if (contentType && contentType.indexOf('application/json') !== -1) {
+        try {
+            data = await response.json();
+        } catch (e) {
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+            data = {}; // Or handle as an error if JSON is expected
+        }
+    } else {
         if (!response.ok) {
             throw new Error(`HTTP error! Status: ${response.status}`);
         }
-        data = {};
+        data = {}; // No JSON body, return empty object for consistency
     }
 
     if (!response.ok) {
+        // Let login page and other public-facing components handle their own 401s
+        if (response.status === 401 && isPublicRoute) {
+             throw new Error(data.message || 'Unauthorized');
+        }
         if (response.status === 403) {
             throw new Error(data.message || 'Forbidden: You do not have permission to access this resource.');
         }
@@ -128,7 +121,7 @@ const apiFetch = async (url, options = {}, auth) => {
     }
 
     return data;
-}
+};
 
 
 // --- API Service Object ---
@@ -136,16 +129,10 @@ export const apiService = {
     // ===================================
     // AUTHENTICATION
     // ===================================
-    getCsrfCookie: () => fetch(`${SANCTUM_URL}/sanctum/csrf-cookie`, {
-        credentials: 'include',
-        headers: {
-            'Accept': 'application/json',
-        }
-    }),
+    // CSRF cookie is not needed for token-based auth
+    getCsrfCookie: () => Promise.resolve(),
 
-    login: async (email, password) => {
-        // Ensure CSRF cookie is set before login
-        await apiService.getCsrfCookie();
+    login: (email, password) => {
         return apiFetch(`${API_BASE_URL}/public/login`, {
             method: 'POST',
             body: { email, password },
@@ -191,7 +178,6 @@ export const apiService = {
     },
 
     checkAuthStatus: (auth) => {
-        // This endpoint will return user data if authenticated, or 401 if not.
         return apiFetch(`${API_BASE_URL}/user/profile`, {}, auth);
     },
 
@@ -221,20 +207,31 @@ export const apiService = {
     getPublicPosts: (url = null) => apiFetch(url || `${API_BASE_URL}/public/posts`, {}),
     getPostDetail: (id) => apiFetch(`${API_BASE_URL}/public/posts/${id}`, {}),
     getCampaignLeaderboard: (campaignId) => apiFetch(`${API_BASE_URL}/public/campaigns/${campaignId}/leaderboard`, {}),
+
+    getCampaignRecommendations: () => {
+        return apiFetch(`${API_BASE_URL}/campaigns/recommendations`, {});
+    },
     
     // ===================================
     // ADMIN & BRAND ROUTES
     // ===================================
-    getAdminCampaigns: () => apiFetch(`${API_BASE_URL}/admin/campaigns`, {}),
-    getBrandCampaigns: () => apiFetch(`${API_BASE_URL}/brand/campaigns`, {}),
-    getAdminCampaignDetail: (id) => apiFetch(`${API_BASE_URL}/admin/campaigns/${id}`, {}),
+    getAdminCampaigns: async () => {
+        return apiFetch(`${API_BASE_URL}/admin/campaigns`, {});
+    },
+    getBrandCampaigns: () => {
+        return apiFetch(`${API_BASE_URL}/brand/campaigns`, {});
+    },
+    getAdminCampaignDetail: (id) => {
+        return apiFetch(`${API_BASE_URL}/admin/campaigns/${id}`, {});
+    },
     createCampaign: (campaignData) => {
         return apiFetch(`${API_BASE_URL}/admin/campaigns`, {
             method: 'POST',
-            body: campaignData
+            body: campaignData,
         });
     },
-    updateCampaign: (id, campaignData) => {
+    updateCampaign: async (id, campaignData) => {
+        await apiService.getCsrfCookie();
         const {
             name,
             description,
@@ -264,11 +261,23 @@ export const apiService = {
             body: payload,
         });
     },
-    updateCampaignStatus: (id, status) => apiFetch(`${API_BASE_URL}/admin/campaigns/${id}/status`, { method: 'PATCH', body: { status } }),
-    getCampaignParticipants: (campaignId) => apiFetch(`${API_BASE_URL}/admin/campaigns/${campaignId}/participants`, {}),
-    updateParticipantStatus: (campaignId, participantId, status) => apiFetch(`${API_BASE_URL}/admin/campaigns/${campaignId}/participants/${participantId}/status`, { method: 'PATCH', body: { status } }),
+    updateCampaignStatus: async (id, status) => {
+        await apiService.getCsrfCookie();
+        return apiFetch(`${API_BASE_URL}/admin/campaigns/${id}/status`, { method: 'PATCH', body: { status } });
+    },
+    getCampaignParticipants: async (campaignId) => {
+        await apiService.getCsrfCookie();
+        return apiFetch(`${API_BASE_URL}/admin/campaigns/${campaignId}/participants`, {});
+    },
+    updateParticipantStatus: async (campaignId, participantId, status) => {
+        await apiService.getCsrfCookie();
+        return apiFetch(`${API_BASE_URL}/admin/campaigns/${campaignId}/participants/${participantId}/status`, { method: 'PATCH', body: { status } });
+    },
     getCampaignPosts: (campaignId, url = null) => apiFetch(url || `${API_BASE_URL}/public/posts/campaign/${campaignId}`, {}),
-    validatePost: (postId, isValid, notes) => apiFetch(`${API_BASE_URL}/admin/posts/${postId}`, { method: 'PUT', body: { is_valid_for_campaign: isValid, validation_notes: notes } }),
+    validatePost: async (postId, isValid, notes) => {
+        await apiService.getCsrfCookie();
+        return apiFetch(`${API_BASE_URL}/admin/posts/${postId}`, { method: 'PUT', body: { is_valid_for_campaign: isValid, validation_notes: notes } });
+    },
     getPostsForInfluencerInCampaign: (campaignId, userId) => apiFetch(`${API_BASE_URL}/public/campaigns/${campaignId}/posts?user_id=${userId}`, {}),
     
     // ===================================

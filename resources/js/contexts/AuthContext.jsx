@@ -15,96 +15,110 @@ export const useAuth = () => {
 
 // AuthProvider component
 export const AuthProvider = ({ children }) => {
-    const [user, setUser] = useState(null);
-    const [loading, setLoading] = useState(true); // For initial page load
-    const [isAuthenticating, setIsAuthenticating] = useState(false); // For login process
+    const [user, setUser] = useState(undefined); // Start with undefined to signify "not yet checked"
+    const [loading, setLoading] = useState(false); // Used for login/logout process
     const [sessionExpired, setSessionExpired] = useState(false);
 
-    // This function will be called to check auth status
-    const checkAuth = async () => {
-        try {
-            const response = await apiService.checkAuthStatus({ showSessionExpiredModal });
-            // The response from the API is { user: UserResource }
-            if (response && response.user) {
-                setUser(response.user);
-                localStorage.setItem('authUser', JSON.stringify(response.user));
-            } else {
-                localStorage.removeItem('authUser');
-                setUser(null);
-            }
-        } catch (error) {
-            localStorage.removeItem('authUser');
+    // Centralized function to handle setting user data consistently
+    const setUserData = (userData, token) => {
+        if (userData && token) {
+            setUser(userData);
+            localStorage.setItem('authUser', JSON.stringify(userData));
+            localStorage.setItem('authToken', token);
+        } else {
             setUser(null);
-        } finally {
-            setLoading(false); // For initial load
-            setIsAuthenticating(false); // Finish login process
+            localStorage.removeItem('authUser');
+            localStorage.removeItem('authToken');
         }
     };
-    
-    // Check authentication status when the app loads
+
+    // On initial load, check for cached user and token
     useEffect(() => {
-        checkAuth();
+        const cachedUser = localStorage.getItem('authUser');
+        const token = localStorage.getItem('authToken');
+        if (cachedUser && token) {
+            setUser(JSON.parse(cachedUser));
+        } else {
+            setUser(null); // Explicitly set to null if no cache
+        }
     }, []);
 
     const showSessionExpiredModal = () => {
         setSessionExpired(true);
-        localStorage.removeItem('authUser');
-        setUser(null);
+        setUserData(null, null); // Clear all user data
     };
     
     // Login function
     const login = async (email, password) => {
-        setIsAuthenticating(true);
+        setLoading(true);
         try {
             const response = await apiService.login(email, password);
-            if (response.user) {
-                // After successful login, re-verify auth status
-                // This will set user and set isAuthenticating to false
-                await checkAuth();
+            if (response.user && response.access_token) {
+                setUserData(response.user, response.access_token);
             } else {
-                // If login fails server-side but doesn't throw
-                setIsAuthenticating(false);
+                setUserData(null, null); // Clear data on failed login
+                throw new Error('Login failed: Invalid server response.');
             }
             return response;
         } catch (error) {
-            setUser(null);
-            localStorage.removeItem('authUser');
-            setIsAuthenticating(false);
-            throw error;
+            setUserData(null, null); // Ensure cleanup on error
+            throw error; // Let the component handle the error display
+        } finally {
+            setLoading(false);
         }
     };
 
     // Logout function
     const logout = async () => {
+        setLoading(true);
         try {
-            // Pass auth context directly to the apiService call
-            await apiService.logout();
+            // The `auth` object is now passed to apiFetch, so we pass `showSessionExpiredModal`
+            await apiService.logout({ showSessionExpiredModal });
         } catch (error) {
-            console.error('Logout error:', error);
+            console.error('Logout failed:', error);
+            // Still clear data locally even if server call fails
         } finally {
-            localStorage.removeItem('authUser');
-            setUser(null);
+            setUserData(null, null);
+            setLoading(false);
         }
     };
 
     // Update user function
-    const updateUser = (userData) => {
-        setUser(userData);
-        localStorage.setItem('authUser', JSON.stringify(userData));
+     const updateUser = (newUserData) => {
+        const token = localStorage.getItem('authToken');
+        setUserData(newUserData, token);
     };
-
+    
+    // This function is still useful for silent re-authentication if ever needed,
+    // for example, re-validating the user's session when the tab becomes active again.
+    const revalidateUser = async () => {
+        const token = localStorage.getItem('authToken');
+        if (!token) return; // No token, nothing to revalidate
+        
+        try {
+            const response = await apiService.checkAuthStatus({ showSessionExpiredModal });
+            if (response) {
+                // Use the existing token, as a new one isn't issued on profile check
+                setUserData(response, token);
+            } else {
+                showSessionExpiredModal();
+            }
+        } catch (error) {
+             showSessionExpiredModal();
+        }
+    };
+    
     const value = {
         user,
         login,
         logout,
         updateUser,
+        revalidateUser,
         loading,
-        isAuthenticating, // <-- Expose this new state
-        isAuthenticated: !!user && !isAuthenticating, // <-- Modify this logic
+        isAuthenticated: !!user, // If user object exists, they are authenticated
         sessionExpired,
-        showSessionExpiredModal,
         setSessionExpired,
-        checkAuth // Expose checkAuth to be used manually if needed
+        showSessionExpiredModal
     };
 
     return (

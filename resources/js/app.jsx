@@ -26,6 +26,7 @@ const CampaignLeaderboardPage = lazy(() => import('./pages/admin/CampaignLeaderb
 const ReportingPage = lazy(() => import('./pages/admin/ReportingPage'));
 const InfluencerApplicationPage = lazy(() => import('./pages/InfluencerApplicationPage'));
 const ManageApplicationsPage = lazy(() => import('./pages/admin/ManageApplicationsPage'));
+const BrandCampaignsPage = lazy(() => import('./pages/brand/BrandCampaignsPage'));
 const PostsPage = lazy(() => import('./pages/PostsPage'));
 const PostDetailPage = lazy(() => import('./pages/PostDetailPage'));
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
@@ -88,17 +89,21 @@ function AppContent() {
                     <Route path="/posts/:id" element={<PublicLayout><PostDetailPage /></PublicLayout>} />
                     <Route path="/campaigns/:id" element={<PublicLayout><CampaignDetailWrapper /></PublicLayout>} />
                     <Route path="/apply-influencer" element={<PublicLayout><InfluencerApplicationPage /></PublicLayout>} />
-                    <Route path="/dashboard" element={<ProtectedRoute><DashboardLayout><DashboardWrapper /></DashboardLayout></ProtectedRoute>} />
-                    <Route path="/my-campaigns" element={<ProtectedRoute><DashboardLayout><MyCampaignsWrapper /></DashboardLayout></ProtectedRoute>} />
-                    <Route path="/influencer/my-campaigns" element={<ProtectedRoute><DashboardLayout><MyCampaignsWrapper /></DashboardLayout></ProtectedRoute>} />
-                    <Route path="/admin/campaigns" element={<ProtectedRoute><DashboardLayout><AdminCampaignsPage /></DashboardLayout></ProtectedRoute>} />
-                    <Route path="/admin/campaigns/create" element={<ProtectedRoute><DashboardLayout><CreateCampaignPage /></DashboardLayout></ProtectedRoute>} />
-                    <Route path="/admin/campaigns/edit/:id" element={<ProtectedRoute><DashboardLayout><EditCampaignPage /></DashboardLayout></ProtectedRoute>} />
-                    <Route path="/admin/campaigns/:id/participants" element={<ProtectedRoute><DashboardLayout><CampaignParticipantsWrapper /></DashboardLayout></ProtectedRoute>} />
-                    <Route path="/admin/campaigns/:id/posts" element={<ProtectedRoute><DashboardLayout><CampaignPostsPage /></DashboardLayout></ProtectedRoute>} />
-                    <Route path="/admin/campaigns/:id/leaderboard" element={<ProtectedRoute><DashboardLayout><CampaignLeaderboardPage /></DashboardLayout></ProtectedRoute>} />
-                    <Route path="/admin/reporting" element={<ProtectedRoute><DashboardLayout><ReportingPage /></DashboardLayout></ProtectedRoute>} />
-                    <Route path="/admin/applications" element={<ProtectedRoute><DashboardLayout><ManageApplicationsPage /></DashboardLayout></ProtectedRoute>} />
+                    <Route path="/dashboard" element={<ProtectedRoute allowedRoles={['admin', 'brand', 'influencer']}><DashboardLayout><DashboardWrapper /></DashboardLayout></ProtectedRoute>} />
+                    <Route path="/my-campaigns" element={<ProtectedRoute allowedRoles={['influencer']}><DashboardLayout><MyCampaignsWrapper /></DashboardLayout></ProtectedRoute>} />
+                    <Route path="/influencer/my-campaigns" element={<ProtectedRoute allowedRoles={['influencer']}><DashboardLayout><MyCampaignsWrapper /></DashboardLayout></ProtectedRoute>} />
+                    <Route path="/admin/campaigns" element={<ProtectedRoute allowedRoles={['admin']}><DashboardLayout><AdminCampaignsPage /></DashboardLayout></ProtectedRoute>} />
+                    <Route path="/admin/campaigns/create" element={<ProtectedRoute allowedRoles={['admin']}><DashboardLayout><CreateCampaignPage /></DashboardLayout></ProtectedRoute>} />
+                    <Route path="/admin/campaigns/edit/:id" element={<ProtectedRoute allowedRoles={['admin']}><DashboardLayout><EditCampaignPage /></DashboardLayout></ProtectedRoute>} />
+                    <Route path="/admin/campaigns/:id/participants" element={<ProtectedRoute allowedRoles={['admin']}><DashboardLayout><CampaignParticipantsWrapper /></DashboardLayout></ProtectedRoute>} />
+                    <Route path="/admin/campaigns/:id/posts" element={<ProtectedRoute allowedRoles={['admin']}><DashboardLayout><CampaignPostsPage /></DashboardLayout></ProtectedRoute>} />
+                    <Route path="/admin/campaigns/:id/leaderboard" element={<ProtectedRoute allowedRoles={['admin']}><DashboardLayout><CampaignLeaderboardPage /></DashboardLayout></ProtectedRoute>} />
+                    <Route path="/admin/reporting" element={<ProtectedRoute allowedRoles={['admin']}><DashboardLayout><ReportingPage /></DashboardLayout></ProtectedRoute>} />
+                    <Route path="/admin/applications" element={<ProtectedRoute allowedRoles={['admin']}><DashboardLayout><ManageApplicationsPage /></DashboardLayout></ProtectedRoute>} />
+
+                    {/* BRAND ROUTES ---*/}
+                    <Route path="/brand/campaigns" element={<ProtectedRoute allowedRoles={['brand']}><DashboardLayout><BrandCampaignsPage /></DashboardLayout></ProtectedRoute>} />
+                    
                     <Route path="/unauthorized" element={<UnauthorizedPage />} />
                     <Route path="*" element={<NotFoundPage />} />
                 </Routes>

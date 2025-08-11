@@ -52,7 +52,6 @@ Route::prefix('public')->group(function () {
     Route::get('/campaigns/{campaign}/leaderboard', [CampaignController::class, 'getLeaderboard']);
     
     // --- User Profile (Publicly accessible to check auth status) ---
-    Route::get('/user/profile', [UserController::class, 'showProfile']);
 });
 
 
@@ -61,6 +60,8 @@ Route::middleware('auth:sanctum')->group(function () {
     // --- Core Authenticated User Actions ---
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::put('/user/profile', [UserController::class, 'updateProfile']);
+    // This new route will handle fetching the authenticated user's profile.
+    Route::get('/user/profile', [UserController::class, 'showProfile']);
 
     // Fallback for authenticated user info (standard Laravel Sanctum route)
     Route::get('/user', function (Request $request) {
@@ -69,12 +70,12 @@ Route::middleware('auth:sanctum')->group(function () {
 
 
     // --- INFLUENCER SPECIFIC ROUTES ---
-    Route::prefix('admin')->middleware('admin')->group(function () {
+    Route::prefix('admin')->middleware('admin')->name('admin.')->group(function () {
         // Campaign Management
         Route::apiResource('campaigns', CampaignController::class);
-        Route::patch('campaigns/{campaign}/status', [CampaignController::class, 'updateStatus']);
-        Route::get('campaigns/{campaign}/participants', [CampaignController::class, 'getParticipants']);
-        Route::patch('campaigns/{campaign}/participants/{user}/status', [CampaignController::class, 'updateParticipantStatus']);
+        Route::patch('campaigns/{campaign}/status', [CampaignController::class, 'updateStatus'])->name('campaigns.update-status');
+        Route::get('campaigns/{campaign}/participants', [CampaignController::class, 'getParticipants'])->name('campaigns.participants');
+        Route::patch('campaigns/{campaign}/participants/{user}/status', [CampaignController::class, 'updateParticipantStatus'])->name('campaigns.participants.update-status');
         Route::post('/campaigns/{campaign}/recalculate-scores', [PostController::class, 'recalculateAllCampaignScores']);
         Route::post('/campaigns/{campaign}/fetch-metrics', [PostController::class, 'fetchAllCampaignMetrics']);
 
@@ -101,34 +102,41 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/influencer-applications/{application}/reject', [InfluencerApplicationController::class, 'reject']);
     });
 
-    Route::prefix('brand')->middleware('can:brand')->group(function () {
-        // Campaign Management
-        Route::apiResource('campaigns', CampaignController::class)->only(['index', 'show', 'store', 'update']);
-        Route::patch('campaigns/{campaign}/status', [CampaignController::class, 'updateStatus']);
-        Route::get('campaigns/{campaign}/participants', [CampaignController::class, 'getParticipants']);
-        Route::patch('campaigns/{campaign}/participants/{user}/status', [CampaignController::class, 'updateParticipantStatus']);
+    Route::middleware(['auth:sanctum', 'admin'])->group(function () {
+        // Rute-rute yang hanya bisa diakses oleh admin
     });
-
-    Route::prefix('influencer')->middleware('can:influencer')->group(function () {
-        // Profile
-        Route::get('/profile', [InfluencerProfileController::class, 'showAuthenticatedInfluencerProfile']);
-        Route::put('/profile', [InfluencerProfileController::class, 'updateAuthenticatedInfluencerProfile']);
-
-        // social media
+    
+    Route::middleware(['auth:sanctum', 'brand_or_influencer'])->group(function () {
+        Route::get('/campaigns/recommendations', [CampaignController::class, 'getRecommendations']);
+        // The duplicate route is removed from here.
+    });
+    
+    // BRAND & INFLUENCER SPECIFIC ROUTES
+    Route::prefix('brand')->middleware('brand_or_influencer')->name('brand.')->group(function () {
+        // Campaign Management
+        Route::apiResource('campaigns', CampaignController::class)->except(['destroy']);
+        Route::get('campaigns/{campaign}/participants', [CampaignController::class, 'getParticipants']);
+        Route::patch('campaigns/{campaign}/participants/{participant}/status', [CampaignController::class, 'updateParticipantStatus']);
+         // Laporan
+        Route::get('reports/brand-performance', [ReportController::class, 'getBrandPerformanceReport']);
+        Route::get('reports/campaign-comparison', [ReportController::class, 'getCampaignComparisonReport']);
+    });
+    
+    Route::prefix('influencer')->middleware(['auth:sanctum', 'can:influencer'])->name('influencer.')->group(function () {
+        // Profile & Social Media
+        Route::get('profile', [InfluencerProfileController::class, 'show']);
+        Route::put('profile', [InfluencerProfileController::class, 'update']);
         Route::apiResource('social-media-accounts', SocialMediaAccountController::class);
-        Route::post('/social-media-accounts/{social_media_account}/sync-posts', [SocialMediaAccountController::class, 'syncPosts']);
-
-        // Campaigns
-        Route::get('/campaigns', [CampaignController::class, 'indexForInfluencer']);
-        Route::get('/campaigns/{campaign}', [CampaignController::class, 'showForInfluencer']);
-        Route::post('/campaigns/{campaign}/apply', [CampaignController::class, 'applyForCampaign']);
-        Route::post('/campaigns/{campaign}/withdraw', [CampaignController::class, 'withdrawApplication']);
-
-        // Posts
-        Route::apiResource('my-posts', PostController::class)->except(['index', 'show', 'update', 'destroy']);
-        Route::get('/my-posts', [PostController::class, 'index']);
-        Route::get('/my-posts/{post}', [PostController::class, 'show']);
-        Route::put('/my-posts/{post}', [PostController::class, 'update']);
-        Route::delete('/my-posts/{post}', [PostController::class, 'destroy']);
+        Route::post('social-media-accounts/{account}/sync', [SocialMediaAccountController::class, 'syncPosts']);
+    
+        // Campaign Interaction
+        Route::get('campaigns', [CampaignController::class, 'indexForInfluencer']);
+        Route::get('campaigns/{campaign}', [CampaignController::class, 'showForInfluencer']);
+        Route::post('campaigns/{campaign}/apply', [CampaignController::class, 'applyForCampaign']);
+        Route::post('campaigns/{campaign}/withdraw', [CampaignController::class, 'withdrawApplication']);
+    
+        // Post Management
+        Route::apiResource('posts', PostController::class);
+        Route::post('posts/{post}/submit-for-review', [PostController::class, 'submitForReview']);
     });
 });

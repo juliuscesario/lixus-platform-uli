@@ -2,7 +2,7 @@ import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
-export default function ProtectedRoute({ children, aooowedRoles }) {
+export default function ProtectedRoute({ children, allowedRoles }) {
     const { user, isAuthenticated, loading, isAuthenticating } = useAuth();
     const location = useLocation();
 
@@ -14,7 +14,11 @@ export default function ProtectedRoute({ children, aooowedRoles }) {
         return <Navigate to="/login" state={{ from: location }} replace />;
     }
 
-    if (aooowedRoles && !aooowedRoles.includes(user?.role)) {
+    // Check if the user's role is included in the allowedRoles array a
+    // Safely access role name with optional chaining
+    const userRole = user?.role?.name;
+    
+    if (allowedRoles && !allowedRoles.includes(userRole)) {
         return <Navigate to="/unauthorized" replace />;
     }
 

@@ -707,4 +707,31 @@ class CampaignController extends Controller
         }
     }
 
+    public function getRecommendations(Request $request)
+    {
+        $user = $request->user();
+
+        // Rekomendasi berdasarkan role
+        if ($user->hasRole('brand')) {
+            // Rekomendasi untuk brand: kampanye serupa atau berkinerja terbaik
+            $campaigns = Campaign::where('status', 'active')
+                                 ->orderByDesc('budget')
+                                 ->limit(5)
+                                 ->get();
+        } elseif ($user->hasRole('influencer')) {
+            // Rekomendasi untuk influencer: kampanye baru yang sesuai dengan niche mereka
+            $campaigns = Campaign::where('status', 'active')
+                                 ->whereDoesntHave('participants', function ($query) use ($user) {
+                                     $query->where('user_id', $user->id);
+                                 })
+                                 ->inRandomOrder()
+                                 ->limit(5)
+                                 ->get();
+        } else {
+            // Default fallback
+            $campaigns = Campaign::where('status', 'active')->inRandomOrder()->limit(5)->get();
+        }
+
+        return CampaignResource::collection($campaigns);
+    }
 }

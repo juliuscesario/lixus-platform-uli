@@ -15,17 +15,11 @@ class UserController extends Controller
      */
     public function showProfile(Request $request)
     {
-        // Now public, so we need to check if a user is authenticated
-        if (Auth::check()) {
-            $user = $request->user();
-            $user->load('role', 'influencerProfile', 'socialMediaAccounts');
-            return response()->json([
-                'user' => new UserResource($user)
-            ]);
-        }
+        // The 'auth:sanctum' middleware already ensures the user is authenticated.
+        // If we reach here, $request->user() is guaranteed to be the authenticated user.
+        $user = $request->user()->load('role', 'influencerProfile', 'socialMediaAccounts');
 
-        // If not authenticated, return a null user
-        return response()->json(['user' => null]);
+        return new UserResource($user);
     }
 
     /**
