@@ -25,9 +25,12 @@ export default function LoginPage() {
         setError('');
         setLoading(true);
         try {
-            await login(email, password);
-            // The AuthContext will now set the user state.
-            // The `useEffect` hook listening for `isAuthenticated` will handle the redirect.
+            const response = await login(email, password);
+            if (response.user) {
+                setTimeout(() => {
+                    navigate('/dashboard');
+                }, 100);
+            }
         } catch (err) {
             setError(err.message || 'Email atau password salah. Silakan coba lagi.');
         } finally {
