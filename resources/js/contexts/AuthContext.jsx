@@ -1,5 +1,5 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
-import apiService from '../services/apiService';
+import { apiService } from '../services/apiService';
 
 // Create the AuthContext
 const AuthContext = createContext();
@@ -43,7 +43,7 @@ export const AuthProvider = ({ children }) => {
     // Login function
     const login = async (email, password) => {
         try {
-            const data = await apiService(auth).login(email, password);
+            const data = await apiService(value).login(email, password);
             setUser(data.user);
             localStorage.setItem('authUser', JSON.stringify(data.user));
             return data;
@@ -55,7 +55,7 @@ export const AuthProvider = ({ children }) => {
     // Logout function
     const logout = async () => {
         try {
-            await apiService(auth).logout();
+            await apiService(value).logout();
         } catch (error) {
             console.error('Logout error:', error);
         } finally {

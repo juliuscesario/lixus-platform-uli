@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { apiService, formatDate } from '../../services/apiService';
+import { useAuth } from '../../contexts/AuthContext';
 import PostsModal from '../../components/PostsModal'; // Import modal
 
 const StatusBadge = ({ status }) => {
@@ -20,6 +21,7 @@ const StatusBadge = ({ status }) => {
 import { Link } from 'react-router-dom';
 
 export default function MyCampaignsPage({ user }) {
+    const { auth } = useAuth();
     const [participations, setParticipations] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -34,7 +36,7 @@ export default function MyCampaignsPage({ user }) {
         setLoading(true);
         setError(null);
         try {
-            const response = await apiService.getMyCampaigns();
+            const response = await apiService(auth).getMyCampaigns();
             // PERBAIKAN: Ambil data dari response.data, bukan response langsung
             setParticipations(response.data || []);
         } catch (err) {
@@ -53,7 +55,7 @@ export default function MyCampaignsPage({ user }) {
         // Menggunakan window.confirm untuk konfirmasi
         if (window.confirm("Apakah Anda yakin ingin mengundurkan diri dari kampanye ini?")) {
             try {
-                await apiService.withdrawFromCampaign(campaignId);
+                await apiService(auth).withdrawFromCampaign(campaignId);
                 alert('Anda berhasil mengundurkan diri.');
                 fetchMyCampaigns(); // Muat ulang data
             } catch (err) {
@@ -67,7 +69,7 @@ export default function MyCampaignsPage({ user }) {
         setIsModalLoading(true);
         setSelectedCampaignName(campaignName);
         try {
-            const response = await apiService.getPostsForInfluencerInCampaign(campaignId, user.id);
+            const response = await apiService(auth).getPostsForInfluencerInCampaign(campaignId, user.id);
             setModalPosts(response.data || []);
         } catch (err) {
             console.error("Gagal memuat postingan untuk modal:", err);

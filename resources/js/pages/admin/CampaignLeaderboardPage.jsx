@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { apiService } from '../../services/apiService';
+import { useAuth } from '../../contexts/AuthContext';
 import PostsModal from '../../components/PostsModal'; // Import modal baru
 
 const IconArrowLeft = () => ( <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg> );
@@ -36,6 +37,7 @@ const SocialIcon = ({ platform, className }) => {
 import { Link, useNavigate, useParams } from 'react-router-dom';
 
 export default function CampaignLeaderboardPage() {
+    const { user, auth } = useAuth();
     const navigate = useNavigate();
     const { id: campaignId } = useParams();
     const [campaign, setCampaign] = useState(null);
@@ -52,7 +54,7 @@ export default function CampaignLeaderboardPage() {
     useEffect(() => {
         const fetchCampaignData = async () => {
             try {
-                const response = await apiService.getAdminCampaignDetail(campaignId);
+                const response = await apiService(auth).getAdminCampaignDetail(campaignId);
                 setCampaign(response.data);
             } catch (err) {
                 console.error('Failed to fetch campaign:', err);
@@ -63,7 +65,7 @@ export default function CampaignLeaderboardPage() {
             setLoading(true);
             setError(null);
             try {
-                const response = await apiService.getCampaignLeaderboard(campaignId);
+                const response = await apiService(auth).getCampaignLeaderboard(campaignId);
                 setLeaderboard(response.data || []);
             } catch (err) {
                 setError('Gagal memuat data leaderboard.');
@@ -83,7 +85,7 @@ export default function CampaignLeaderboardPage() {
         setIsModalLoading(true);
         setSelectedInfluencerName(userName);
         try {
-            const response = await apiService.getPostsForInfluencerInCampaign(campaignId, userId);
+            const response = await apiService(auth).getPostsForInfluencerInCampaign(campaignId, userId);
             setModalPosts(response.data || []);
         } catch (err) {
             console.error("Gagal memuat postingan untuk modal:", err);

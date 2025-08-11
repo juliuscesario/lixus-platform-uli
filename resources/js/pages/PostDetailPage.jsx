@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { apiService, formatDate } from '../services/apiService';
+import { useAuth } from '../contexts/AuthContext';
 
 const IconArrowLeft = () => ( <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg> );
 
 import { Link } from 'react-router-dom';
 
 export default function PostDetailPage({ pageProps }) {
+    const { user, auth } = useAuth();
     const [post, setPost] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -19,7 +21,7 @@ export default function PostDetailPage({ pageProps }) {
             }
             setLoading(true);
             setError(null);
-            const response = await apiService.getPostDetail(pageProps.id);
+            const response = await apiService(auth).getPostDetail(pageProps.id);
             if (response && response.data) {
                 setPost(response.data);
             } else {

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { apiService, formatDate, formatCompactNumber } from '../../services/apiService';
+import { useAuth } from '../../contexts/AuthContext';
 import AdminPostCard from '../../components/AdminPostCard';
 import Pagination from '../../components/Pagination';
 
@@ -21,6 +22,7 @@ const SocialIcon = ({ platform, className }) => {
 import { Link, useNavigate, useParams } from 'react-router-dom';
 
 export default function CampaignPostsPage() {
+    const { user, auth } = useAuth();
     const navigate = useNavigate();
     const { id: campaignId } = useParams();
     const [campaign, setCampaign] = useState(null);
@@ -54,7 +56,7 @@ export default function CampaignPostsPage() {
 
     const fetchCampaignData = async () => {
         try {
-            const response = await apiService.getAdminCampaignDetail(campaignId);
+            const response = await apiService(auth).getAdminCampaignDetail(campaignId);
             setCampaign(response.data);
         } catch (err) {
             console.error('Failed to fetch campaign:', err);
@@ -66,7 +68,7 @@ export default function CampaignPostsPage() {
         setError(null);
         window.scrollTo(0, 0);
         try {
-            const response = await apiService.getCampaignPosts(campaignId, url);
+            const response = await apiService(auth).getCampaignPosts(campaignId, url);
             setPosts(response.data || []);
             setPagination({ links: response.links, meta: response.meta });
         } catch (err) {
@@ -85,7 +87,7 @@ export default function CampaignPostsPage() {
 
     const handleValidate = async (postId, isValid, notes) => {
         try {
-            await apiService.validatePost(postId, isValid, notes);
+            await apiService(auth).validatePost(postId, isValid, notes);
             fetchPosts(pagination?.meta?.current_page ? `${pagination.meta.path}?page=${pagination.meta.current_page}` : null);
         } catch (err) {
             alert(err.message || 'Gagal memvalidasi postingan.');
@@ -186,7 +188,7 @@ export default function CampaignPostsPage() {
         if (!confirm(`Anda akan memvalidasi ${selected.length} postingan terpilih. Lanjutkan?`)) return;
         for (const postId of selected) {
             try {
-                await apiService.validatePost(postId, true, 'Disetujui secara massal');
+                await apiService(auth).validatePost(postId, true, 'Disetujui secara massal');
             } catch (err) {
                 alert(`Gagal memvalidasi post ID ${postId}: ${err.message}`);
                 break;

@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { apiService, formatDate, formatCurrency } from '../../services/apiService';
+import { useAuth } from '../../contexts/AuthContext';
 
 import { Link, useNavigate } from 'react-router-dom';
 
 export default function AdminCampaignsPage() {
+    const { user, auth } = useAuth();
     const navigate = useNavigate();
     const [campaigns, setCampaigns] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -13,7 +15,7 @@ export default function AdminCampaignsPage() {
         const fetchCampaigns = async () => {
             setLoading(true);
             setError(null);
-            const response = await apiService.getAdminCampaigns();
+            const response = await apiService(auth).getAdminCampaigns();
             if (response && response.data) {
                 setCampaigns(response.data);
             } else {

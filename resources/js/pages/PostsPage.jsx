@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { apiService } from '../services/apiService';
+import { useAuth } from '../contexts/AuthContext';
 import PostCard from '../components/PostCard';
 import Pagination from '../components/Pagination'; // Import komponen baru
 
 export default function PostsPage() {
+    const { user, auth } = useAuth();
     const [posts, setPosts] = useState([]);
     const [pagination, setPagination] = useState(null); // State untuk data paginasi
     const [loading, setLoading] = useState(true);
@@ -14,7 +16,7 @@ export default function PostsPage() {
         setLoading(true);
         setError(null);
         window.scrollTo(0, 0); // Scroll ke atas setiap ganti halaman
-        const response = await apiService.getPublicPosts(url);
+        const response = await apiService(auth).getPublicPosts(url);
         if (response && response.data) {
             setPosts(response.data);
             setPagination({ links: response.links, meta: response.meta });

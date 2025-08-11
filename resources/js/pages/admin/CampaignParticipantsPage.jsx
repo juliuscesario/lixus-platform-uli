@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { apiService, formatDateTime } from '../../services/apiService';
+import { useAuth } from '../../contexts/AuthContext';
 import ParticipantCard from '../../components/ParticipantCard';
 
 const IconArrowLeft = () => ( <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg> );
@@ -25,6 +26,7 @@ const StatusBadge = ({ status }) => {
 import { Link, useNavigate, useParams } from 'react-router-dom';
 
 export default function CampaignParticipantsPage() {
+    const { user, auth } = useAuth();
     const navigate = useNavigate();
     const { id: campaignId } = useParams();
     const [participants, setParticipants] = useState([]);
@@ -40,11 +42,11 @@ export default function CampaignParticipantsPage() {
         setError(null);
         try {
             // Fetch campaign details first
-            const campaignResponse = await apiService.getAdminCampaignDetail(campaignId);
+            const campaignResponse = await apiService(auth).getAdminCampaignDetail(campaignId);
             setCampaign(campaignResponse.data);
             
             // Then fetch participants
-            const response = await apiService.getCampaignParticipants(campaignId);
+            const response = await apiService(auth).getCampaignParticipants(campaignId);
             setParticipants(response.data || []);
         } catch (err) {
             setError('Gagal memuat data partisipan.');
@@ -63,7 +65,7 @@ export default function CampaignParticipantsPage() {
     const handleStatusChange = async (userId, newStatus) => {
         if (!confirm(`Apakah Anda yakin ingin mengubah status partisipan ini menjadi "${newStatus}"?`)) return;
         try {
-            await apiService.updateParticipantStatus(campaignId, userId, newStatus);
+            await apiService(auth).updateParticipantStatus(campaignId, userId, newStatus);
             fetchCampaignData();
         } catch (err) {
             alert(err.message || 'Gagal mengubah status.');
@@ -95,7 +97,7 @@ export default function CampaignParticipantsPage() {
 
         for (const userId of selected) {
             try {
-                await apiService.updateParticipantStatus(campaignId, userId, bulkStatus);
+                await apiService(auth).updateParticipantStatus(campaignId, userId, bulkStatus);
             } catch (err) {
                 alert(`Gagal mengubah status untuk partisipan ID ${userId}: ${err.message}`);
                 break;
