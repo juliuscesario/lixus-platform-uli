@@ -191,14 +191,10 @@ export const apiService = {
     },
 
     checkAuthStatus: async (auth) => {
-        try {
-            // This endpoint will return user data if authenticated, or 401 if not.
-            const response = await apiFetch(`${API_BASE_URL}/user/profile`, {}, auth);
-            // The response should already contain the user data
-            return response;
-        } catch (error) {
-            throw error;
-        }
+        // This endpoint will return user data if authenticated, or 401 if not.
+        const response = await apiFetch(`${API_BASE_URL}/user/profile`, {},auth);
+        // Extract user from response since UserResource wraps it
+        return { user: response.user };
     },
 
     // ===================================

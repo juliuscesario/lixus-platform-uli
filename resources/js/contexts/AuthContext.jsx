@@ -23,19 +23,15 @@ export const AuthProvider = ({ children }) => {
     const checkAuth = async () => {
         setLoading(true);
         try {
-            const response = await apiService.checkAuthStatus({ showSessionExpiredModal });
-            console.log('checkAuth response:', response);
-            
-            // The response contains { user: UserResource } or { user: null }
-            if (response && response.user) {
-                setUser(response.user);
-                localStorage.setItem('authUser', JSON.stringify(response.user));
+            const { user } = await apiService.checkAuthStatus({ showSessionExpiredModal });
+            if (user) {
+                setUser(user);
+                localStorage.setItem('authUser', JSON.stringify(user));
             } else {
                 localStorage.removeItem('authUser');
                 setUser(null);
             }
         } catch (error) {
-            console.error('Authentication check failed:', error);
             localStorage.removeItem('authUser');
             setUser(null);
         } finally {
@@ -60,8 +56,7 @@ export const AuthProvider = ({ children }) => {
         try {
             const response = await apiService.login(email, password);
             if (response.user) {
-                setUser(response.user);
-                localStorage.setItem('authUser', JSON.stringify(response.user));
+                await checkAuth();
             }
             return response;
         } catch (error) {
