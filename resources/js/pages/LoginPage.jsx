@@ -25,8 +25,8 @@ export default function LoginPage() {
         setError('');
         setLoading(true);
         try {
-            const { user } = await login(email, password);
-            if (user) {
+            const { data } = await login(email, password);
+            if (data.user) {
                 navigate('/dashboard');
             } else {
                 // Handle cases where login succeeds but user data isn't returned

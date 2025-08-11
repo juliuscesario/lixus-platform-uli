@@ -55,8 +55,9 @@ export const AuthProvider = ({ children }) => {
     const login = async (email, password) => {
         setLoading(true);
         try {
-            await apiService.login(email, password);
+            const response = await apiService.login(email, password);
             await checkAuth();
+            return response;
         } catch (error) {
             setUser(null);
             localStorage.removeItem('authUser');
