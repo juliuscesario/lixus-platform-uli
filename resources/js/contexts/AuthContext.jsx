@@ -58,10 +58,11 @@ export const AuthProvider = ({ children }) => {
         try {
             const response = await apiService.login(email, password);
             if (response.user) {
-                // Force navigation and a full page reload.
-                // This is a robust way to ensure the app state is correctly initialized after login.
-                window.location.href = '/dashboard';
+                // After successful login, re-verify auth status
+                // This will set user and set isAuthenticating to false
+                await checkAuth();
             } else {
+                // If login fails server-side but doesn't throw
                 setIsAuthenticating(false);
             }
             return response;

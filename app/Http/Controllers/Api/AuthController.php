@@ -59,6 +59,9 @@ class AuthController extends Controller
         }
 
         $user = User::where('email', $request->email)->firstOrFail();
+        // Regenerate session to prevent session fixation
+        $request->session()->regenerate();
+        
         $token = $user->createToken('auth_token')->plainTextToken;
         
         // Load relationships for UserResource

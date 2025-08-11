@@ -87,7 +87,7 @@ const apiFetch = async (url, options = {}, auth) => {
     const response = await fetch(url, defaultOptions);
 
     // Check if it's a public route by examining the URL
-    const isPublicRoute = url.includes('/public/') || url.includes('/sanctum/') || url.includes('/user/profile');
+    const isPublicRoute = url.includes('/public/') || url.includes('/sanctum/');
     
     // If the session has expired, Laravel returns 401 or 419.
     // Only redirect to login if it's not a public route
