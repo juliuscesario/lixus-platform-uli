@@ -16,12 +16,13 @@ export const useAuth = () => {
 // AuthProvider component
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
-    const [loading, setLoading] = useState(true); // Set initial loading to true
+    const [loading, setLoading] = useState(true); // For initial page load
+    const [isAuthenticating, setIsAuthenticating] = useState(false); // For login process
     const [sessionExpired, setSessionExpired] = useState(false);
 
     // This function will be called to check auth status
     const checkAuth = async () => {
-        setLoading(true);
+        // Don't set loading here, to avoid screen flash on every check
         try {
             const { user } = await apiService.checkAuthStatus({ showSessionExpiredModal });
             if (user) {
@@ -35,7 +36,8 @@ export const AuthProvider = ({ children }) => {
             localStorage.removeItem('authUser');
             setUser(null);
         } finally {
-            setLoading(false);
+            setLoading(false); // For initial load
+            setIsAuthenticating(false); // Finish login process
         }
     };
     
@@ -52,19 +54,23 @@ export const AuthProvider = ({ children }) => {
     
     // Login function
     const login = async (email, password) => {
-        setLoading(true);
+        setIsAuthenticating(true);
         try {
             const response = await apiService.login(email, password);
             if (response.user) {
+                // After successful login, re-verify auth status
+                // This will set user and set isAuthenticating to false
                 await checkAuth();
+            } else {
+                // If login fails server-side but doesn't throw
+                setIsAuthenticating(false);
             }
             return response;
         } catch (error) {
             setUser(null);
             localStorage.removeItem('authUser');
+            setIsAuthenticating(false);
             throw error;
-        } finally {
-            setLoading(false);
         }
     };
 
@@ -93,7 +99,8 @@ export const AuthProvider = ({ children }) => {
         logout,
         updateUser,
         loading,
-        isAuthenticated: !!user,
+        isAuthenticating, // <-- Expose this new state
+        isAuthenticated: !!user && !isAuthenticating, // <-- Modify this logic
         sessionExpired,
         showSessionExpiredModal,
         setSessionExpired,

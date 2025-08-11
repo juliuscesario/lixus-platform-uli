@@ -25,12 +25,9 @@ export default function LoginPage() {
         setError('');
         setLoading(true);
         try {
-            const response = await login(email, password);
-            if (response.user) {
-                setTimeout(() => {
-                    navigate('/dashboard');
-                }, 100);
-            }
+            await login(email, password);
+            // The redirect is now handled by the useEffect hook above,
+            // which waits for `isAuthenticated` to be true.
         } catch (err) {
             setError(err.message || 'Email atau password salah. Silakan coba lagi.');
         } finally {
