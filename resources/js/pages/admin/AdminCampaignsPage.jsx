@@ -1,28 +1,66 @@
 import React, { useState, useEffect } from 'react';
 import { apiService, formatDate, formatCurrency } from '../../services/apiService';
-
+import { useAuth } from '../../contexts/AuthContext';
 import { Link, useNavigate } from 'react-router-dom';
 
 export default function AdminCampaignsPage() {
     const navigate = useNavigate();
+    const { user, loading: authLoading } = useAuth();
     const [campaigns, setCampaigns] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
+    // Function to handle unauthorized access
+    const handleUnauthorized = () => {
+        setError("Unauthorized access. You do not have permission to view this page.");
+        // Redirect to a 404 page or login page after a delay
+        setTimeout(() => {
+            navigate('/not-found'); // Asumsikan Anda punya rute not-found
+        }, 3000);
+    };
+
     useEffect(() => {
         const fetchCampaigns = async () => {
+            if (authLoading) return; // Wait for authentication check to complete
+
+            // Determine which API call to make based on user role
             setLoading(true);
             setError(null);
-            const response = await apiService.getAdminCampaigns();
-            if (response && response.data) {
-                setCampaigns(response.data);
-            } else {
-                setError("Gagal memuat data kampanye.");
+
+            try {
+                let response;
+                if (user?.role?.name === 'admin') {
+                    response = await apiService.getAdminCampaigns();
+                } else if (user?.role?.name === 'brand') {
+                    // Assuming you have or will create a getBrandCampaigns in apiService
+                    // For now, let's use a placeholder or decide how to handle it.
+                    // This could also be the same `getAdminCampaigns` if the backend differentiates by user.
+                    // Let's assume the backend handles it and we call a generic endpoint.
+                    // The route `api/brand/campaigns` exists, let's create a service for it.
+                    response = await apiService.getBrandCampaigns();
+                } else {
+                    handleUnauthorized();
+                    return; // Stop execution if no valid role
+                }
+
+                if (response && response.data) {
+                    setCampaigns(response.data);
+                } else {
+                    setError("Failed to load campaign data.");
+                }
+            } catch (err) {
+                if (err.message.includes('403')) {
+                    handleUnauthorized();
+                } else {
+                    setError("An unexpected error occurred.");
+                }
+            } finally {
+                setLoading(false);
             }
-            setLoading(false);
         };
+
         fetchCampaigns();
-    }, []);
+    }, [user, authLoading, navigate]);
 
     if (loading) return <div>Memuat data kampanye...</div>;
     if (error) return <div className="text-red-500 bg-red-100 p-4 rounded-md">{error}</div>;

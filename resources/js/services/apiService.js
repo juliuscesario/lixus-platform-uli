@@ -282,6 +282,7 @@ export const apiService = {
     // ADMIN & BRAND ROUTES
     // ===================================
     getAdminCampaigns: () => apiFetch(`${API_BASE_URL}/admin/campaigns`, {}),
+    getBrandCampaigns: () => apiFetch(`${API_BASE_URL}/brand/campaigns`, {}),
     getAdminCampaignDetail: (id) => apiFetch(`${API_BASE_URL}/admin/campaigns/${id}`, {}),
     createCampaign: async (campaignData) => {
         await apiService.getCsrfCookie();
