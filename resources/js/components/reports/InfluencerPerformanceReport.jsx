@@ -1,8 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, LineElement, Title, Tooltip, Legend, PointElement, ArcElement, RadialLinearScale } from 'chart.js';
 import { Bar, Line, Doughnut, Radar } from 'react-chartjs-2';
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, LineElement, PointElement, Title, Tooltip, Legend, ArcElement, RadialLinearScale);
 
@@ -22,18 +20,6 @@ export default function InfluencerPerformanceAnalytics() {
   const [selectedInfluencers, setSelectedInfluencers] = useState([]);
   const [influencerSearch, setInfluencerSearch] = useState('');
   const [selectedInfluencerId, setSelectedInfluencerId] = useState(null);
-  const reportRef = useRef();
-
-  const exportToPdf = () => {
-    html2canvas(reportRef.current).then(canvas => {
-      const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF('p', 'mm', 'a4');
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-      pdf.save("influencer-performance-report.pdf");
-    });
-  };
 
   useEffect(() => {
     if (selectedInfluencers.length === 2) {
@@ -206,15 +192,8 @@ export default function InfluencerPerformanceAnalytics() {
             <h1 className="text-xl md:text-2xl font-bold text-gray-900">Influencer Performance</h1>
             <p className="text-gray-600 mt-1 text-sm md:text-base">Analytics across all influencers and platforms</p>
           </div>
-          <div className="flex gap-2 w-full sm:w-auto">
-            <button onClick={exportToPdf} className="flex-1 sm:flex-initial flex items-center justify-center gap-2 px-3 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-sm">
-              <IconDownload />
-              <span className="hidden sm:inline">Export</span>
-            </button>
-          </div>
         </div>
       </div>
-      <div ref={reportRef}>
       {/* Filter Bar */}
       <div className="bg-white rounded-xl shadow-sm p-4 mb-6">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
@@ -374,7 +353,6 @@ export default function InfluencerPerformanceAnalytics() {
             </div>
           </div>
         </div>
-      </div>
       </div>
 
       {/* Main Content Area */}
