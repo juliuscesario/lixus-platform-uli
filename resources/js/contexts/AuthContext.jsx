@@ -22,12 +22,12 @@ export const AuthProvider = ({ children }) => {
 
     // This function will be called to check auth status
     const checkAuth = async () => {
-        // Don't set loading here, to avoid screen flash on every check
         try {
-            const { user } = await apiService.checkAuthStatus({ showSessionExpiredModal });
-            if (user) {
-                setUser(user);
-                localStorage.setItem('authUser', JSON.stringify(user));
+            const response = await apiService.checkAuthStatus({ showSessionExpiredModal });
+            // The response from the API is { user: UserResource }
+            if (response && response.user) {
+                setUser(response.user);
+                localStorage.setItem('authUser', JSON.stringify(response.user));
             } else {
                 localStorage.removeItem('authUser');
                 setUser(null);
