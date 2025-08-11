@@ -23,10 +23,13 @@ export const AuthProvider = ({ children }) => {
     const checkAuth = async () => {
         setLoading(true);
         try {
-            const { user } = await apiService.checkAuthStatus({ showSessionExpiredModal });
-            if (user) {
-                setUser(user);
-                localStorage.setItem('authUser', JSON.stringify(user));
+            const response = await apiService.checkAuthStatus({ showSessionExpiredModal });
+            console.log('checkAuth response:', response);
+            
+            // The response contains { user: UserResource } or { user: null }
+            if (response && response.user) {
+                setUser(response.user);
+                localStorage.setItem('authUser', JSON.stringify(response.user));
             } else {
                 localStorage.removeItem('authUser');
                 setUser(null);
@@ -56,9 +59,22 @@ export const AuthProvider = ({ children }) => {
         setLoading(true);
         try {
             const response = await apiService.login(email, password);
-            await checkAuth();
+            console.log('Login API response:', response);
+            
+            // Instead of calling checkAuth which makes another API call,
+            // let's directly set the user from the login response
+            if (response.user) {
+                console.log('Setting user from login response:', response.user);
+                setUser(response.user);
+                localStorage.setItem('authUser', JSON.stringify(response.user));
+            } else {
+                console.log('No user in response, calling checkAuth');
+                // If no user in response, try checkAuth as fallback
+                await checkAuth();
+            }
             return response;
         } catch (error) {
+            console.error('Login error:', error);
             setUser(null);
             localStorage.removeItem('authUser');
             throw error;

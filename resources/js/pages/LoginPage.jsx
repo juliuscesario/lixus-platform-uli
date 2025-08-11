@@ -25,12 +25,16 @@ export default function LoginPage() {
         setError('');
         setLoading(true);
         try {
-            const responseData = await login(email, password);
-            if (responseData.user) {
-                navigate('/dashboard');
-            } else {
-                // Handle cases where login succeeds but user data isn't returned
-                setError('Login berhasil, namun gagal mengambil data pengguna. Silakan coba lagi.');
+            const response = await login(email, password);
+            console.log('Login response:', response);
+            console.log('Is authenticated after login:', isAuthenticated);
+            
+            // If login was successful but isAuthenticated is still false,
+            // manually navigate to dashboard
+            if (response && response.user) {
+                setTimeout(() => {
+                    navigate('/dashboard');
+                }, 100);
             }
         } catch (err) {
             setError(err.message || 'Email atau password salah. Silakan coba lagi.');

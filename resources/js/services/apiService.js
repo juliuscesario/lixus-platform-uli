@@ -136,9 +136,15 @@ export const apiService = {
     // ===================================
     // AUTHENTICATION
     // ===================================
-    getCsrfCookie: () => fetch(`${SANCTUM_URL}/sanctum/csrf-cookie`),
+    getCsrfCookie: () => fetch(`${SANCTUM_URL}/sanctum/csrf-cookie`, {
+        credentials: 'include',
+        headers: {
+            'Accept': 'application/json',
+        }
+    }),
 
     login: async (email, password) => {
+        // Ensure CSRF cookie is set before login
         await apiService.getCsrfCookie();
         return apiFetch(`${API_BASE_URL}/public/login`, {
             method: 'POST',
@@ -185,10 +191,16 @@ export const apiService = {
     },
 
     checkAuthStatus: async (auth) => {
-        // This endpoint will return user data if authenticated, or 401 if not.
-        const response = await apiFetch(`${API_BASE_URL}/user/profile`, {},auth);
-        // Extract user from response since UserResource wraps it
-        return { user: response.user };
+        try {
+            // This endpoint will return user data if authenticated, or 401 if not.
+            const response = await apiFetch(`${API_BASE_URL}/user/profile`, {}, auth);
+            console.log('checkAuthStatus response:', response);
+            // The response should already contain the user data
+            return response;
+        } catch (error) {
+            console.error('checkAuthStatus error:', error);
+            throw error;
+        }
     },
 
     // ===================================
