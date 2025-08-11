@@ -1,4 +1,3 @@
-import { useAuth } from '../contexts/AuthContext';
 
 // --- API Configuration ---
 const API_BASE_URL = "https://jul-proto.lixus.id/api";
@@ -126,18 +125,18 @@ const apiFetch = async (url, options = {}, auth) => {
 
 
 // --- API Service Object ---
-export const apiService = (auth) => ({
+export const apiService = {
     // ===================================
     // AUTHENTICATION
     // ===================================
     getCsrfCookie: () => fetch(`${SANCTUM_URL}/sanctum/csrf-cookie`),
 
     login: async (email, password) => {
-        await apiService(auth).getCsrfCookie();
+        await apiService.getCsrfCookie();
         return apiFetch(`${API_BASE_URL}/public/login`, {
             method: 'POST',
             body: { email, password },
-        }, auth);
+        });
     },
 
     getApplications: async (status = 'pending', page = 1) => {
@@ -236,18 +235,18 @@ export const apiService = (auth) => ({
         return apiFetch(`${API_BASE_URL}/public/register`, {
             method: 'POST',
             body: { name, email, password, password_confirmation },
-        }, auth);
+        });
     },
 
     logout: () => {
         return apiFetch(`${API_BASE_URL}/logout`, {
             method: 'POST',
-        }, auth);
+        });
     },
 
     checkAuthStatus: async () => {
         // This endpoint will return user data if authenticated, or 401 if not.
-        const response = await apiFetch(`${API_BASE_URL}/user/profile`, {}, auth);
+        const response = await apiFetch(`${API_BASE_URL}/user/profile`, {});
         // Extract user from response since UserResource wraps it
         return { user: response.user };
     },
@@ -256,72 +255,72 @@ export const apiService = (auth) => ({
     // PUBLIC ROUTES
     // ===================================
     getPublicCampaigns: async () => {
-        const response = await apiFetch(`${API_BASE_URL}/public/campaigns`, {}, auth);
+        const response = await apiFetch(`${API_BASE_URL}/public/campaigns`, {});
         return response;
     },
     getPublicCampaignsbyStatus: async () => {
-        const response = await apiFetch(`${API_BASE_URL}/public/campaigns?status=active`, {}, auth);
+        const response = await apiFetch(`${API_BASE_URL}/public/campaigns?status=active`, {});
         return response;
     },
     getCampaignDetail: async (id) => {
-        const response = await apiFetch(`${API_BASE_URL}/public/campaigns/${id}`, {}, auth);
+        const response = await apiFetch(`${API_BASE_URL}/public/campaigns/${id}`, {});
         return response;
     },
     getPublicInfluencers: async () => {
-        const response = await apiFetch(`${API_BASE_URL}/public/influencers`, {}, auth);
+        const response = await apiFetch(`${API_BASE_URL}/public/influencers`, {});
         return response;
     },
     getInfluencerDetail: async (id) => {
-        const response = await apiFetch(`${API_BASE_URL}/public/influencers/${id}`, {}, auth);
+        const response = await apiFetch(`${API_BASE_URL}/public/influencers/${id}`,{});
         return response;
     },
-    getPublicPosts: (url = null) => apiFetch(url || `${API_BASE_URL}/public/posts`, {}, auth),
-    getPostDetail: (id) => apiFetch(`${API_BASE_URL}/public/posts/${id}`, {}, auth),
-    getCampaignLeaderboard: (campaignId) => apiFetch(`${API_BASE_URL}/public/campaigns/${campaignId}/leaderboard`, {}, auth),
+    getPublicPosts: (url = null) => apiFetch(url || `${API_BASE_URL}/public/posts`, {}),
+    getPostDetail: (id) => apiFetch(`${API_BASE_URL}/public/posts/${id}`, {}),
+    getCampaignLeaderboard: (campaignId) => apiFetch(`${API_BASE_URL}/public/campaigns/${campaignId}/leaderboard`, {}),
     
     // ===================================
     // ADMIN & BRAND ROUTES
     // ===================================
-    getAdminCampaigns: () => apiFetch(`${API_BASE_URL}/admin/campaigns`, {}, auth),
-    getAdminCampaignDetail: (id) => apiFetch(`${API_BASE_URL}/admin/campaigns/${id}`, {}, auth),
+    getAdminCampaigns: () => apiFetch(`${API_BASE_URL}/admin/campaigns`, {}),
+    getAdminCampaignDetail: (id) => apiFetch(`${API_BASE_URL}/admin/campaigns/${id}`, {}),
     createCampaign: async (campaignData) => {
-        await apiService(auth).getCsrfCookie();
-        return apiFetch(`${API_BASE_URL}/admin/campaigns`, { method: 'POST', body: campaignData }, auth);
+        await apiService.getCsrfCookie();
+        return apiFetch(`${API_BASE_URL}/admin/campaigns`, { method: 'POST', body: campaignData });
     },
     updateCampaign: async (id, campaignData) => {
-        await apiService(auth).getCsrfCookie();
-        return apiFetch(`${API_BASE_URL}/admin/campaigns/${id}`, { method: 'PUT', body: campaignData }, auth);
+        await apiService.getCsrfCookie();
+        return apiFetch(`${API_BASE_URL}/admin/campaigns/${id}`, { method: 'PUT', body: campaignData });
     },
-    updateCampaignStatus: (id, status) => apiFetch(`${API_BASE_URL}/admin/campaigns/${id}/status`, { method: 'PATCH', body: { status } }, auth),
-    getCampaignParticipants: (campaignId) => apiFetch(`${API_BASE_URL}/admin/campaigns/${campaignId}/participants`, {}, auth),
-    updateParticipantStatus: (campaignId, participantId, status) => apiFetch(`${API_BASE_URL}/admin/campaigns/${campaignId}/participants/${participantId}/status`, { method: 'PATCH', body: { status } }, auth),
-    getCampaignPosts: (campaignId, url = null) => apiFetch(url || `${API_BASE_URL}/public/posts/campaign/${campaignId}`, {}, auth),
-    validatePost: (postId, isValid, notes) => apiFetch(`${API_BASE_URL}/admin/posts/${postId}`, { method: 'PUT', body: { is_valid_for_campaign: isValid, validation_notes: notes } }, auth),
-    getPostsForInfluencerInCampaign: (campaignId, userId) => apiFetch(`${API_BASE_URL}/public/campaigns/${campaignId}/posts?user_id=${userId}`, {}, auth),
+    updateCampaignStatus: (id, status) => apiFetch(`${API_BASE_URL}/admin/campaigns/${id}/status`, { method: 'PATCH', body: { status } }),
+    getCampaignParticipants: (campaignId) => apiFetch(`${API_BASE_URL}/admin/campaigns/${campaignId}/participants`, {}),
+    updateParticipantStatus: (campaignId, participantId, status) => apiFetch(`${API_BASE_URL}/admin/campaigns/${campaignId}/participants/${participantId}/status`, { method: 'PATCH', body: { status } }),
+    getCampaignPosts: (campaignId, url = null) => apiFetch(url || `${API_BASE_URL}/public/posts/campaign/${campaignId}`, {}),
+    validatePost: (postId, isValid, notes) => apiFetch(`${API_BASE_URL}/admin/posts/${postId}`, { method: 'PUT', body: { is_valid_for_campaign: isValid, validation_notes: notes } }),
+    getPostsForInfluencerInCampaign: (campaignId, userId) => apiFetch(`${API_BASE_URL}/public/campaigns/${campaignId}/posts?user_id=${userId}`, {}),
     
     // ===================================
     // NEW! STRATEGIC REPORTING ROUTES
     // ===================================
     getBrandPerformanceReport: (params = {}) => {
         const query = new URLSearchParams(params).toString();
-        return apiFetch(`${API_BASE_URL}/admin/reports/brand-performance?${query}`, {}, auth);
+        return apiFetch(`${API_BASE_URL}/admin/reports/brand-performance?${query}`, {});
     },
 
     getCampaignComparisonReport: (campaign_ids = []) => {
         const params = new URLSearchParams();
         campaign_ids.forEach(id => params.append('campaign_ids[]', id));
         const query = params.toString();
-        return apiFetch(`${API_BASE_URL}/admin/reports/campaign-comparison?${query}`, {}, auth);
+        return apiFetch(`${API_BASE_URL}/admin/reports/campaign-comparison?${query}`, {});
     },
 
     getInfluencerPerformanceReport: (userId) => {
-        return apiFetch(`${API_BASE_URL}/admin/reports/influencer-performance/${userId}`, {}, auth);
+        return apiFetch(`${API_BASE_URL}/admin/reports/influencer-performance/${userId}`, {});
     },
 
     // =-=================================
     // INFLUENCER ROUTES
     // ===================================
-    getMyCampaigns: () => apiFetch(`${API_BASE_URL}/influencer/campaigns`, {}, auth),
-    applyCampaign: (campaignId) => apiFetch(`${API_BASE_URL}/influencer/campaigns/${campaignId}/apply`, { method: 'POST' }, auth),
-    withdrawFromCampaign: (campaignId) => apiFetch(`${API_BASE_URL}/influencer/campaigns/${campaignId}/withdraw`, { method: 'POST' }, auth),
-});
+    getMyCampaigns: () => apiFetch(`${API_BASE_URL}/influencer/campaigns`, {}),
+    applyCampaign: (campaignId) => apiFetch(`${API_BASE_URL}/influencer/campaigns/${campaignId}/apply`, { method: 'POST' }),
+    withdrawFromCampaign: (campaignId) => apiFetch(`${API_BASE_URL}/influencer/campaigns/${campaignId}/withdraw`, { method: 'POST' }),
+};

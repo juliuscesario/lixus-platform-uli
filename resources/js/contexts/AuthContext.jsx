@@ -39,38 +39,32 @@ export const AuthProvider = ({ children }) => {
         setSessionExpired(true);
     };
     
-    const auth = {
-        user,
-        showSessionExpiredModal,
-        setSessionExpired,
-        logout,
-    };
-    
     // Login function
     const login = async (email, password) => {
         setLoading(true);
         try {
-            const data = await apiService(auth).login(email, password);
+            // Pass auth context directly to the apiService call
+            const data = await apiService.login(email, password);
                 setUser(data.user);
                 localStorage.setItem('authUser', JSON.stringify(data.user));
                 return data;
-            } catch (error) {
-                throw error;
-            } finally {
-                setLoading(false);
-            }
-        };
-        
+        } catch (error) {
+            throw error;
+        } finally {
+            setLoading(false);
+        }
+    };
+
     // Logout function
     const logout = async () => {
         try {
-            await apiService(auth).logout();
+            // Pass auth context directly to the apiService call
+            await apiService.logout();
         } catch (error) {
             console.error('Logout error:', error);
         } finally {
             localStorage.removeItem('authUser');
             setUser(null);
-            // Navigation will be handled by the component that calls logout
         }
     };
 
