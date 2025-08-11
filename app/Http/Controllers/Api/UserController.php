@@ -15,12 +15,17 @@ class UserController extends Controller
      */
     public function showProfile(Request $request)
     {
-        $user = $request->user();
-        $user->load('role', 'influencerProfile', 'socialMediaAccounts'); // Load relasi yang relevan
+        // Now public, so we need to check if a user is authenticated
+        if (Auth::check()) {
+            $user = $request->user();
+            $user->load('role', 'influencerProfile', 'socialMediaAccounts');
+            return response()->json([
+                'user' => new UserResource($user)
+            ]);
+        }
 
-        return response()->json([
-            'user' => new UserResource($user)
-        ]);
+        // If not authenticated, return a null user
+        return response()->json(['user' => null]);
     }
 
     /**

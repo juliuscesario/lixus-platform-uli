@@ -50,15 +50,16 @@ Route::prefix('public')->group(function () {
 
     // Roadmap 4.13: Get Leaderboard for a specific campaign
     Route::get('/campaigns/{campaign}/leaderboard', [CampaignController::class, 'getLeaderboard']);
+    
+    // --- User Profile (Publicly accessible to check auth status) ---
+    Route::get('/user/profile', [UserController::class, 'showProfile']);
 });
 
 
 // --- PROTECTED API ROUTES (Requires Sanctum Token) ---
 Route::middleware('auth:sanctum')->group(function () {
-
     // --- Core Authenticated User Actions ---
     Route::post('/logout', [AuthController::class, 'logout']);
-    Route::get('/user/profile', [UserController::class, 'showProfile']);
     Route::put('/user/profile', [UserController::class, 'updateProfile']);
 
     // Fallback for authenticated user info (standard Laravel Sanctum route)

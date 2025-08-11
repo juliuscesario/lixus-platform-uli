@@ -87,7 +87,7 @@ const apiFetch = async (url, options = {}, auth) => {
     const response = await fetch(url, defaultOptions);
 
     // Check if it's a public route by examining the URL
-    const isPublicRoute = url.includes('/public/') || url.includes('/sanctum/');
+    const isPublicRoute = url.includes('/public/') || url.includes('/sanctum/') || url.includes('/user/profile');
     
     // If the session has expired, Laravel returns 401 or 419.
     // Only redirect to login if it's not a public route
@@ -185,15 +185,10 @@ export const apiService = {
     },
 
     checkAuthStatus: async (auth) => {
-        try {
-            const user = await apiFetch(`${API_BASE_URL}/user`, {}, auth);
-            return { user };
-        } catch (error) {
-            if (error.message.includes('401') || error.message.includes('419') || error.message.includes('expired')) {
-                return { user: null };
-            }
-            throw error;
-        }
+        // This endpoint will return user data if authenticated, or 401 if not.
+        const response = await apiFetch(`${API_BASE_URL}/user/profile`, {},auth);
+        // Extract user from response since UserResource wraps it
+        return { user: response.user };
     },
 
     // ===================================
