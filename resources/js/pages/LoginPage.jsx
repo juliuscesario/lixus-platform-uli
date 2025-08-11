@@ -25,8 +25,13 @@ export default function LoginPage() {
         setError('');
         setLoading(true);
         try {
-            await login(email, password);
-            navigate('/dashboard');
+            const { user } = await login(email, password);
+            if (user) {
+                navigate('/dashboard');
+            } else {
+                // Handle cases where login succeeds but user data isn't returned
+                setError('Login berhasil, namun gagal mengambil data pengguna. Silakan coba lagi.');
+            }
         } catch (err) {
             setError(err.message || 'Email atau password salah. Silakan coba lagi.');
         } finally {

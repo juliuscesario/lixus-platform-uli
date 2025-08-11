@@ -28,6 +28,7 @@ class InfluencerApplicationController extends Controller
             'city' => 'nullable|string|max:255',
             'bio' => 'nullable|string|max:2000',
             'social_media_profiles' => 'required|array|min:1',
+            'social_media_profiles.*' => 'required|array',
             'social_media_profiles.*.platform' => 'required|string|in:instagram,tiktok,youtube,facebook',
             'social_media_profiles.*.username' => 'required|string',
             'social_media_profiles.*.followers' => 'required|integer|min:0',
