@@ -194,11 +194,9 @@ export const apiService = {
         try {
             // This endpoint will return user data if authenticated, or 401 if not.
             const response = await apiFetch(`${API_BASE_URL}/user/profile`, {}, auth);
-            console.log('checkAuthStatus response:', response);
             // The response should already contain the user data
             return response;
         } catch (error) {
-            console.error('checkAuthStatus error:', error);
             throw error;
         }
     },

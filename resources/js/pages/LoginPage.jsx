@@ -25,17 +25,9 @@ export default function LoginPage() {
         setError('');
         setLoading(true);
         try {
-            const response = await login(email, password);
-            console.log('Login response:', response);
-            console.log('Is authenticated after login:', isAuthenticated);
-            
-            // If login was successful but isAuthenticated is still false,
-            // manually navigate to dashboard
-            if (response && response.user) {
-                setTimeout(() => {
-                    navigate('/dashboard');
-                }, 100);
-            }
+            await login(email, password);
+            // The AuthContext will now set the user state.
+            // The `useEffect` hook listening for `isAuthenticated` will handle the redirect.
         } catch (err) {
             setError(err.message || 'Email atau password salah. Silakan coba lagi.');
         } finally {
