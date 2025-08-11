@@ -1,5 +1,5 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
-import { apiService } from '../services/apiService';
+import apiService from '../services/apiService';
 
 // Create the AuthContext
 const AuthContext = createContext();
@@ -17,6 +17,7 @@ export const useAuth = () => {
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(false);
+    const [sessionExpired, setSessionExpired] = useState(false); // New state for session status
 
     // Check if user is authenticated on app load
     useEffect(() => {
@@ -34,10 +35,15 @@ export const AuthProvider = ({ children }) => {
         // Don't make API calls here to avoid 401 loops on public pages
     }, []);
 
+    const showSessionExpiredModal = () => {
+        setSessionExpired(true);
+    };
+
+
     // Login function
     const login = async (email, password) => {
         try {
-            const data = await apiService.login(email, password);
+            const data = await apiService(auth).login(email, password);
             setUser(data.user);
             localStorage.setItem('authUser', JSON.stringify(data.user));
             return data;
@@ -49,7 +55,7 @@ export const AuthProvider = ({ children }) => {
     // Logout function
     const logout = async () => {
         try {
-            await apiService.logout();
+            await apiService(auth).logout();
         } catch (error) {
             console.error('Logout error:', error);
         } finally {
@@ -71,7 +77,10 @@ export const AuthProvider = ({ children }) => {
         logout,
         updateUser,
         loading,
-        isAuthenticated: !!user
+        isAuthenticated: !!user,
+        sessionExpired,
+        showSessionExpiredModal,
+        setSessionExpired
     };
 
     return (
