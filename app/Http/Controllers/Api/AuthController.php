@@ -74,11 +74,26 @@ class AuthController extends Controller
 
     public function logout(Request $request)
     {
-        // Revoke the token that was used to authenticate the current request...
-        $request->user()->currentAccessToken()->delete();
-    
-        // Invalidate the session
-        Auth::logout();
+        // Get the current access token
+        $token = $request->user()->currentAccessToken();
+        
+        // Only delete if it's a PersonalAccessToken (not TransientToken)
+        if ($token && method_exists($token, 'delete')) {
+            $token->delete();
+        }
+        
+        // Alternative approach: Delete all tokens for the user
+        // This ensures complete logout from all devices
+        $request->user()->tokens()->delete();
+        
+        // For API routes with Sanctum, we don't need Auth::logout()
+        // as it's token-based authentication, not session-based
+        
+        // If there's a session (for web routes), clear it
+        if ($request->hasSession()) {
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+        }
     
         return response()->json([
             'message' => 'Logged out successfully'

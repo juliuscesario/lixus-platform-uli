@@ -15,7 +15,10 @@ export const useAuth = () => {
 
 // AuthProvider component
 export const AuthProvider = ({ children }) => {
-    const [user, setUser] = useState(null);
+    const [user, setUser] = useState(() => {
+        const storedUser = localStorage.getItem('authUser');
+        return storedUser ? JSON.parse(storedUser) : null;
+    });
     const [loading, setLoading] = useState(false);
     const [sessionExpired, setSessionExpired] = useState(false); // New state for session status
 
@@ -24,24 +27,28 @@ export const AuthProvider = ({ children }) => {
         const checkUser = async () => {
             setLoading(true);
             try {
-                // Now we can safely call this on load.
-                const { user } = await apiService(value).checkAuthStatus();
-                if (user) {
-                    setUser(user);
-                    localStorage.setItem('authUser', JSON.stringify(user));
+                const { user: refreshedUser } = await apiService({ showSessionExpiredModal }).checkAuthStatus();
+                if (refreshedUser) {
+                    setUser(refreshedUser);
+                    localStorage.setItem('authUser', JSON.stringify(refreshedUser));
                 } else {
-                    localStorage.removeItem('authUser');
+                    // If check fails, clear local state and storage
                     setUser(null);
+                    localStorage.removeItem('authUser');
                 }
             } catch (error) {
-                console.error("Authentication check failed:", error);
-                localStorage.removeItem('authUser');
+                console.error("Authentication check failed on refresh:", error);
                 setUser(null);
+                localStorage.removeItem('authUser');
             } finally {
                 setLoading(false);
             }
         };
-        checkUser();
+
+        // Only run check if there's a user from localStorage initially
+        if (user) {
+            checkUser();
+        }
     }, []);
 
     const showSessionExpiredModal = () => {

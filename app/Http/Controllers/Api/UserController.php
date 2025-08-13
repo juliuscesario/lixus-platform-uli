@@ -15,12 +15,7 @@ class UserController extends Controller
      */
     public function showProfile(Request $request)
     {
-        $user = $request->user();
-        $user->load('role', 'influencerProfile', 'socialMediaAccounts'); // Load relasi yang relevan
-
-        return response()->json([
-            'user' => new UserResource($user)
-        ]);
+        return new UserResource($request->user()->load('role', 'influencerProfile', 'socialMediaAccounts'));
     }
 
     /**
