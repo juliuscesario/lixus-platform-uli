@@ -61,7 +61,7 @@ class InfluencerController extends Controller
         // Calculate total points earned (assuming a 'score' relationship or direct field)
         // This assumes a direct relationship or field for total points.
         // You might need to adjust this based on your actual score/point system.
-        $totalPoints = $user->scores()->sum('points'); // Assuming a 'scores' relationship
+        $totalPoints = $user->scores()->sum('score_value'); // Assuming a 'scores' relationship
 
         return response()->json([
             'total_posts' => $totalPosts,
