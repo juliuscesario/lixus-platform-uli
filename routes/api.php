@@ -91,6 +91,9 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/my-posts/{post}', [PostController::class, 'show']); // 4.5 Detail postingan milik saya
         Route::put('/my-posts/{post}', [PostController::class, 'update']); // 4.6 Memperbarui postingan
         Route::delete('/my-posts/{post}', [PostController::class, 'destroy']); // 4.7 Menghapus postingan
+        
+        // NEW: Influencer dashboard stats route
+        Route::get('/influencer/dashboard-stats/{user}', [InfluencerController::class, 'getInfluencerDashboardStats']);
     });
 
 

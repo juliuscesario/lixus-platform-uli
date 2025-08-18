@@ -12,6 +12,8 @@ import DashboardLayout from './layouts/DashboardLayout';
 const HomePage = lazy(() => import('./pages/HomePage'));
 const LoginPage = lazy(() => import('./pages/LoginPage'));
 const DashboardPage = lazy(() => import('./pages/DashboardPage'));
+const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'));
+const BrandDashboard = lazy(() => import('./pages/brand/BrandDashboard'));
 const InfluencersPage = lazy(() => import('./pages/InfluencersPage'));
 const InfluencerDetailPage = lazy(() => import('./pages/InfluencerDetailPage'));
 const MyCampaignsPage = lazy(() => import('./pages/influencer/MyCampaignsPage'));
@@ -32,7 +34,33 @@ const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
 // Wrapper components to pass user data to pages that need it
 const DashboardWrapper = () => {
     const { user } = useAuth();
-    return <DashboardPage user={user} />;
+    if (!user) {
+        return null; // Or a loading indicator
+    }
+    
+    switch (user.role) {
+        case 'admin':
+            return <AdminDashboard user={user} />;
+        case 'brand':
+            return <BrandDashboard user={user} />;
+        case 'influencer':
+            if (!user) {
+                return null; // Or a loading indicator
+            }
+            
+            switch (user.role) {
+                case 'admin':
+                    return <AdminDashboard user={user} />;
+                case 'brand':
+                    return <BrandDashboard user={user} />;
+                case 'influencer':
+                    return <DashboardPage user={user} />;
+                default:
+                    return <DashboardPage user={user} />;
+            }
+        default:
+            return <DashboardPage user={user} />;
+    }
 };
 
 const HomePageWrapper = () => {
@@ -156,6 +184,24 @@ function App() {
                                 </DashboardLayout>
                             </ProtectedRoute>
                         } />
+
+                      {/* Admin Routes */}
+                      <Route path="/admin" element={
+                          <ProtectedRoute>
+                              <DashboardLayout>
+                                  <AdminDashboard />
+                              </DashboardLayout>
+                          </ProtectedRoute>
+                      } />
+
+                      {/* Brand Routes */}
+                      <Route path="/brand" element={
+                          <ProtectedRoute>
+                              <DashboardLayout>
+                                  <BrandDashboard />
+                              </DashboardLayout>
+                          </ProtectedRoute>
+                      } />
                         
                         {/* Influencer Routes */}
                         <Route path="/my-campaigns" element={
