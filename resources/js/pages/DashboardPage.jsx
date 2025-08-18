@@ -6,7 +6,7 @@ import { apiService } from '../services/apiService';
 import { formatCompactNumber } from '../services/apiService';
 
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom'; // Keep this if used for navigation
+import { Link } from 'react-router-dom';
 import { apiService, formatCompactNumber } from '../services/apiService';
 import { useAuth } from '../contexts/AuthContext';
 
