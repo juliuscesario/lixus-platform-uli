@@ -55,9 +55,14 @@ class ScoreSeeder extends Seeder
                 // Hitung skor menggunakan logika sederhana
                 $calculatedScore = $this->applyScoringRules($metrics, $scoringRules);
 
-                // Update kolom score
-                $post->score = $calculatedScore;
-                $post->save();
+                // Create a new Score record
+                \App\Models\Score::create([
+                    'post_id' => $post->id,
+                    'user_id' => $post->user_id,
+                    'campaign_id' => $post->campaign_id,
+                    'score_value' => $calculatedScore,
+                    'score_details' => $metrics, // Store the metrics that led to this score
+                ]);
 
                 $this->command->info("Post ID: {$post->id} - Score calculated: {$calculatedScore}");
             } else {
