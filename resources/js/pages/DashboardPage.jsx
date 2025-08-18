@@ -5,10 +5,10 @@ import { useState, useEffect } from 'react';
 import { apiService } from '../services/apiService';
 import { formatCompactNumber } from '../services/apiService';
 
-import { useState, useEffect } from 'react';
-import { apiService } from '../services/apiService';
-import { formatCompactNumber } from '../services/apiService';
-import { useAuth } from '../contexts/AuthContext'; // Import useAuth
+import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom'; // Keep this if used for navigation
+import { apiService, formatCompactNumber } from '../services/apiService';
+import { useAuth } from '../contexts/AuthContext';
 
 export default function DashboardPage({ user }) {
     const { auth } = useAuth(); // Get auth from AuthContext
