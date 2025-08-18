@@ -104,10 +104,15 @@
         </div>
     </main>
 
-    <footer class="bg-flow-blue text-white mt-16">
+    <footer class="bg-flow-blue text-white">
         <div class="container mx-auto px-6 py-8 text-center">
+            
             <p>&copy; 2025 Lixus Flow. All rights reserved.</p>
-            <p class="text-sm text-white/60 mt-2">A product by <a href="https://lixus.id" target="_blank" class="underline hover:text-flow-pink">Lixus.id</a></p>
+            <p class="text-sm text-white/60 mt-2">A product by 
+                <a href="https://lixus.id" target="_blank" class="underline hover:text-flow-pink">Lixus.id</a>
+                | <a href="/privacy-policy" target="_blank" class="underline hover:text-flow-pink">Privacy Policy</a>
+                | <a href="/terms-of-service" target="_blank" class="underline hover:text-flow-pink">Terms of Service</a>
+            </p>
         </div>
     </footer>
 
