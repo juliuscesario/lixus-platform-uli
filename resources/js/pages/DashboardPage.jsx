@@ -5,7 +5,13 @@ import { useState, useEffect } from 'react';
 import { apiService } from '../services/apiService';
 import { formatCompactNumber } from '../services/apiService';
 
+import { useState, useEffect } from 'react';
+import { apiService } from '../services/apiService';
+import { formatCompactNumber } from '../services/apiService';
+import { useAuth } from '../contexts/AuthContext'; // Import useAuth
+
 export default function DashboardPage({ user }) {
+    const { auth } = useAuth(); // Get auth from AuthContext
     const [stats, setStats] = useState(null);
     const [loadingStats, setLoadingStats] = useState(true);
     const [errorStats, setErrorStats] = useState(null);
@@ -14,9 +20,8 @@ export default function DashboardPage({ user }) {
         const fetchInfluencerStats = async () => {
             setLoadingStats(true);
             try {
-                // Assuming an API endpoint for influencer stats exists or can be created
-                // This is a placeholder, you'll need to implement this API on the backend
-                const response = await apiService().getInfluencerDashboardStats(user.id);
+                // Pass the auth object to apiService
+                const response = await apiService(auth).getInfluencerDashboardStats(user.id);
                 setStats(response);
             } catch (err) {
                 setErrorStats("Failed to fetch influencer stats.");

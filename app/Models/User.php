@@ -61,6 +61,11 @@ class User extends Authenticatable implements MustVerifyEmail
                     ->withTimestamps();
     }
 
+    public function campaignParticipants(): HasMany
+    {
+        return $this->hasMany(CampaignParticipant::class);
+    }
+
     public function posts(): HasMany
     {
         return $this->hasMany(Post::class);
