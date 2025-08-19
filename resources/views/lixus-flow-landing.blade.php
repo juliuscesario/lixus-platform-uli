@@ -8,7 +8,7 @@
     <link rel="alternate icon" href="{{ asset('storage/favicon.svg') }}" type="image/svg+xml">
 
     <link rel="apple-touch-icon" href="{{ asset('storage/favicon.svg') }}">
-    <title>Lixus Flow - The Current of Influence.</title>
+    <title>Lixus Flow - The Flow of Influence.</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -79,7 +79,7 @@
             </div>
             <div class="container mx-auto px-6 relative">
                 <h1 class="font-display text-5xl sm:text-6xl md:text-7xl font-extrabold text-flow-blue leading-tight">
-                    Direct the Current of Influence.
+                    Shaping the Flow of Influence.
                 </h1>
                 <p class="mt-4 font-display text-2xl text-flow-pink font-semibold">Arus Pengaruh Terkini.</p>
                 <p class="mt-6 max-w-2xl mx-auto text-lg text-neutral-gray">
@@ -102,7 +102,7 @@
                         <div class="bg-flow-pink/10 text-flow-pink w-20 h-20 rounded-full mx-auto flex items-center justify-center mb-6">
                            <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>
                         </div>
-                        <h3 class="font-display text-2xl font-bold text-flow-blue">1. Tap the Current</h3>
+                        <h3 class="font-display text-2xl font-bold text-flow-blue">1. Tap the Flow</h3>
                         <p class="mt-2 text-neutral-gray">Discover exclusive campaign opportunities from leading brands and tap into the flow of what's next.</p>
                     </div>
                     <div class="p-8">
@@ -126,7 +126,7 @@
         <section id="advantage" class="py-20 bg-neutral-off-white">
             <div class="container mx-auto px-6">
                 <div class="text-center mb-16">
-                    <h2 class="font-display text-4xl font-bold text-flow-blue">The Unfair Advantage</h2>
+                    <h2 class="font-display text-4xl font-bold text-flow-blue">Shared Success, Amplified Influence.</h2>
                     <p class="mt-2 text-lg text-neutral-gray">Engineered for Brands. Built for Creators.</p>
                 </div>
                 <div class="grid md:grid-cols-2 gap-8">
@@ -173,7 +173,7 @@
         <section id="contact" class="bg-white">
             <div class="container mx-auto px-6 py-24">
                 <div class="text-center p-12 sm:p-16 rounded-2xl relative overflow-hidden gradient-bg border border-neutral-light-gray">
-                    <h2 class="font-display text-4xl sm:text-5xl font-extrabold text-flow-blue relative">Ready to Join the Current?</h2>
+                    <h2 class="font-display text-4xl sm:text-5xl font-extrabold text-flow-blue relative">Ready to Join the Flow?</h2>
                     <p class="mt-4 max-w-xl mx-auto text-lg text-neutral-gray relative">Whether you're a brand ready to lead the market or a creator ready to make waves, your journey starts here.</p>
                     <div class="mt-8 relative flex flex-col sm:flex-row items-center justify-center gap-4">
                          <a href="#" class="bg-flow-pink text-white font-bold text-lg px-8 py-4 rounded-xl hover:bg-opacity-90 shadow-lg shadow-flow-pink/30 transition-transform hover:scale-105 w-full sm:w-auto">Join the Community</a>

@@ -29,12 +29,12 @@ class CampaignResource extends JsonResource
             'created_at' => $this->created_at ? $this->created_at->format('Y-m-d H:i:s') : null,
             'updated_at' => $this->updated_at ? $this->updated_at->format('Y-m-d H:i:s') : null,
             
-            // Add aggregate data when available
+            // ✅ FIX: Add aggregate data when it has been calculated and attached in the controller
             'total_participants' => $this->when(isset($this->total_participants), $this->total_participants),
             'total_posts' => $this->when(isset($this->total_posts), $this->total_posts),
             'total_likes' => $this->when(isset($this->total_likes), $this->total_likes),
             'total_comments' => $this->when(isset($this->total_comments), $this->total_comments),
-            'total_points' => $this->when(isset($this->total_points), $this->total_points),
+            'total_points' => $this->when(isset($this->total_points), fn() => (float) $this->total_points),
 
             // Tambahkan field status partisipasi
             'participant_status' => $this->whenLoaded('currentParticipant', function () {

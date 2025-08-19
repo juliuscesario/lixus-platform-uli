@@ -27,20 +27,14 @@ export default function BrandDashboard() {
 
     if (loading) {
         return (
-            <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
-                <div className="flex justify-center items-center h-32">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-500"></div>
-                </div>
+            <div className="flex justify-center items-center h-48">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-500"></div>
             </div>
         );
     }
 
     if (error) {
-        return (
-            <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
-                <p className="text-red-600 bg-red-100 p-4 rounded-lg">{error}</p>
-            </div>
-        );
+        return <p className="text-red-600 bg-red-100 p-4 rounded-lg">{error}</p>;
     }
 
     const latestCampaign = campaigns.length > 0 ? campaigns[0] : null;
@@ -48,10 +42,11 @@ export default function BrandDashboard() {
 
     return (
         <div className="space-y-8">
+            {/* ✅ FIX: Replaced <p> tag with a responsive flex container for proper alignment */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
                     <h2 className="text-2xl font-bold text-gray-800">Brand Dashboard Overview</h2>
-                    <p className="mt-1 text-gray-600">Welcome! Manage your campaigns, view reports, and connect with influencers.</p>
+                    <p className="mt-1 text-gray-600">Manage your campaigns, view reports, and connect with influencers.</p>
                 </div>
                 <Link to="/admin/campaigns/create" className="flex-shrink-0 px-4 py-2 bg-pink-600 text-white font-semibold rounded-lg shadow-md hover:bg-pink-700 transition duration-300">
                     + Create New Campaign
@@ -90,7 +85,7 @@ export default function BrandDashboard() {
                     </div>
                 </div>
             ) : (
-                <div className="text-center p-8 bg-gray-50 rounded-lg">
+                <div className="text-center p-8 bg-gray-50 rounded-lg border border-dashed">
                     <p className="text-gray-600">You haven't created any campaigns yet. Let's get started!</p>
                 </div>
             )}
