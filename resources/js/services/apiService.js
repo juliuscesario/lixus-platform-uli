@@ -85,6 +85,7 @@ const apiFetch = async (url, options = {}, auth) => {
         defaultOptions.body = JSON.stringify(defaultOptions.body);
     }
 
+    console.log('Fetching URL:', url, 'with options:', defaultOptions);
     const response = await fetch(url, defaultOptions);
 
     // Check if it's a public route by examining the URL
