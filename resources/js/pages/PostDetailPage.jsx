@@ -14,7 +14,7 @@ export default function PostDetailPage({ pageProps }) {
 
     useEffect(() => {
         const fetchPostDetail = async () => {
-            if (!pageProps.id) {
+            if (!pageProps || !pageProps.id) {
                 setError("ID Postingan tidak ditemukan.");
                 setLoading(false);
                 return;

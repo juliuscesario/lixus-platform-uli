@@ -33,7 +33,7 @@ export default function InfluencerDetailPage({ pageProps }) {
 
     useEffect(() => {
         const fetchInfluencerDetail = async () => {
-            if (!pageProps.id) {
+            if (!pageProps || !pageProps.id) {
                 setError("ID Influencer tidak ditemukan.");
                 setLoading(false);
                 return;
