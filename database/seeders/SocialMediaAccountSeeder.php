@@ -14,58 +14,47 @@ class SocialMediaAccountSeeder extends Seeder
      */
     public function run(): void
     {
-        // Ambil user ID yang sudah menjadi UUID dari UserSeeder
-        $influencerA = DB::table('users')->where('email', 'influencerA@example.com')->first();
-        $influencerB = DB::table('users')->where('email', 'influencerB@example.com')->first();
+        $influencers = \App\Models\User::whereHas('role', function ($query) {
+            $query->where('name', 'influencer');
+        })->get();
 
-        // Pastikan influencer A dan B ada
-        if (!$influencerA || !$influencerB) {
-            $this->command->error("Influencer users not found. Please run UserSeeder first.");
+        if ($influencers->isEmpty()) {
+            $this->command->error("No influencer users found. Please run UserSeeder first.");
             return;
         }
 
-        DB::table('social_media_accounts')->insert([
-            [
-                'id' => Str::uuid(), // <-- Tambahkan UUID
-                'user_id' => $influencerA->id, // <-- Gunakan UUID dari user
-                'platform' => 'instagram',
-                'platform_user_id' => '1234567890123456', // Dummy Instagram User ID
-                'username' => 'influencer_a_insta',
-                // Untuk access_token, sebaiknya gunakan Str::random(60) saja,
-                // atau enkripsi jika ini data sensitif. Hash::make() untuk password.
-                'access_token' => Str::random(60), // Token dummy
-                'token_expires_at' => now()->addDays(60), // Berlaku untuk 60 hari dari sekarang
-                'instagram_business_account_id' => '9876543210987654', // Dummy Business Account ID
-                'facebook_page_id' => '1122334455667788', // Dummy Facebook Page ID
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-            [
-                'id' => Str::uuid(), // <-- Tambahkan UUID
-                'user_id' => $influencerA->id, // Influencer A juga punya TikTok
-                'platform' => 'tiktok',
-                'platform_user_id' => 'abcde12345fghij67890',
-                'username' => 'influencer_a_tiktok',
-                'access_token' => Str::random(60),
-                'token_expires_at' => now()->addDays(90),
-                'instagram_business_account_id' => null,
-                'facebook_page_id' => null,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-            [
-                'id' => Str::uuid(), // <-- Tambahkan UUID
-                'user_id' => $influencerB->id, // <-- Gunakan UUID dari user
-                'platform' => 'instagram',
-                'platform_user_id' => '9988776655443322',
-                'username' => 'influencer_b_insta',
-                'access_token' => Str::random(60),
-                'token_expires_at' => now()->addDays(30),
-                'instagram_business_account_id' => '1231231231231231',
-                'facebook_page_id' => '4564564564564564',
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-        ]);
+        foreach ($influencers as $influencer) {
+            // Add Instagram account
+            \App\Models\SocialMediaAccount::firstOrCreate(
+                ['user_id' => $influencer->id, 'platform' => 'instagram'],
+                [
+                    'id' => Str::uuid(),
+                    'platform_user_id' => Str::random(16, 'alnum'),
+                    'username' => Str::slug($influencer->name) . '_insta',
+                    'access_token' => Str::random(60),
+                    'token_expires_at' => now()->addDays(60),
+                    'instagram_business_account_id' => Str::random(16, 'alnum'),
+                    'facebook_page_id' => Str::random(16, 'alnum'),
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]
+            );
+
+            // Add TikTok account
+            \App\Models\SocialMediaAccount::firstOrCreate(
+                ['user_id' => $influencer->id, 'platform' => 'tiktok'],
+                [
+                    'id' => Str::uuid(),
+                    'platform_user_id' => Str::random(20, 'alnum'),
+                    'username' => Str::slug($influencer->name) . '_tiktok',
+                    'access_token' => Str::random(60),
+                    'token_expires_at' => now()->addDays(90),
+                    'instagram_business_account_id' => null,
+                    'facebook_page_id' => null,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]
+            );
+        }
     }
 }
