@@ -80,7 +80,7 @@ class PostFactory extends Factory
             'platform_post_id' => Str::random(20),
             'post_type' => $postType,
             'post_url' => $this->faker->url(),
-            'media_url' => $this->faker->imageUrl(),
+            'media_url' => $this->faker->imageUrl() . '?' . Str::uuid(),
             'caption' => $this->faker->sentence(rand(5, 15)) . ' #' . $this->faker->word() . ' #' . $this->faker->word(),
             'raw_data' => ['api_response_mock' => $this->faker->sentence()],
             'metrics' => $metrics,
