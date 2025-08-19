@@ -11,60 +11,58 @@ class CampaignParticipantSeeder extends Seeder
 {
     public function run(): void
     {
-        // Ambil ID campaign dan influencer yang sudah ada
-        // Pastikan campaign ini ada di CampaignSeeder
-        $campaignPepsodent = Campaign::where('name', 'Pepsodent Senyum Indonesia')->first();
-        $campaignLifebuoy = Campaign::where('name', 'Lifebuoy Lindungi Keluarga')->first();
+        // Get the two approved campaigns
+        $approvedCampaigns = Campaign::where('status', 'approved')->get();
 
-        // Pastikan influencer ini ada di UserSeeder
-        $influencerA = User::where('email', 'influencerA@example.com')->first();
-        $influencerB = User::where('email', 'influencerB@example.com')->first();
+        // Get all influencer users
+        $influencers = User::whereHas('role', function ($query) {
+            $query->where('name', 'influencer');
+        })->get();
 
-        // Hanya lanjutkan jika semua entitas ditemukan
-        if ($campaignPepsodent && $influencerA) {
+        // Ensure we have approved campaigns and influencers
+        if ($approvedCampaigns->isEmpty()) {
+            \Log::warning('No approved campaigns found. Skipping CampaignParticipantSeeder.');
+            return;
+        }
+
+        if ($influencers->isEmpty()) {
+            \Log::warning('No influencers found. Skipping CampaignParticipantSeeder.');
+            return;
+        }
+
+        // Distribute 50 influencers randomly across the two approved campaigns
+        $influencersToAssign = $influencers->random(min(50, $influencers->count()));
+
+        foreach ($influencersToAssign as $influencer) {
+            // Randomly pick one of the approved campaigns
+            $randomCampaign = $approvedCampaigns->random();
+
             CampaignParticipant::firstOrCreate(
                 [
-                    'campaign_id' => $campaignPepsodent->id,
+                    'campaign_id' => $randomCampaign->id,
+                    'user_id' => $influencer->id,
+                ],
+                [
+                    'status' => 'approved',
+                    'applied_at' => now(),
+                ]
+            );
+        }
+
+        // Assign a specific influencer to the pending campaign if it exists
+        $pendingCampaign = Campaign::where('name', 'Lifebuoy Lindungi Keluarga')->first();
+        $influencerA = User::where('email', 'influencerA@example.com')->first();
+        if ($pendingCampaign && $influencerA) {
+             CampaignParticipant::firstOrCreate(
+                [
+                    'campaign_id' => $pendingCampaign->id,
                     'user_id' => $influencerA->id,
                 ],
                 [
-                    'status' => 'approved', // Contoh status
+                    'status' => 'pending',
                     'applied_at' => now(),
                 ]
             );
-        } else {
-            \Log::warning('Campaign "Pepsodent Senyum Indonesia" or Influencer A not found for CampaignParticipantSeeder.');
-        }
-
-        // Hanya lanjutkan jika semua entitas ditemukan
-        if ($campaignPepsodent && $influencerB) {
-            CampaignParticipant::firstOrCreate(
-                [
-                    'campaign_id' => $campaignPepsodent->id,
-                    'user_id' => $influencerB->id,
-                ],
-                [
-                    'status' => 'approved', // Contoh status
-                    'applied_at' => now(),
-                ]
-            );
-        } else {
-            \Log::warning('Campaign "Pepsodent Senyum Indonesia" or Influencer B not found for CampaignParticipantSeeder.');
-        }
-
-        if ($campaignLifebuoy && $influencerB) {
-            CampaignParticipant::firstOrCreate(
-                [
-                    'campaign_id' => $campaignLifebuoy->id,
-                    'user_id' => $influencerB->id,
-                ],
-                [
-                    'status' => 'pending', // Contoh status
-                    'applied_at' => now(),
-                ]
-            );
-        } else {
-            \Log::warning('Campaign "Lifebuoy Lindungi Keluarga" or Influencer B not found for CampaignParticipantSeeder.');
         }
     }
 }
