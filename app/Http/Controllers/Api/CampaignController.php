@@ -65,7 +65,7 @@ class CampaignController extends Controller
             'user_id_filter' => $request->query('user_id')
         ]);
 
-        $postsQuery = $campaign->posts()->where('is_valid_for_campaign', true);
+        $postsQuery = $campaign->posts();
 
         if ($request->has('user_id')) {
             $userId = $request->query('user_id');
@@ -104,6 +104,8 @@ class CampaignController extends Controller
 
         $postsQuery = $campaign->posts()->with(['user.influencerProfile', 'socialMediaAccount']);
 
+        Log::info('Base posts query for campaign:', ['campaign_id' => $campaign->id, 'count' => $postsQuery->count()]);
+
         // Apply filters
         if ($request->has('user_id')) {
             $userId = $request->query('user_id');
@@ -138,7 +140,9 @@ class CampaignController extends Controller
             });
         }
 
+        Log::info('Posts query before pagination:', ['sql' => $postsQuery->toSql(), 'bindings' => $postsQuery->getBindings()]);
         $posts = $postsQuery->orderByDesc('posted_at')->paginate(15);
+        Log::info('Posts retrieved count:', ['count' => $posts->count()]);
 
         return PostResource::collection($posts);
     }
