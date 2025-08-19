@@ -93,6 +93,9 @@ export default function CampaignPostsPage() {
             }
         }
         
+        console.log('Fetching posts for campaignId:', campaignId);
+        console.log('With queryParams:', queryParams.toString());
+        
         try {
             // Always use getAdminCampaignPosts with constructed query parameters
             const response = await apiService(auth).getAdminCampaignPosts(campaignId, queryParams.toString());
