@@ -90,4 +90,43 @@ class PostFactory extends Factory
             'validation_notes' => $this->faker->boolean(20) ? $this->faker->sentence(5) : null,
         ];
     }
+
+    /**
+     * Configure the factory to use a specific CampaignParticipant.
+     *
+     * @param  \App\Models\CampaignParticipant  $participant
+     * @return static
+     */
+    public function withParticipant(\App\Models\CampaignParticipant $participant): static
+    {
+        return $this->state(function (array $attributes) use ($participant) {
+            // Override the default definition logic to use the provided participant
+            $campaign = $participant->campaign;
+            $influencer = $participant->user;
+
+            // Ambil akun media sosial milik influencer tersebut
+            $socialMediaAccount = \App\Models\SocialMediaAccount::where('user_id', $influencer->id)
+                                                            ->inRandomOrder()
+                                                            ->first();
+
+            // Jika influencer tidak punya social media account, kita tidak bisa membuat post
+            if (!$socialMediaAccount) {
+                // Ini harusnya tidak terjadi jika data sudah disiapkan dengan baik
+                // Tapi untuk amannya, kita bisa return array kosong atau throw exception
+                // Untuk factory, lebih baik kembalikan state yang tidak valid atau biarkan faker yang handle jika null
+                return [];
+            }
+
+            // Pastikan tanggal post berada dalam rentang waktu campaign dari participant yang diberikan
+            $postedAt = $this->faker->dateTimeBetween($campaign->start_date, $campaign->end_date);
+
+            return [
+                'campaign_id' => $campaign->id,
+                'user_id' => $influencer->id,
+                'social_media_account_id' => $socialMediaAccount->id,
+                'platform' => $socialMediaAccount->platform,
+                'posted_at' => $postedAt,
+            ];
+        });
+    }
 }
