@@ -84,10 +84,15 @@ export default function CampaignPostsPage() {
             queryParams.append('search', searchQuery);
         }
     
-        const finalUrl = url ? url : `${apiService.API_BASE_URL}/admin/campaigns/${campaignId}/posts?${queryParams.toString()}`;
-    
         try {
-            const response = await apiService(auth).getAdminCampaignPosts(campaignId, finalUrl);
+            let response;
+            if (url) {
+                // If a full URL is provided (e.g., from pagination links), use fetchAbsoluteUrl
+                response = await apiService(auth).fetchAbsoluteUrl(url);
+            } else {
+                // Otherwise, construct the URL with query parameters for getAdminCampaignPosts
+                response = await apiService(auth).getAdminCampaignPosts(campaignId, queryParams.toString());
+            }
             setPosts(response.data || []);
             setPagination({ links: response.links, meta: response.meta });
         } catch (err) {
