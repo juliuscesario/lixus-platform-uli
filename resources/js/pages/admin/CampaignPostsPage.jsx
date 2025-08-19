@@ -65,11 +65,11 @@ export default function CampaignPostsPage() {
 
     const [searchQuery, setSearchQuery] = useState('');
     
-    const fetchPosts = async (url = null) => {
+    const fetchPosts = async (pageUrl = null) => {
         setLoading(true);
         setError(null);
         window.scrollTo(0, 0);
-    
+
         let queryParams = new URLSearchParams();
         if (platformFilter !== 'all') {
             queryParams.append('platform', platformFilter);
@@ -83,16 +83,19 @@ export default function CampaignPostsPage() {
         if (searchQuery) {
             queryParams.append('search', searchQuery);
         }
-    
-        try {
-            let response;
-            if (url) {
-                // If a full URL is provided (e.g., from pagination links), use fetchAbsoluteUrl
-                response = await apiService(auth).fetchAbsoluteUrl(url);
-            } else {
-                // Otherwise, construct the URL with query parameters for getAdminCampaignPosts
-                response = await apiService(auth).getAdminCampaignPosts(campaignId, queryParams.toString());
+
+        // Extract page number from pageUrl if provided
+        if (pageUrl) {
+            const urlObj = new URL(pageUrl);
+            const page = urlObj.searchParams.get('page');
+            if (page) {
+                queryParams.append('page', page);
             }
+        }
+        
+        try {
+            // Always use getAdminCampaignPosts with constructed query parameters
+            const response = await apiService(auth).getAdminCampaignPosts(campaignId, queryParams.toString());
             setPosts(response.data || []);
             setPagination({ links: response.links, meta: response.meta });
         } catch (err) {
@@ -105,14 +108,14 @@ export default function CampaignPostsPage() {
     useEffect(() => {
         if (campaignId) {
             fetchCampaignData();
-            fetchPosts();
+            fetchPosts(); // Initial fetch
         }
-    }, [campaignId, platformFilter, dateRange, searchQuery]); // Tambahkan dependensi filter
+    }, [campaignId, platformFilter, dateRange, searchQuery]); // Re-fetch when filters change
 
     const handleValidate = async (postId, isValid, notes) => {
         try {
             await apiService(auth).validatePost(postId, isValid, notes);
-            fetchPosts(pagination?.meta?.current_page ? `${pagination.meta.path}?page=${pagination.meta.current_page}` : null);
+            fetchPosts(); // Refresh posts after validation
         } catch (err) {
             alert(err.message || 'Gagal memvalidasi postingan.');
         }
@@ -219,7 +222,7 @@ export default function CampaignPostsPage() {
             }
         }
         setSelected([]);
-        fetchPosts(pagination?.meta?.current_page ? `${pagination.meta.path}?page=${pagination.meta.current_page}` : null);
+        fetchPosts(); // Refresh posts after bulk validation
     };
 
     if (loading) return <div>Memuat postingan...</div>;
