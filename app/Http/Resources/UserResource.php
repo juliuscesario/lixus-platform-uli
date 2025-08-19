@@ -25,7 +25,9 @@ class UserResource extends JsonResource
             'updated_at' => $this->updated_at ? $this->updated_at->format('Y-m-d H:i:s') : null,
             
             'role' => $this->whenLoaded('role', fn() => $this->role->name),
-            'influencer_profile' => new InfluencerProfileResource($this->whenLoaded('influencerProfile')),
+            'influencer_profile' => InfluencerProfileResource::make($this->whenLoaded('influencerProfile')),
+            // Add social media accounts to the UserResource when loaded
+            'social_media_accounts' => SocialMediaAccountResource::collection($this->whenLoaded('socialMediaAccounts')),
             
             // SECTION TO ADD: Providing a simple list of abilities for the frontend.
             'permissions' => [

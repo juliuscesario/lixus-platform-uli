@@ -30,8 +30,8 @@ class SocialMediaAccountResource extends JsonResource
 
             // Add permissions attribute to allow the frontend to display actions based on the user's role
             'permissions' => [
-                'can_update' => auth()->user()->can('update', $this->resource),
-                'can_delete' => auth()->user()->can('delete', $this->resource),
+                'can_update' => optional(auth()->user())->can('update', $this->resource),
+                'can_delete' => optional(auth()->user())->can('delete', $this->resource),
             ],
         ];
     }
