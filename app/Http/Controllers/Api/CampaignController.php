@@ -108,47 +108,48 @@ class CampaignController extends Controller
 
         Log::info('Base posts query for campaign:', ['campaign_id' => $campaign->id, 'count' => $postsQuery->count()]);
 
-        // Apply filters
-        if ($request->has('user_id')) {
-            $userId = $request->query('user_id');
-            if (!\Illuminate\Support\Str::isUuid($userId)) {
-                return response()->json(['status' => 'error', 'message' => 'Invalid user ID format.'], 400);
-            }
-            $postsQuery->where('user_id', $userId);
-        }
+        // Temporarily remove filters for debugging
+        // if ($request->has('user_id')) {
+        //     $userId = $request->query('user_id');
+        //     if (!\Illuminate\Support\Str::isUuid($userId)) {
+        //         return response()->json(['status' => 'error', 'message' => 'Invalid user ID format.'], 400);
+        //     }
+        //     $postsQuery->where('user_id', $userId);
+        // }
 
-        if ($request->has('platform') && $request->query('platform') !== 'all') {
-            $postsQuery->whereHas('socialMediaAccount', function ($q) use ($request) {
-                $q->where('platform', $request->query('platform'));
-            });
-        }
+        // if ($request->has('platform') && $request->query('platform') !== 'all') {
+        //     $postsQuery->whereHas('socialMediaAccount', function ($q) use ($request) {
+        //         $q->where('platform', $request->query('platform'));
+        //     });
+        // }
 
-        if ($request->has('start_date')) {
-            $postsQuery->where('posted_at', '>=', $request->query('start_date'));
-        }
+        // if ($request->has('start_date')) {
+        //     $postsQuery->where('posted_at', '>=', $request->query('start_date'));
+        // }
 
-        if ($request->has('end_date')) {
-            $postsQuery->where('posted_at', '<=', $request->query('end_date'));
-        }
+        // if ($request->has('end_date')) {
+        //     $postsQuery->where('posted_at', '<=', $request->query('end_date'));
+        // }
 
-        if ($request->has('search')) {
-            $search = $request->query('search');
-            $postsQuery->where(function ($query) use ($search) {
-                $query->where('caption', 'like', '%' . $search . '%')
-                      ->orWhere('platform_post_id', 'like', '%' . $search . '%')
-                      ->orWhereHas('user', function ($q) use ($search) {
-                          $q->where('name', 'like', '%' . $search . '%');
-                      });
-            });
-        }
+        // if ($request->has('search')) {
+        //     $search = $request->query('search');
+        //     $postsQuery->where(function ($query) use ($search) {
+        //         $query->where('caption', 'like', '%' . $search . '%')
+        //               ->orWhere('platform_post_id', 'like', '%' . $search . '%')
+        //               ->orWhereHas('user', function ($q) use ($search) {
+        //                   $q->where('name', 'like', '%' . $search . '%');
+        //               });
+        //     });
+        // }
 
-        Log::info('Posts query before pagination:', ['sql' => $postsQuery->toSql(), 'bindings' => $postsQuery->getBindings()]);
-        Log::debug('Posts query before pagination:', ['sql' => $postsQuery->toSql(), 'bindings' => $postsQuery->getBindings()]);
-        $posts = $postsQuery->orderByDesc('posted_at')->paginate(15);
-        Log::debug('Posts retrieved count:', ['count' => $posts->count()]);
-        Log::info('Posts retrieved count:', ['count' => $posts->count()]);
+        // Log::info('Posts query before pagination:', ['sql' => $postsQuery->toSql(), 'bindings' => $postsQuery->getBindings()]);
+        // Log::debug('Posts query before pagination:', ['sql' => $postsQuery->toSql(), 'bindings' => $postsQuery->getBindings()]);
+        $posts = $postsQuery->orderByDesc('posted_at')->get(); // Get all posts without pagination
+        dd($posts); // Dump and die to inspect the data
+        // Log::debug('Posts retrieved count:', ['count' => $posts->count()]);
+        // Log::info('Posts retrieved count:', ['count' => $posts->count()]);
 
-        return PostResource::collection($posts);
+        // return PostResource::collection($posts);
     }
 
     /**
