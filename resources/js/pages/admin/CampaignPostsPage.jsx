@@ -63,12 +63,31 @@ export default function CampaignPostsPage() {
         }
     };
 
+    const [searchQuery, setSearchQuery] = useState('');
+    
     const fetchPosts = async (url = null) => {
         setLoading(true);
         setError(null);
         window.scrollTo(0, 0);
+    
+        let queryParams = new URLSearchParams();
+        if (platformFilter !== 'all') {
+            queryParams.append('platform', platformFilter);
+        }
+        if (dateRange.from) {
+            queryParams.append('start_date', dateRange.from);
+        }
+        if (dateRange.to) {
+            queryParams.append('end_date', dateRange.to);
+        }
+        if (searchQuery) {
+            queryParams.append('search', searchQuery);
+        }
+    
+        const finalUrl = url ? url : `${apiService.API_BASE_URL}/admin/campaigns/${campaignId}/posts?${queryParams.toString()}`;
+    
         try {
-            const response = await apiService(auth).getCampaignPosts(campaignId, url);
+            const response = await apiService(auth).getCampaignPosts(campaignId, finalUrl);
             setPosts(response.data || []);
             setPagination({ links: response.links, meta: response.meta });
         } catch (err) {
@@ -83,7 +102,7 @@ export default function CampaignPostsPage() {
             fetchCampaignData();
             fetchPosts();
         }
-    }, [campaignId]);
+    }, [campaignId, platformFilter, dateRange, searchQuery]); // Tambahkan dependensi filter
 
     const handleValidate = async (postId, isValid, notes) => {
         try {

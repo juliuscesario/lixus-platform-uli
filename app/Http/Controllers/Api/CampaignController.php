@@ -83,6 +83,67 @@ class CampaignController extends Controller
     }
 
     /**
+     * Get posts for a specific campaign (Admin/Brand).
+     * Endpoint: GET /api/admin/campaigns/{campaign}/posts
+     */
+    public function getCampaignPostsAdmin(Request $request, Campaign $campaign)
+    {
+       Log::info('Fetching admin campaign posts with optional filters.', [
+            'campaign_id' => $campaign->id,
+            'user_id_filter' => $request->query('user_id'),
+            'platform_filter' => $request->query('platform'),
+            'start_date_filter' => $request->query('start_date'),
+            'end_date_filter' => $request->query('end_date'),
+            'search_query' => $request->query('search')
+        ]);
+
+        $user = $request->user();
+        if ($user->role->name === 'brand' && $campaign->brand_id !== $user->id) {
+            return response()->json(['status' => 'error', 'message' => 'Unauthorized to view posts for this campaign.'], 403);
+        }
+
+        $postsQuery = $campaign->posts()->with(['user.influencerProfile', 'socialMediaAccount']);
+
+        // Apply filters
+        if ($request->has('user_id')) {
+            $userId = $request->query('user_id');
+            if (!\Illuminate\Support\Str::isUuid($userId)) {
+                return response()->json(['status' => 'error', 'message' => 'Invalid user ID format.'], 400);
+            }
+            $postsQuery->where('user_id', $userId);
+        }
+
+        if ($request->has('platform') && $request->query('platform') !== 'all') {
+            $postsQuery->whereHas('socialMediaAccount', function ($q) use ($request) {
+                $q->where('platform', $request->query('platform'));
+            });
+        }
+
+        if ($request->has('start_date')) {
+            $postsQuery->where('posted_at', '>=', $request->query('start_date'));
+        }
+
+        if ($request->has('end_date')) {
+            $postsQuery->where('posted_at', '<=', $request->query('end_date'));
+        }
+
+        if ($request->has('search')) {
+            $search = $request->query('search');
+            $postsQuery->where(function ($query) use ($search) {
+                $query->where('caption', 'like', '%' . $search . '%')
+                      ->orWhere('platform_post_id', 'like', '%' . $search . '%')
+                      ->orWhereHas('user', function ($q) use ($search) {
+                          $q->where('name', 'like', '%' . $search . '%');
+                      });
+            });
+        }
+
+        $posts = $postsQuery->orderByDesc('posted_at')->paginate(15);
+
+        return PostResource::collection($posts);
+    }
+
+    /**
      * Get leaderboard for a specific campaign (Public).
      * Endpoint: GET /api/public/campaigns/{campaign}/leaderboard
      */

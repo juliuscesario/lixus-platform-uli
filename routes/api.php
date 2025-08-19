@@ -106,6 +106,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::patch('campaigns/{campaign}/status', [CampaignController::class, 'updateStatus']); // Update campaign status
         Route::get('campaigns/{campaign}/participants', [CampaignController::class, 'getParticipants']); // Get participants for a campaign
         Route::patch('campaigns/{campaign}/participants/{user}/status', [CampaignController::class, 'updateParticipantStatus']); // Update participant status
+        Route::get('campaigns/{campaign}/posts', [CampaignController::class, 'getCampaignPostsAdmin']); // Get posts for a campaign (Admin/Brand)
 
         // Post Management (Admin/Brand view and manage all posts)
         // Sesuai roadmap 4.8 - 4.11
