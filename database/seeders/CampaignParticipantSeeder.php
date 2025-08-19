@@ -36,6 +36,22 @@ class CampaignParticipantSeeder extends Seeder
             \Log::warning('Campaign "Pepsodent Senyum Indonesia" or Influencer A not found for CampaignParticipantSeeder.');
         }
 
+        // Hanya lanjutkan jika semua entitas ditemukan
+        if ($campaignPepsodent && $influencerB) {
+            CampaignParticipant::firstOrCreate(
+                [
+                    'campaign_id' => $campaignPepsodent->id,
+                    'user_id' => $influencerB->id,
+                ],
+                [
+                    'status' => 'approved', // Contoh status
+                    'applied_at' => now(),
+                ]
+            );
+        } else {
+            \Log::warning('Campaign "Pepsodent Senyum Indonesia" or Influencer B not found for CampaignParticipantSeeder.');
+        }
+
         if ($campaignLifebuoy && $influencerB) {
             CampaignParticipant::firstOrCreate(
                 [
