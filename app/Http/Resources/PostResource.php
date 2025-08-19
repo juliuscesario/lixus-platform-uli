@@ -32,8 +32,6 @@ class PostResource extends JsonResource
             'campaign' => CampaignResource::make($this->whenLoaded('campaign')), // Load jika relasi campaign dimuat
             'influencer' => UserResource::make($this->whenLoaded('user')), // Menggunakan UserResource jika ada, atau detail user langsung
             'social_media_account' => SocialMediaAccountResource::make($this->whenLoaded('socialMediaAccount')), // Menggunakan influencerProfile jika ada, atau detail user langsung
-            'can_validate' => optional(auth()->user())->can('validate', $this->resource),
-            'can_score' => optional(auth()->user())->can('score', $this->resource),
         ];
     }
 }

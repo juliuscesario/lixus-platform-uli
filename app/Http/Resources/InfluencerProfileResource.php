@@ -38,12 +38,7 @@ class InfluencerProfileResource extends JsonResource
             'user' => new UserResource($this->whenLoaded('user')), // Menggunakan UserResource
 
             // FIX: Load social media accounts from the loaded user relationship
-            'social_media_accounts' => $this->when(
-                $this->relationLoaded('user') && $this->user->relationLoaded('socialMediaAccounts'),
-                function () {
-                    return SocialMediaAccountResource::collection($this->user->socialMediaAccounts);
-                }
-            ),
+            'social_media_accounts' => SocialMediaAccountResource::collection($this->whenLoaded('socialMediaAccounts')),
             'can_update' => optional(auth()->user())->can('update', $this->resource),
         ];
     }

@@ -26,10 +26,7 @@ class UserResource extends JsonResource
             
             'role' => $this->whenLoaded('role', fn() => $this->role->name),
             'influencer_profile' => InfluencerProfileResource::make($this->whenLoaded('influencerProfile')),
-            // Add social media accounts to the UserResource when loaded
             'social_media_accounts' => SocialMediaAccountResource::collection($this->whenLoaded('socialMediaAccounts')),
-            
-            // SECTION TO ADD: Providing a simple list of abilities for the frontend.
             'permissions' => [
                 'is_admin' => $this->isAdmin(),
                 'is_brand' => $this->isBrand(),
