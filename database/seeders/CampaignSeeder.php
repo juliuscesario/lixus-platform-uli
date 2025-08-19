@@ -22,8 +22,8 @@ class CampaignSeeder extends Seeder
                 'name' => 'Pepsodent Senyum Indonesia',
                 'description' => 'Kampanye digital untuk mempromosikan senyum sehat dengan Pepsodent.',
                 'brand_id' => $brandId->id,
-                'start_date' => '2025-07-20',
-                'end_date' => '2025-08-20',
+                'start_date' => '2025-06-01',
+                'end_date' => '2025-12-31',
                 'budget' => 5000000.00,
                 'briefing_content' => json_encode([
                     'goals' => 'Meningkatkan brand awareness dan engagement.',
@@ -57,8 +57,8 @@ class CampaignSeeder extends Seeder
                 'description' => 'Kampanye sosial untuk mengajak masyarakat menjaga kebersihan lingkungan.',
                 'brand_id' => $brandId->id,
                 'budget' => 5000000.00,
-                'start_date' => '2025-08-01',
-                'end_date' => '2025-09-01',
+                'start_date' => '22024-06-01',
+                'end_date' => '2025-12-31',
                 'briefing_content' => json_encode([
                     'goals' => 'Meningkatkan kesadaran lingkungan.',
                     'hashtags' => ['#UnileverPeduliLingkungan'],
