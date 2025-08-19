@@ -87,7 +87,7 @@ export default function CampaignPostsPage() {
         const finalUrl = url ? url : `${apiService.API_BASE_URL}/admin/campaigns/${campaignId}/posts?${queryParams.toString()}`;
     
         try {
-            const response = await apiService(auth).getCampaignPosts(campaignId, finalUrl);
+            const response = await apiService(auth).getAdminCampaignPosts(campaignId, finalUrl);
             setPosts(response.data || []);
             setPagination({ links: response.links, meta: response.meta });
         } catch (err) {

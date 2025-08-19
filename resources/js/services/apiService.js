@@ -304,7 +304,8 @@ export const apiService = (auth) => ({
     updateCampaignStatus: (id, status) => apiFetch(`${API_BASE_URL}/admin/campaigns/${id}/status`, { method: 'PATCH', body: { status } }, auth),
     getCampaignParticipants: (campaignId) => apiFetch(`${API_BASE_URL}/admin/campaigns/${campaignId}/participants`, {}, auth),
     updateParticipantStatus: (campaignId, participantId, status) => apiFetch(`${API_BASE_URL}/admin/campaigns/${campaignId}/participants/${participantId}/status`, { method: 'PATCH', body: { status } }, auth),
-    getCampaignPosts: (campaignId, url = null) => apiFetch(url || `${API_BASE_URL}/admin/campaigns/${campaignId}/posts`, {}, auth),
+    getPublicCampaignPosts: (campaignId, url = null) => apiFetch(url || `${API_BASE_URL}/public/campaigns/${campaignId}/posts`, {}, auth),
+    getAdminCampaignPosts: (campaignId, url = null) => apiFetch(url || `${API_BASE_URL}/admin/campaigns/${campaignId}/posts`, {}, auth),
     validatePost: (postId, isValid, notes) => apiFetch(`${API_BASE_URL}/admin/posts/${postId}`, { method: 'PUT', body: { is_valid_for_campaign: isValid, validation_notes: notes } }, auth),
     getPostsForInfluencerInCampaign: (campaignId, userId) => apiFetch(`${API_BASE_URL}/public/campaigns/${campaignId}/posts?user_id=${userId}`, {}, auth),
     

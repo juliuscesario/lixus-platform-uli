@@ -519,14 +519,12 @@ class CampaignController extends Controller
             $leaderboardData = Post::select('user_id', DB::raw('SUM(score) as total_score'))
                 ->where('campaign_id', $campaign->id)
                 ->where('is_valid_for_campaign', true)
-                ->whereNotNull('score')
                 ->groupBy('user_id')
                 ->orderByDesc('total_score')
                 ->with(['user.influencerProfile', 'user.socialMediaAccounts'])
                 ->limit($request->query('limit', 10))
                 ->offset($request->query('offset', 0))
                 ->get();
-
             Log::info('Leaderboard accessed for campaign.', ['campaign_id' => $campaign->id]);
             return response()->json([
                 'status' => 'success',

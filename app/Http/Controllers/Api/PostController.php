@@ -27,14 +27,17 @@ class PostController extends Controller
      * [Public] Mendapatkan detail postingan publik dengan filter campaign.
      * Endpoint: GET /public/posts/campaign/{campaign}
      */
-    public function showPublicbyCampaign(Request $request, Post $post)
+    public function showPublicbyCampaign(Request $request, Campaign $campaign)
     {
         Log::info('Fetching public posts by campaign.');
-        $posts = Post::with(['campaign', 'user','socialMediaAccount'])
-                    ->whereNotNull('score') // Hanya tampilkan post yang sudah ada skornya (jika diinginkan)
-                    ->where('campaign_id', $request->campaign) // Filter berdasarkan campaign_id
-                    ->latest()
-                    ->paginate(15);
+    
+        // Mengambil semua posts dari campaign yang diberikan
+        $posts = $campaign->posts()
+                          ->with(['user', 'socialMediaAccount']) // Eager load relasi yang diperlukan
+                          ->where('is_valid_for_campaign', true) // Hanya post yang valid
+                          ->latest() // Urutkan berdasarkan yang terbaru
+                          ->paginate(15);
+    
         return PostResource::collection($posts);
     }
     /**
@@ -45,7 +48,7 @@ class PostController extends Controller
     {
         Log::info('Fetching public posts.');
         $posts = Post::with(['campaign', 'user'])
-                    ->whereNotNull('score') // Hanya tampilkan post yang sudah ada skornya (jika diinginkan)
+                    ->where('is_valid_for_campaign', true) // Hanya tampilkan post yang valid
                     ->latest()
                     ->paginate(15);
         return PostResource::collection($posts);
