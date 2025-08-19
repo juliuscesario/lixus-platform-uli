@@ -48,7 +48,7 @@ class PostSeeder extends Seeder
         $totalPostsCreated = 0;
         foreach ($approvedParticipants as $participant) {
             // Buat sejumlah post acak (misal: 1 sampai 5) untuk setiap partisipan
-            $numberOfPosts = rand(1, 5);
+            $numberOfPosts = 60;
             Post::factory($numberOfPosts)->withParticipant($participant)->create();
             $totalPostsCreated += $numberOfPosts;
         }
