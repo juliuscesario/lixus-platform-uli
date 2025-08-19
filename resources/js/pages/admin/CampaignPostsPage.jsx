@@ -147,8 +147,8 @@ export default function CampaignPostsPage() {
         const totalComments = posts.reduce((sum, post) => sum + (safeParseMetrics(post).comments_count || 0), 0);
         const totalShares = posts.reduce((sum, post) => sum + (safeParseMetrics(post).shares_count || 0), 0);
         const uniqueInfluencers = new Set(posts.map(post => post.user_id)).size;
-        return { totalLikes, totalComments, totalShares, uniqueInfluencers, totalPosts: posts.length };
-    }, [posts]);
+        return { totalLikes, totalComments, totalShares, uniqueInfluencers, totalPosts: pagination?.meta?.total || 0 };
+    }, [posts, pagination]);
 
     const sortedPosts = useMemo(() => {
         let sortableItems = [...filteredPosts];
