@@ -27,6 +27,12 @@ class SocialMediaAccountResource extends JsonResource
             'facebook_page_id' => $this->facebook_page_id,
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),
+
+            // Add permissions attribute to allow the frontend to display actions based on the user's role
+            'permissions' => [
+                'can_update' => auth()->user()->can('update', $this->resource),
+                'can_delete' => auth()->user()->can('delete', $this->resource),
+            ],
         ];
     }
 }

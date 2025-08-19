@@ -28,7 +28,7 @@ class CampaignResource extends JsonResource
             'status' => $this->status,
             'created_at' => $this->created_at ? $this->created_at->format('Y-m-d H:i:s') : null,
             'updated_at' => $this->updated_at ? $this->updated_at->format('Y-m-d H:i:s') : null,
-            
+
             // ✅ FIX: Add aggregate data when it has been calculated and attached in the controller
             'total_participants' => $this->when(isset($this->total_participants), $this->total_participants),
             'total_posts' => $this->when(isset($this->total_posts), $this->total_posts),
@@ -40,6 +40,7 @@ class CampaignResource extends JsonResource
             'participant_status' => $this->whenLoaded('currentParticipant', function () {
                 return $this->currentParticipant ? $this->currentParticipant->status : null;
             }),
+            'user' => new UserResource($this->whenLoaded('user')),
         ];
     }
 }

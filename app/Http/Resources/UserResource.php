@@ -24,16 +24,15 @@ class UserResource extends JsonResource
             'created_at' => $this->created_at ? $this->created_at->format('Y-m-d H:i:s') : null,
             'updated_at' => $this->updated_at ? $this->updated_at->format('Y-m-d H:i:s') : null,
             
-            // Return role name as string for frontend compatibility
-            'role' => $this->whenLoaded('role', function () {
-                return $this->role->name;
-            }),
+            'role' => $this->whenLoaded('role', fn() => $this->role->name),
+            'influencer_profile' => new InfluencerProfileResource($this->whenLoaded('influencerProfile')),
             
-            // Include full role details if needed
-            'role_details' => new RoleResource($this->whenLoaded('role')),
-
-            // Sertakan influencer_profile jika sudah di-eager load dan jika ini bukan InfluencerProfileResource itu sendiri
-            'influencer_profile' => new InfluencerProfileResource($this->whenLoaded('influencerProfile')), // Ini akan mencegah loop jika dipanggil dari InfluencerProfileResource
+            // SECTION TO ADD: Providing a simple list of abilities for the frontend.
+            'permissions' => [
+                'is_admin' => $this->isAdmin(),
+                'is_brand' => $this->isBrand(),
+                'is_influencer' => $this->isInfluencer(),
+            ],
         ];
     }
 }

@@ -38,6 +38,7 @@ class PostController extends Controller
                           ->latest() // Urutkan berdasarkan yang terbaru
                           ->paginate(15);
     
+
         return PostResource::collection($posts);
     }
     /**
@@ -366,7 +367,7 @@ class PostController extends Controller
     {
         Log::info('Admin/Brand attempting to validate post.', ['post_id' => $post->id, 'admin_id' => $request->user()->id]);
         //Pastikan hanya admin yang bisa mengakses ini (akan diimplementasikan dengan middleware peran nantinya)
-        if ($request->user()->role->name == 'influencer') {
+        if ($request->user()->isInfluencer()) {
             return response()->json(['status' => 'error', 'message' => 'Unauthorized.'], 403);
         }
 
@@ -643,7 +644,7 @@ class PostController extends Controller
     public function fetchAllCampaignMetrics(Request $request, Campaign $campaign)
     {
         // Pastikan hanya admin yang bisa mengakses ini (akan diimplementasikan dengan middleware peran nantinya)
-        if ($request->user()->role->name == 'influencer') {
+        if ($request->user()->isInfluencer()) {
              return response()->json(['status' => 'error', 'message' => 'Unauthorized.'], 403);
          }
 

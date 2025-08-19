@@ -44,6 +44,9 @@ class InfluencerProfileResource extends JsonResource
                     return SocialMediaAccountResource::collection($this->user->socialMediaAccounts);
                 }
             ),
+            'permissions' => [
+                'can_update' => auth()->user()->can('update', $this->resource),
+            ],
         ];
     }
 }

@@ -29,9 +29,15 @@ class PostResource extends JsonResource
             'posted_at' => $this->posted_at ? $this->posted_at->format('Y-m-d H:i:s') : null,
             'created_at' => $this->created_at ? $this->created_at->format('Y-m-d H:i:s') : null,
             'updated_at' => $this->updated_at ? $this->updated_at->format('Y-m-d H:i:s') : null,
-            'campaign' => CampaignResource::make($this->whenLoaded('campaign')), // Load jika relasi campaign dimuat
-            'influencer' => UserResource::make($this->whenLoaded('user')), // Menggunakan UserResource jika ada, atau detail user langsung
-            'social_media_account' => SocialMediaAccountResource::make($this->whenLoaded('socialMediaAccount')), // Menggunakan influencerProfile jika ada, atau detail user langsung
+            'campaign' => CampaignResource::make($this->whenLoaded('campaign')),
+            'influencer' => UserResource::make($this->whenLoaded('user')),
+            'social_media_account' => SocialMediaAccountResource::make($this->whenLoaded('socialMediaAccount')),
+            'user' => new UserResource($this->whenLoaded('user')),
+            // Add a permissions attribute to allow the frontend to display actions based on the user's role
+            'permissions' => [
+                'can_update' => auth()->user()->can('update', $this->resource),
+                'can_delete' => auth()->user()->can('delete', $this->resource),
+            ],
         ];
     }
 }

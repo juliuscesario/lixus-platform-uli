@@ -272,6 +272,7 @@ class CampaignController extends Controller
 
         if ($user->role->name === 'brand' && $campaign->brand_id !== $user->id) {
             return response()->json(['status' => 'error', 'message' => 'Unauthorized access to this campaign.'], 403);
+
         }
         return new CampaignResource($campaign);
     }
@@ -405,6 +406,7 @@ class CampaignController extends Controller
     {
         Log::info('Attempting to update participant status.', ['campaign_id' => $campaign->id, 'user_id' => $user->id]);
         $authUser = $request->user();
+
         if ($authUser->role->name === 'brand' && $campaign->brand_id !== $authUser->id) {
             return response()->json(['status' => 'error', 'message' => 'Unauthorized to update participant status.'], 403);
         }
@@ -536,5 +538,33 @@ class CampaignController extends Controller
             Log::error('Failed to retrieve campaign leaderboard: ' . $e->getMessage());
             return response()->json(['status' => 'error', 'message' => 'Failed to retrieve campaign leaderboard.'], 500);
         }
+    }
+
+    public function getRecommendations(Request $request)
+    {
+        $user = $request->user();
+
+        // Rekomendasi berdasarkan role
+        if ($user->hasRole('brand')) {
+            // Rekomendasi untuk brand: kampanye serupa atau berkinerja terbaik
+            $campaigns = Campaign::where('status', 'active')
+                                 ->orderByDesc('budget')
+                                 ->limit(5)
+                                 ->get();
+        } elseif ($user->hasRole('influencer')) {
+            // Rekomendasi untuk influencer: kampanye baru yang sesuai dengan niche mereka
+            $campaigns = Campaign::where('status', 'active')
+                                 ->whereDoesntHave('participants', function ($query) use ($user) {
+                                     $query->where('user_id', $user->id);
+                                 })
+                                 ->inRandomOrder()
+                                 ->limit(5)
+                                 ->get();
+        } else {
+            // Default fallback
+            $campaigns = Campaign::where('status', 'active')->inRandomOrder()->limit(5)->get();
+        }
+
+        return CampaignResource::collection($campaigns);
     }
 }
