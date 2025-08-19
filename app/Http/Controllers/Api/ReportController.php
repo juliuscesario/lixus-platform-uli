@@ -108,6 +108,9 @@ class ReportController extends Controller
      */
     public function getInfluencerPerformanceReport(Request $request, User $user)
     {
+        $request->validate([
+            'user' => 'required|uuid|exists:users,id',
+        ]);
         try {
             $posts = Post::where('user_id', $user->id)
                 ->where('is_valid_for_campaign', true)

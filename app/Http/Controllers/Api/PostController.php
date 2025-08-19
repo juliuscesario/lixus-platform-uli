@@ -19,16 +19,23 @@ class PostController extends Controller
      * [Public] Mendapatkan detail postingan publik.
      * Endpoint: GET /public/posts/{post}
      */
-    public function showPublic(Request $request, Post $post)
+    public function showPublicPost(Request $request, Post $post)
     {
+        $request->validate([
+            'post' => 'required|uuid|exists:posts,id',
+        ]);
         Log::info('Fetching single public post detail.', ['post_id' => $post->id]);
         return new PostResource($post->load(['campaign', 'user']));
-    }/**
+    }
+    /**
      * [Public] Mendapatkan detail postingan publik dengan filter campaign.
      * Endpoint: GET /public/posts/campaign/{campaign}
      */
     public function showPublicbyCampaign(Request $request, Campaign $campaign)
     {
+        $request->validate([
+            'campaign' => 'required|uuid|exists:campaigns,id',
+        ]);
         Log::info('Fetching public posts by campaign.');
     
         // Mengambil semua posts dari campaign yang diberikan
@@ -38,7 +45,7 @@ class PostController extends Controller
                           ->latest() // Urutkan berdasarkan yang terbaru
                           ->paginate(15);
     
-
+    
         return PostResource::collection($posts);
     }
     /**
