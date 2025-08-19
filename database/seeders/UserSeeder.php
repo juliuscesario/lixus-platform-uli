@@ -66,7 +66,9 @@ class UserSeeder extends Seeder
             ]
         );
 
-        // Anda bisa tambahkan factories untuk membuat user tambahan
-        // User::factory(10)->create();
+        // Generate 50 additional influencer users using the factory
+        User::factory(50)->create([
+            'role_id' => $influencerRole->id,
+        ]);
     }
 }

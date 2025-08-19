@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { apiService } from '../../services/apiService';
+import { useAuth } from '../../contexts/AuthContext';
 
 const IconArrowLeft = () => ( <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg> );
 const IconPlay = () => ( <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg> );
@@ -8,6 +9,7 @@ const IconCheckCircle = () => ( <svg xmlns="http://www.w3.org/2000/svg" width="2
 import { Link, useNavigate, useParams } from 'react-router-dom';
 
 export default function EditCampaignPage() {
+    const { user, auth } = useAuth();
     const { id: campaignId } = useParams();
     const navigate = useNavigate();
 
@@ -33,7 +35,7 @@ export default function EditCampaignPage() {
         const fetchCampaign = async () => {
             setLoading(true);
             try {
-                const response = await apiService.getAdminCampaignDetail(campaignId);
+                const response = await apiService(auth).getAdminCampaignDetail(campaignId);
                 const campaign = response.data;
                 const briefing = campaign.briefing_content || {};
                 const scoring = campaign.scoring_rules || {};
@@ -83,7 +85,7 @@ export default function EditCampaignPage() {
         setIsUpdatingStatus(true);
         setError(null);
         try {
-            await apiService.updateCampaign(campaignId, { status: newStatus });
+            await apiService(auth).updateCampaign(campaignId, { status: newStatus });
             setFormData(prev => ({ ...prev, status: newStatus }));
             alert(`Kampanye berhasil diubah menjadi ${newStatus}!`);
         } catch (err) {
@@ -134,7 +136,7 @@ export default function EditCampaignPage() {
         // ---------------------------------
         
         try {
-            await apiService.updateCampaign(campaignId, payload);
+            await apiService(auth).updateCampaign(campaignId, payload);
             alert('Kampanye berhasil diperbarui!');
             navigate('/admin/campaigns');
         } catch (err) {

@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { apiService } from '../services/apiService';
+import { useAuth } from '../contexts/AuthContext';
 import CampaignCard from '../components/CampaignCard';
 
 export default function HomePage({ user }) {
+    const { auth } = useAuth();
     const [campaigns, setCampaigns] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -18,14 +20,13 @@ export default function HomePage({ user }) {
             try {
                 let response;
 
-                if (user?.role === 'admin') {
-                    response = await apiService.getAdminCampaigns();
-                } else if (user?.role === 'brand' || user?.role === 'influencer') {
-                    // Menggunakan endpoint rekomendasi baru untuk brand dan influencer
-                    response = await apiService.getCampaignRecommendations();
-                }  else {
-                    // Untuk publik atau user tidak dikenal
-                    response = await apiService.getPublicCampaigns();
+                if (user?.role === 'brand' || user?.role === 'admin') {
+                    response = await apiService(auth).getAdminCampaigns();
+                } else if (user?.role === 'influencer') {
+                    response = await apiService(auth).getPublicCampaignsbyStatus();
+                } else {
+                    // This will run if 'user' is null or has a different role
+                    response = await apiService(auth).getPublicCampaigns();
                 }
 
                 if (response?.data) {

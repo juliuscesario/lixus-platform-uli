@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { apiService } from '../services/apiService';
+import { useAuth } from '../contexts/AuthContext';
 import InfluencerCard from '../components/InfluencerCard';
 
 import { Link } from 'react-router-dom';
 export default function InfluencersPage() {
+    const { user, auth } = useAuth();
     const [influencers, setInfluencers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -12,7 +14,7 @@ export default function InfluencersPage() {
         const fetchInfluencers = async () => {
             setLoading(true);
             setError(null);
-            const response = await apiService.getPublicInfluencers();
+            const response = await apiService(auth).getPublicInfluencers();
             if (response && response.data) {
                 setInfluencers(response.data);
             } else {

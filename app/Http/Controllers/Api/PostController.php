@@ -29,13 +29,15 @@ class PostController extends Controller
      */
     public function showPublicbyCampaign(Request $request, Campaign $campaign)
     {
-        Log::info('Fetching public posts by campaign.', ['campaign_id' => $campaign->id]);
-
+        Log::info('Fetching public posts by campaign.');
+    
+        // Mengambil semua posts dari campaign yang diberikan
         $posts = $campaign->posts()
-            ->with(['user', 'socialMediaAccount'])
-            ->whereNotNull('score')
-            ->latest()
-            ->paginate(15);
+                          ->with(['user', 'socialMediaAccount']) // Eager load relasi yang diperlukan
+                          ->where('is_valid_for_campaign', true) // Hanya post yang valid
+                          ->latest() // Urutkan berdasarkan yang terbaru
+                          ->paginate(15);
+    
 
         return PostResource::collection($posts);
     }
@@ -47,7 +49,7 @@ class PostController extends Controller
     {
         Log::info('Fetching public posts.');
         $posts = Post::with(['campaign', 'user'])
-                    ->whereNotNull('score') // Hanya tampilkan post yang sudah ada skornya (jika diinginkan)
+                    ->where('is_valid_for_campaign', true) // Hanya tampilkan post yang valid
                     ->latest()
                     ->paginate(15);
         return PostResource::collection($posts);

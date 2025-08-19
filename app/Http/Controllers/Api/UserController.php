@@ -15,11 +15,7 @@ class UserController extends Controller
      */
     public function showProfile(Request $request)
     {
-        // The 'auth:sanctum' middleware already ensures the user is authenticated.
-        // If we reach here, $request->user() is guaranteed to be the authenticated user.
-        $user = $request->user()->load('role', 'influencerProfile', 'socialMediaAccounts');
-
-        return new UserResource($user);
+        return new UserResource($request->user()->load('role', 'influencerProfile', 'socialMediaAccounts'));
     }
 
     /**

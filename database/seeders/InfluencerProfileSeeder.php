@@ -14,34 +14,25 @@ class InfluencerProfileSeeder extends Seeder
     public function run(): void
     {
         // Ambil user ID yang sudah menjadi UUID dari UserSeeder
-        $influencerA = DB::table('users')->where('email', 'influencerA@example.com')->first();
-        $influencerB = DB::table('users')->where('email', 'influencerB@example.com')->first();
+        $influencers = \App\Models\User::whereHas('role', function ($query) {
+            $query->where('name', 'influencer');
+        })->get();
 
-        DB::table('influencer_profiles')->insert([
-            [
-                'id' => Str::uuid(), // <-- Tambahkan UUID untuk primary key profile
-                'user_id' => $influencerA->id, // <-- Gunakan UUID dari user
-                'bio' => 'Fashion & lifestyle enthusiast. Sharing daily inspirations.',
-                'follower_range' => 'Micro',
-                'gender' => 'Female',
-                'date_of_birth' => '1995-05-10',
-                'city' => 'Jakarta',
-                'contact_email' => 'contact.influencerA@example.com',
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-            [
-                'id' => Str::uuid(), // <-- Tambahkan UUID untuk primary key profile
-                'user_id' => $influencerB->id, // <-- Gunakan UUID dari user
-                'bio' => 'Travel blogger and food explorer. Join me on my adventures!',
-                'follower_range' => 'Mid',
-                'gender' => 'Male',
-                'date_of_birth' => '1990-11-20',
-                'city' => 'Surabaya',
-                'contact_email' => 'contact.influencerB@example.com',
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-        ]);
+        foreach ($influencers as $influencer) {
+            \App\Models\InfluencerProfile::firstOrCreate(
+                ['user_id' => $influencer->id],
+                [
+                    'id' => Str::uuid(),
+                    'bio' => 'Influencer profile for ' . $influencer->name,
+                    'follower_range' => ['Micro', 'Mid', 'Macro', 'Mega'][array_rand(['Micro', 'Mid', 'Macro', 'Mega'])],
+                    'gender' => ['Male', 'Female'][array_rand(['Male', 'Female'])],
+                    'date_of_birth' => now()->subYears(rand(18, 35))->format('Y-m-d'),
+                    'city' => ['Jakarta', 'Surabaya', 'Bandung', 'Yogyakarta', 'Medan'][array_rand(['Jakarta', 'Surabaya', 'Bandung', 'Yogyakarta', 'Medan'])],
+                    'contact_email' => 'contact.' . Str::slug($influencer->name) . '@example.com',
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]
+            );
+        }
     }
 }

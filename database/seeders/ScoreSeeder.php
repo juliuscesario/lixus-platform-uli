@@ -53,13 +53,23 @@ class ScoreSeeder extends Seeder
                 $scoringRules = $campaign->scoring_rules ?? [];
 
                 // Hitung skor menggunakan logika sederhana
-                $calculatedScore = $this->applyScoringRules($metrics, $scoringRules);
+                $calculatedScore = $this->applyScoringRules($metrics, $scoringRules, $post->platform);
 
-                // Update kolom score
+                // 1. Update the score directly on the post model
                 $post->score = $calculatedScore;
-                $post->save();
+                $checkingsave = $post->save();
+                
+                $this->command->info("Post ID: {$post->id} - save score {$calculatedScore} is {$checkingsave}");
+                // 2. (Optional) Create a detailed Score record for logging/history
+                \App\Models\Score::create([
+                    'post_id' => $post->id,
+                    'user_id' => $post->user_id,
+                    'campaign_id' => $post->campaign_id,
+                    'score_value' => $calculatedScore,
+                    'score_details' => $metrics,
+                ]);
 
-                $this->command->info("Post ID: {$post->id} - Score calculated: {$calculatedScore}");
+                $this->command->info("Post ID: {$post->id} - Score updated to: {$calculatedScore}");
             } else {
                 $this->command->warn("Post ID: {$post->id} has no metrics to calculate score.");
             }
@@ -69,15 +79,16 @@ class ScoreSeeder extends Seeder
     /**
      * Helper function to apply scoring rules.
      */
-    protected function applyScoringRules(array $metrics, array $rules): float // <-- Parameter ini sekarang dijamin array
+    protected function applyScoringRules(array $metrics, array $rules, string $platform): float
     {
         $score = 0;
+        $platformRules = $rules[$platform] ?? [];
 
         // Default weights if not specified in rules
-        $likeWeight = $rules['likes_point'] ?? 0.01;
-        $commentWeight = $rules['comments_point'] ?? 0.05;
-        $shareWeight = $rules['shares_point'] ?? 0.1;
-        $viewWeight = $rules['views_point'] ?? 0.001;
+        $likeWeight = $platformRules['likes_point'] ?? 0;
+        $commentWeight = $platformRules['comments_point'] ?? 0;
+        $shareWeight = $platformRules['shares_point'] ?? 0;
+        $viewWeight = $platformRules['views_point'] ?? 0;
 
         $score += ($metrics['likes_count'] ?? 0) * $likeWeight;
         $score += ($metrics['comments_count'] ?? 0) * $commentWeight;

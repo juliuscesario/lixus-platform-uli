@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { apiService, formatDate, formatCompactNumber } from '../../services/apiService';
+import { useAuth } from '../../contexts/AuthContext';
 import AdminPostCard from '../../components/AdminPostCard';
 import Pagination from '../../components/Pagination';
 
@@ -21,6 +22,7 @@ const SocialIcon = ({ platform, className }) => {
 import { Link, useNavigate, useParams } from 'react-router-dom';
 
 export default function CampaignPostsPage() {
+    const { user, auth } = useAuth();
     const navigate = useNavigate();
     const { id: campaignId } = useParams();
     const [campaign, setCampaign] = useState(null);
@@ -39,8 +41,8 @@ export default function CampaignPostsPage() {
             .filter(post => platformFilter === 'all' || post.social_media_account?.platform === platformFilter)
             .filter(post => {
                 if (!dateRange.from && !dateRange.to) return true;
-                const postDate = new Date(post.created_at);
-                postDate.setHours(0, 0, 0, 0); // Normalisasi waktu
+                const postDate = new Date(post.posted_at);
+                postDate.setHours(0, 0, 0, 0); // Normalize time
                 const fromDate = dateRange.from ? new Date(dateRange.from) : null;
                 const toDate = dateRange.to ? new Date(dateRange.to) : null;
                 if (fromDate) fromDate.setHours(0, 0, 0, 0);
@@ -54,19 +56,46 @@ export default function CampaignPostsPage() {
 
     const fetchCampaignData = async () => {
         try {
-            const response = await apiService.getAdminCampaignDetail(campaignId);
+            const response = await apiService(auth).getAdminCampaignDetail(campaignId);
             setCampaign(response.data);
         } catch (err) {
             console.error('Failed to fetch campaign:', err);
         }
     };
 
-    const fetchPosts = async (url = null) => {
+    const [searchQuery, setSearchQuery] = useState('');
+    
+    const fetchPosts = async (pageUrl = null) => {
         setLoading(true);
         setError(null);
         window.scrollTo(0, 0);
+
+        let queryParams = new URLSearchParams();
+        if (platformFilter !== 'all') {
+            queryParams.append('platform', platformFilter);
+        }
+        if (dateRange.from) {
+            queryParams.append('start_date', dateRange.from);
+        }
+        if (dateRange.to) {
+            queryParams.append('end_date', dateRange.to);
+        }
+        if (searchQuery) {
+            queryParams.append('search', searchQuery);
+        }
+
+        // Extract page number from pageUrl if provided
+        if (pageUrl) {
+            const urlObj = new URL(pageUrl);
+            const page = urlObj.searchParams.get('page');
+            if (page) {
+                queryParams.append('page', page);
+            }
+        }
+        
         try {
-            const response = await apiService.getCampaignPosts(campaignId, url);
+            // Always use getAdminCampaignPosts with constructed query parameters
+            const response = await apiService(auth).getAdminCampaignPosts(campaignId, queryParams.toString());
             setPosts(response.data || []);
             setPagination({ links: response.links, meta: response.meta });
         } catch (err) {
@@ -79,14 +108,14 @@ export default function CampaignPostsPage() {
     useEffect(() => {
         if (campaignId) {
             fetchCampaignData();
-            fetchPosts();
+            fetchPosts(); // Initial fetch
         }
-    }, [campaignId]);
+    }, [campaignId, platformFilter, dateRange, searchQuery]); // Re-fetch when filters change
 
     const handleValidate = async (postId, isValid, notes) => {
         try {
-            await apiService.validatePost(postId, isValid, notes);
-            fetchPosts(pagination?.meta?.current_page ? `${pagination.meta.path}?page=${pagination.meta.current_page}` : null);
+            await apiService(auth).validatePost(postId, isValid, notes);
+            fetchPosts(); // Refresh posts after validation
         } catch (err) {
             alert(err.message || 'Gagal memvalidasi postingan.');
         }
@@ -118,8 +147,8 @@ export default function CampaignPostsPage() {
         const totalComments = posts.reduce((sum, post) => sum + (safeParseMetrics(post).comments_count || 0), 0);
         const totalShares = posts.reduce((sum, post) => sum + (safeParseMetrics(post).shares_count || 0), 0);
         const uniqueInfluencers = new Set(posts.map(post => post.user_id)).size;
-        return { totalLikes, totalComments, totalShares, uniqueInfluencers, totalPosts: posts.length };
-    }, [posts]);
+        return { totalLikes, totalComments, totalShares, uniqueInfluencers, totalPosts: pagination?.meta?.total || 0 };
+    }, [posts, pagination]);
 
     const sortedPosts = useMemo(() => {
         let sortableItems = [...filteredPosts];
@@ -143,9 +172,9 @@ export default function CampaignPostsPage() {
                         aValue = a.is_valid_for_campaign;
                         bValue = b.is_valid_for_campaign;
                         break;
-                    case 'created_at':
-                        aValue = new Date(a.created_at);
-                        bValue = new Date(b.created_at);
+                    case 'created_at': // This is actually for posted_at in the UI
+                        aValue = new Date(a.posted_at);
+                        bValue = new Date(b.posted_at);
                         break;
                     default:
                         return 0;
@@ -186,14 +215,14 @@ export default function CampaignPostsPage() {
         if (!confirm(`Anda akan memvalidasi ${selected.length} postingan terpilih. Lanjutkan?`)) return;
         for (const postId of selected) {
             try {
-                await apiService.validatePost(postId, true, 'Disetujui secara massal');
+                await apiService(auth).validatePost(postId, true, 'Disetujui secara massal');
             } catch (err) {
                 alert(`Gagal memvalidasi post ID ${postId}: ${err.message}`);
                 break;
             }
         }
         setSelected([]);
-        fetchPosts(pagination?.meta?.current_page ? `${pagination.meta.path}?page=${pagination.meta.current_page}` : null);
+        fetchPosts(); // Refresh posts after bulk validation
     };
 
     if (loading) return <div>Memuat postingan...</div>;
@@ -207,7 +236,7 @@ export default function CampaignPostsPage() {
                 <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
                     <div><h1 className="text-2xl font-bold text-gray-800">Postingan Kampanye</h1><p className="text-lg text-gray-600">{campaign?.name || 'Loading...'}</p></div>
                     <div className="flex items-center gap-2">
-                        <div className="relative"><div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><IconSearch /></div><input type="text" placeholder="Cari postingan..." className="w-full md:w-64 rounded-md border-gray-300 shadow-sm pl-10 py-2"/></div>
+                        <div className="relative"><div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><IconSearch /></div><input type="text" placeholder="Cari postingan..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="w-full md:w-64 rounded-md border-gray-300 shadow-sm pl-10 py-2"/></div>
                         <div className="flex items-center rounded-md shadow-sm bg-white border border-gray-300"><button onClick={() => setViewMode('grid')} className={`p-2 rounded-l-md ${viewMode === 'grid' ? 'bg-indigo-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}><IconGrid /></button><button onClick={() => setViewMode('list')} className={`p-2 rounded-r-md ${viewMode === 'list' ? 'bg-indigo-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}><IconList /></button></div>
                     </div>
                 </div>
@@ -258,7 +287,7 @@ export default function CampaignPostsPage() {
                                         <td className="px-6 py-4"><a href={post.post_url} target="_blank" rel="noopener noreferrer"><img className="h-10 w-10 rounded-md object-cover" src={post.media_url || 'https://placehold.co/100x100'} alt="Post media" /></a></td>
                                         <td className="px-6 py-4"><div className="text-sm font-medium text-gray-900">{influencer.name}</div><div className="text-sm text-gray-500">@{socialAccount.username}</div></td>
                                         <td className="px-6 py-4"><SocialIcon platform={socialAccount.platform} className="w-6 h-6 text-gray-500" /></td>
-                                        <td className="px-6 py-4 text-sm text-gray-500">{formatDate(post.created_at)}</td>
+                                        <td className="px-6 py-4 text-sm text-gray-500">{formatDate(post.posted_at)}</td>
                                         <td className="px-6 py-4 text-sm text-gray-500">{formatCompactNumber(metrics.likes_count)}</td>
                                         <td className="px-6 py-4 text-sm">{post.is_valid_for_campaign ? <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Disetujui</span> : <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">Belum Divalidasi</span>}</td>
                                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">{post.is_valid_for_campaign ? (<span className="text-green-600 font-semibold">✅ Disetujui oleh Admin </span>) : (<button onClick={() => handleValidate(post.id, true, 'Disetujui oleh Admin')} className="text-green-600 hover:text-green-900">Setujui</button>)}</td>

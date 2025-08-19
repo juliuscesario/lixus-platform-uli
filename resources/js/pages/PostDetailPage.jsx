@@ -1,36 +1,36 @@
 import React, { useState, useEffect } from 'react';
 import { apiService, formatDate } from '../services/apiService';
+import { useAuth } from '../contexts/AuthContext';
 
 const IconArrowLeft = () => ( <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg> );
 
 import { Link } from 'react-router-dom';
 
-export default function PostDetailPage() {
-    const { id } = useParams();
+export default function PostDetailPage({ pageProps }) {
+    const { user, auth } = useAuth();
     const [post, setPost] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
     useEffect(() => {
         const fetchPostDetail = async () => {
-            if (!id) {
+            if (!pageProps.id) {
                 setError("ID Postingan tidak ditemukan.");
                 setLoading(false);
                 return;
             }
             setLoading(true);
             setError(null);
-            try {
-                const response = await apiService.getPostDetail(id);
+            const response = await apiService(auth).getPostDetail(pageProps.id);
+            if (response && response.data) {
                 setPost(response.data);
-            } catch (err) {
-                setError(err.message || 'Gagal memuat detail postingan.');
-            } finally {
-                setLoading(false);
+            } else {
+                setError("Tidak dapat memuat detail postingan.");
             }
+            setLoading(false);
         };
         fetchPostDetail();
-    }, [id]);
+    }, [pageProps.id]);
 
     if (loading) { return <div className="max-w-4xl mx-auto py-12 px-4 text-center">Memuat detail postingan...</div>; }
     if (error) { return <div className="max-w-4xl mx-auto py-12 px-4 text-center text-red-500 bg-red-100 p-4 rounded-md">{error}</div>; }

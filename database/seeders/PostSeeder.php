@@ -7,6 +7,7 @@ use App\Models\Post; // Import model Post
 use App\Models\User; // Import model User
 use App\Models\Campaign; // Import model Campaign
 use App\Models\SocialMediaAccount; // Import model SocialMediaAccount
+use App\Models\CampaignParticipant; // Import model CampaignParticipant
 
 class PostSeeder extends Seeder
 {
@@ -33,9 +34,25 @@ class PostSeeder extends Seeder
         // Hapus post lama jika ada untuk menghindari duplikasi saat seeding ulang (opsional)
         // Post::truncate(); // Hati-hati: ini akan menghapus semua post yang ada
 
-        // Buat 60 post baru menggunakan factory
-        Post::factory(60)->create();
+        // Hapus post lama jika ada untuk menghindari duplikasi saat seeding ulang (opsional)
+        Post::truncate(); // Hati-hati: ini akan menghapus semua post yang ada
 
-        $this->command->info('60 posts created successfully.');
+        // Ambil semua partisipan yang sudah diapprove
+        $approvedParticipants = CampaignParticipant::where('status', 'approved')->get();
+
+        if ($approvedParticipants->isEmpty()) {
+            $this->command->warn("No approved campaign participants found. Skipping post creation.");
+            return;
+        }
+
+        $totalPostsCreated = 0;
+        foreach ($approvedParticipants as $participant) {
+            // Buat sejumlah post acak (misal: 1 sampai 5) untuk setiap partisipan
+            $numberOfPosts = 20;
+            Post::factory($numberOfPosts)->withParticipant($participant)->create();
+            $totalPostsCreated += $numberOfPosts;
+        }
+
+        $this->command->info("{$totalPostsCreated} posts created successfully.");
     }
 }

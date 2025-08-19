@@ -26,6 +26,7 @@ class PostResource extends JsonResource
             'score' => $this->score,
             'is_valid_for_campaign' => $this->is_valid_for_campaign ?? false, // Pastikan kolom ini ada di DB dan model
             'validation_notes' => $this->validation_notes, // Pastikan kolom ini ada di DB dan model
+            'posted_at' => $this->posted_at ? $this->posted_at->format('Y-m-d H:i:s') : null,
             'created_at' => $this->created_at ? $this->created_at->format('Y-m-d H:i:s') : null,
             'updated_at' => $this->updated_at ? $this->updated_at->format('Y-m-d H:i:s') : null,
             'campaign' => CampaignResource::make($this->whenLoaded('campaign')),

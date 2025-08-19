@@ -15,110 +15,89 @@ export const useAuth = () => {
 
 // AuthProvider component
 export const AuthProvider = ({ children }) => {
-    const [user, setUser] = useState(undefined); // Start with undefined to signify "not yet checked"
-    const [loading, setLoading] = useState(false); // Used for login/logout process
-    const [sessionExpired, setSessionExpired] = useState(false);
+    const [user, setUser] = useState(() => {
+        const storedUser = localStorage.getItem('authUser');
+        return storedUser ? JSON.parse(storedUser) : null;
+    });
+    const [loading, setLoading] = useState(false);
+    const [sessionExpired, setSessionExpired] = useState(false); // New state for session status
 
-    // Centralized function to handle setting user data consistently
-    const setUserData = (userData, token) => {
-        if (userData && token) {
-            setUser(userData);
-            localStorage.setItem('authUser', JSON.stringify(userData));
-            localStorage.setItem('authToken', token);
-        } else {
-            setUser(null);
-            localStorage.removeItem('authUser');
-            localStorage.removeItem('authToken');
-        }
-    };
-
-    // On initial load, check for cached user and token
+    // Check if user is authenticated on app load
     useEffect(() => {
-        const cachedUser = localStorage.getItem('authUser');
-        const token = localStorage.getItem('authToken');
-        if (cachedUser && token) {
-            setUser(JSON.parse(cachedUser));
-        } else {
-            setUser(null); // Explicitly set to null if no cache
+        const checkUser = async () => {
+            setLoading(true);
+            try {
+                const { user: refreshedUser } = await apiService({ showSessionExpiredModal }).checkAuthStatus();
+                if (refreshedUser) {
+                    setUser(refreshedUser);
+                    localStorage.setItem('authUser', JSON.stringify(refreshedUser));
+                } else {
+                    // If check fails, clear local state and storage
+                    setUser(null);
+                    localStorage.removeItem('authUser');
+                }
+            } catch (error) {
+                console.error("Authentication check failed on refresh:", error);
+                setUser(null);
+                localStorage.removeItem('authUser');
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        // Only run check if there's a user from localStorage initially
+        if (user) {
+            checkUser();
         }
     }, []);
 
     const showSessionExpiredModal = () => {
         setSessionExpired(true);
-        setUserData(null, null); // Clear all user data
     };
-    
+
+
     // Login function
     const login = async (email, password) => {
-        setLoading(true);
         try {
-            const response = await apiService.login(email, password);
-            if (response.user && response.access_token) {
-                setUserData(response.user, response.access_token);
-            } else {
-                setUserData(null, null); // Clear data on failed login
-                throw new Error('Login failed: Invalid server response.');
-            }
-            return response;
+            const data = await apiService(value).login(email, password);
+            setUser(data.user);
+            localStorage.setItem('authUser', JSON.stringify(data.user));
+            return data;
         } catch (error) {
-            setUserData(null, null); // Ensure cleanup on error
-            throw error; // Let the component handle the error display
-        } finally {
-            setLoading(false);
+            throw error;
         }
     };
 
     // Logout function
     const logout = async () => {
-        setLoading(true);
         try {
-            // The `auth` object is now passed to apiFetch, so we pass `showSessionExpiredModal`
-            await apiService.logout({ showSessionExpiredModal });
+            await apiService(value).logout();
         } catch (error) {
-            console.error('Logout failed:', error);
-            // Still clear data locally even if server call fails
+            console.error('Logout error:', error);
         } finally {
-            setUserData(null, null);
-            setLoading(false);
+            localStorage.removeItem('authUser');
+            setUser(null);
+            setSessionExpired(false); // Clear session expired flag on logout
+            // Navigation will be handled by the component that calls logout
         }
     };
 
     // Update user function
-     const updateUser = (newUserData) => {
-        const token = localStorage.getItem('authToken');
-        setUserData(newUserData, token);
+    const updateUser = (userData) => {
+        setUser(userData);
+        localStorage.setItem('authUser', JSON.stringify(userData));
     };
-    
-    // This function is still useful for silent re-authentication if ever needed,
-    // for example, re-validating the user's session when the tab becomes active again.
-    const revalidateUser = async () => {
-        const token = localStorage.getItem('authToken');
-        if (!token) return; // No token, nothing to revalidate
-        
-        try {
-            const response = await apiService.checkAuthStatus({ showSessionExpiredModal });
-            if (response) {
-                // Use the existing token, as a new one isn't issued on profile check
-                setUserData(response, token);
-            } else {
-                showSessionExpiredModal();
-            }
-        } catch (error) {
-             showSessionExpiredModal();
-        }
-    };
-    
+
     const value = {
         user,
         login,
         logout,
         updateUser,
-        revalidateUser,
         loading,
-        isAuthenticated: !!user, // If user object exists, they are authenticated
+        isAuthenticated: !!user,
         sessionExpired,
-        setSessionExpired,
-        showSessionExpiredModal
+        showSessionExpiredModal,
+        setSessionExpired
     };
 
     return (

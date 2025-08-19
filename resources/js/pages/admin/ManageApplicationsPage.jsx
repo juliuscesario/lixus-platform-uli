@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { apiService, formatDate } from '../../services/apiService';
+import { useAuth } from '../../contexts/AuthContext';
 import Pagination from '../../components/Pagination';
 
 const socialIcons = {
@@ -23,6 +24,7 @@ const TabButton = ({ active, onClick, children }) => (
 );
 
 export default function ManageApplicationsPage() {
+    const { user, auth } = useAuth();
     const [applications, setApplications] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -36,7 +38,7 @@ export default function ManageApplicationsPage() {
     const fetchApplications = (status, page = 1) => {
         setLoading(true);
         setError(null);
-        apiService.getApplications(status, page)
+        apiService(auth).getApplications(status, page)
             .then(data => {
                 setApplications(data.data);
                 setPagination(data.meta);
@@ -56,7 +58,7 @@ export default function ManageApplicationsPage() {
     };
 
     const handleApprove = (appId) => {
-        apiService.approveApplication(appId)
+        apiService(auth).approveApplication(appId)
             .then(data => {
                 setModal({ type: 'approveSuccess', data });
                 fetchApplications(activeTab); // Refresh list
@@ -69,7 +71,7 @@ export default function ManageApplicationsPage() {
             alert('Please provide a more detailed reason for rejection.');
             return;
         }
-        apiService.rejectApplication(modal.data.id, rejectionReason)
+        apiService(auth).rejectApplication(modal.data.id, rejectionReason)
             .then(() => {
                 setModal({ type: null, data: null });
                 setRejectionReason('');
