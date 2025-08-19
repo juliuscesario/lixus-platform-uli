@@ -41,8 +41,8 @@ export default function CampaignPostsPage() {
             .filter(post => platformFilter === 'all' || post.social_media_account?.platform === platformFilter)
             .filter(post => {
                 if (!dateRange.from && !dateRange.to) return true;
-                const postDate = new Date(post.created_at);
-                postDate.setHours(0, 0, 0, 0); // Normalisasi waktu
+                const postDate = new Date(post.posted_at);
+                postDate.setHours(0, 0, 0, 0); // Normalize time
                 const fromDate = dateRange.from ? new Date(dateRange.from) : null;
                 const toDate = dateRange.to ? new Date(dateRange.to) : null;
                 if (fromDate) fromDate.setHours(0, 0, 0, 0);
@@ -172,9 +172,9 @@ export default function CampaignPostsPage() {
                         aValue = a.is_valid_for_campaign;
                         bValue = b.is_valid_for_campaign;
                         break;
-                    case 'created_at':
-                        aValue = new Date(a.created_at);
-                        bValue = new Date(b.created_at);
+                    case 'created_at': // This is actually for posted_at in the UI
+                        aValue = new Date(a.posted_at);
+                        bValue = new Date(b.posted_at);
                         break;
                     default:
                         return 0;
@@ -287,7 +287,7 @@ export default function CampaignPostsPage() {
                                         <td className="px-6 py-4"><a href={post.post_url} target="_blank" rel="noopener noreferrer"><img className="h-10 w-10 rounded-md object-cover" src={post.media_url || 'https://placehold.co/100x100'} alt="Post media" /></a></td>
                                         <td className="px-6 py-4"><div className="text-sm font-medium text-gray-900">{influencer.name}</div><div className="text-sm text-gray-500">@{socialAccount.username}</div></td>
                                         <td className="px-6 py-4"><SocialIcon platform={socialAccount.platform} className="w-6 h-6 text-gray-500" /></td>
-                                        <td className="px-6 py-4 text-sm text-gray-500">{formatDate(post.created_at)}</td>
+                                        <td className="px-6 py-4 text-sm text-gray-500">{formatDate(post.posted_at)}</td>
                                         <td className="px-6 py-4 text-sm text-gray-500">{formatCompactNumber(metrics.likes_count)}</td>
                                         <td className="px-6 py-4 text-sm">{post.is_valid_for_campaign ? <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Disetujui</span> : <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">Belum Divalidasi</span>}</td>
                                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">{post.is_valid_for_campaign ? (<span className="text-green-600 font-semibold">✅ Disetujui oleh Admin </span>) : (<button onClick={() => handleValidate(post.id, true, 'Disetujui oleh Admin')} className="text-green-600 hover:text-green-900">Setujui</button>)}</td>
