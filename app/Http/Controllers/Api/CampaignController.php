@@ -104,6 +104,8 @@ class CampaignController extends Controller
 
         $postsQuery = $campaign->posts()->with(['user.influencerProfile', 'socialMediaAccount']);
 
+        Log::debug('Base posts query for campaign:', ['campaign_id' => $campaign->id]);
+
         Log::info('Base posts query for campaign:', ['campaign_id' => $campaign->id, 'count' => $postsQuery->count()]);
 
         // Apply filters
@@ -141,7 +143,9 @@ class CampaignController extends Controller
         }
 
         Log::info('Posts query before pagination:', ['sql' => $postsQuery->toSql(), 'bindings' => $postsQuery->getBindings()]);
+        Log::debug('Posts query before pagination:', ['sql' => $postsQuery->toSql(), 'bindings' => $postsQuery->getBindings()]);
         $posts = $postsQuery->orderByDesc('posted_at')->paginate(15);
+        Log::debug('Posts retrieved count:', ['count' => $posts->count()]);
         Log::info('Posts retrieved count:', ['count' => $posts->count()]);
 
         return PostResource::collection($posts);

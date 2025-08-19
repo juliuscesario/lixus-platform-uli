@@ -228,7 +228,7 @@ export default function CampaignPostsPage() {
                 <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
                     <div><h1 className="text-2xl font-bold text-gray-800">Postingan Kampanye</h1><p className="text-lg text-gray-600">{campaign?.name || 'Loading...'}</p></div>
                     <div className="flex items-center gap-2">
-                        <div className="relative"><div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><IconSearch /></div><input type="text" placeholder="Cari postingan..." className="w-full md:w-64 rounded-md border-gray-300 shadow-sm pl-10 py-2"/></div>
+                        <div className="relative"><div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><IconSearch /></div><input type="text" placeholder="Cari postingan..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="w-full md:w-64 rounded-md border-gray-300 shadow-sm pl-10 py-2"/></div>
                         <div className="flex items-center rounded-md shadow-sm bg-white border border-gray-300"><button onClick={() => setViewMode('grid')} className={`p-2 rounded-l-md ${viewMode === 'grid' ? 'bg-indigo-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}><IconGrid /></button><button onClick={() => setViewMode('list')} className={`p-2 rounded-r-md ${viewMode === 'list' ? 'bg-indigo-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}><IconList /></button></div>
                     </div>
                 </div>
