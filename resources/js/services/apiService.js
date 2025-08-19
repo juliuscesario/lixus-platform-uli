@@ -1,9 +1,12 @@
 import { useAuth } from '../contexts/AuthContext';
 
 // --- API Configuration ---
-const API_BASE_URL = "https://jul-proto.lixus.id/api";
+const isLocal = window.location.hostname === "127.0.0.1";
+const BASE_URL = isLocal ? "http://127.0.0.1:8000" : "https://jul-proto.lixus.id";
+
+const API_BASE_URL = `${BASE_URL}/api`;
 // This URL is for initializing the CSRF cookie session with Sanctum.
-const SANCTUM_URL = "https://jul-proto.lixus.id";
+const SANCTUM_URL = BASE_URL;
 
 // --- Helper Functions ---
 
