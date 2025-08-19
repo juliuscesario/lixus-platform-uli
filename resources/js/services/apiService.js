@@ -1,23 +1,32 @@
+// resources/js/services/apiService.js
 import { useAuth } from '../contexts/AuthContext';
 
 // --- API Configuration ---
 const API_BASE_URL = "https://jul-proto.lixus.id/api";
-// This URL is for initializing the CSRF cookie session with Sanctum.
 const SANCTUM_URL = "https://jul-proto.lixus.id";
 
 // --- Helper Functions ---
 
 /**
- * THIS IS THE MISSING FUNCTION
- * A helper function to read a specific cookie from the browser.
- * It's needed to retrieve the XSRF-TOKEN for secure POST requests.
+ * Helper function to read a specific cookie from the browser
  */
 function getCookie(name) {
     const value = `; ${document.cookie}`;
     const parts = value.split(`; ${name}=`);
     if (parts.length === 2) return parts.pop().split(';').shift();
+    return null;
 }
 
+/**
+ * Clear all authentication-related cookies
+ */
+function clearAuthCookies() {
+    // Clear session cookie
+    document.cookie = 'laravel_session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+    document.cookie = 'XSRF-TOKEN=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+    // Clear any other auth-related cookies
+    document.cookie = 'lixus_platform_uli_session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+}
 
 export const formatDate = (dateString) => {
     if (!dateString) return "N/A";
@@ -51,288 +60,294 @@ export const formatCompactNumber = (number) => {
     }).format(number);
 };
 
-
 /**
- * A global fetch wrapper that handles credentials, headers, and authentication errors.
- * This is the core of the fix.
- * @param {string} url - The URL to fetch.
- * @param {object} options - The fetch options.
- * @returns {Promise<Response>}
+ * Global fetch wrapper with hybrid authentication support
+ * Supports both session-based (CSRF) and token-based authentication
  */
 const apiFetch = async (url, options = {}, auth) => {
-    // Get XSRF token for POST/PUT/PATCH/DELETE requests
+    // Determine authentication method based on what's available
+    const token = localStorage.getItem('authToken');
     const xsrfToken = getCookie('XSRF-TOKEN');
     
     const defaultOptions = {
-        // **THE FIX**: This ensures cookies (session, XSRF-TOKEN) are sent with every request.
-        credentials: 'include',
+        credentials: 'include', // Always include cookies for session management
         headers: {
             'Accept': 'application/json',
             'X-Requested-With': 'XMLHttpRequest',
-            'Content-Type': 'application/json', // Assume JSON content type for POST/PUT/PATCH
+            'Content-Type': 'application/json',
             ...options.headers,
         },
         ...options,
     };
     
-    // Add XSRF token for state-changing requests
+    // Add Bearer token if available (for API token auth)
+    if (token) {
+        defaultOptions.headers['Authorization'] = `Bearer ${token}`;
+    }
+    
+    // Add XSRF token for state-changing requests (for session auth)
     if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(options.method?.toUpperCase()) && xsrfToken) {
         defaultOptions.headers['X-XSRF-TOKEN'] = decodeURIComponent(xsrfToken);
     }
     
-    // Automatically stringify body if it's an object
-    if (defaultOptions.body && typeof defaultOptions.body === 'object') {
+    // Automatically stringify body if it's an object and not FormData
+    if (defaultOptions.body && typeof defaultOptions.body === 'object' && !(defaultOptions.body instanceof FormData)) {
         defaultOptions.body = JSON.stringify(defaultOptions.body);
     }
 
-    const response = await fetch(url, defaultOptions);
-
-    // Check if it's a public route by examining the URL
-    const isPublicRoute = url.includes('/public/') || url.includes('/sanctum/');
-    
-    // If the session has expired, Laravel returns 401 or 419.
-    // Only redirect to login if it's not a public route
-    if ((response.status === 401 || response.status === 419) && !isPublicRoute) {
-        if (auth) {
-            auth.showSessionExpiredModal();
-        }
-        throw new Error('Your session has expired. Please log in again.');
-    }
-
-    // For public routes, let 401 errors pass through without redirecting
-    if (!response.ok && (response.status === 401 || response.status === 419) && isPublicRoute) {
-        throw new Error('Unauthorized');
-    }
-
-    // Handle empty response
-    let data;
     try {
-        data = await response.json();
-    } catch (e) {
-        if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
+        const response = await fetch(url, defaultOptions);
+
+        // Check if it's a public route
+        const isPublicRoute = url.includes('/public/') || url.includes('/sanctum/');
+        
+        // Handle authentication errors
+        if ((response.status === 401 || response.status === 419) && !isPublicRoute) {
+            // Clear all auth data on session expiry
+            clearAuthCookies();
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('authUser');
+            
+            if (auth && typeof auth.showSessionExpiredModal === 'function') {
+                auth.showSessionExpiredModal();
+            }
+            throw new Error('Your session has expired. Please log in again.');
         }
-        data = {};
+
+        // Handle empty or non-JSON responses
+        let data;
+        const contentType = response.headers.get('content-type');
+        if (contentType && contentType.indexOf('application/json') !== -1) {
+            try {
+                data = await response.json();
+            } catch (e) {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                data = {};
+            }
+        } else {
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+            data = {};
+        }
+
+        if (!response.ok) {
+            // Let login page handle its own 401s
+            if (response.status === 401 && isPublicRoute) {
+                throw new Error(data.message || 'Invalid credentials');
+            }
+            if (response.status === 403) {
+                throw new Error(data.message || 'Forbidden: You do not have permission to access this resource.');
+            }
+            const message = data.message || `HTTP error! Status: ${response.status}`;
+            const validationErrors = data.errors ? Object.values(data.errors).flat().join(' ') : '';
+            throw new Error(`${message} ${validationErrors}`);
+        }
+
+        return data;
+    } catch (error) {
+        // Re-throw the error for the calling function to handle
+        throw error;
     }
-
-    if (!response.ok) {
-        const message = data.message || `HTTP error! Status: ${response.status}`;
-        const validationErrors = data.errors ? Object.values(data.errors).flat().join(' ') : '';
-        throw new Error(`${message} ${validationErrors}`);
-    }
-
-    return data;
-}
-
+};
 
 // --- API Service Object ---
 export const apiService = (auth) => ({
     // ===================================
     // AUTHENTICATION
     // ===================================
-    getCsrfCookie: () => fetch(`${SANCTUM_URL}/sanctum/csrf-cookie`),
+    
+    /**
+     * Get CSRF cookie for session-based authentication
+     */
+    getCsrfCookie: async () => {
+        try {
+            await fetch(`${SANCTUM_URL}/sanctum/csrf-cookie`, {
+                credentials: 'include',
+                headers: {
+                    'Accept': 'application/json',
+                }
+            });
+        } catch (error) {
+            console.error('Failed to get CSRF cookie:', error);
+        }
+    },
 
+    /**
+     * Login with proper session initialization
+     */
     login: async (email, password) => {
+        // First, get fresh CSRF cookie
         await apiService(auth).getCsrfCookie();
+        
+        // Clear any existing auth data before login
+        clearAuthCookies();
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('authUser');
+        
         return apiFetch(`${API_BASE_URL}/public/login`, {
             method: 'POST',
             body: { email, password },
         }, auth);
     },
 
-    getApplications: async (status = 'pending', page = 1) => {
-        const xsrfToken = getCookie('XSRF-TOKEN');
+    /**
+     * Logout with complete session cleanup
+     */
+    logout: async () => {
         try {
-            const response = await fetch(`${API_BASE_URL}/admin/influencer-applications?status=${status}&page=${page}`, {
-                method: 'GET',
-                credentials: 'include',
-                headers: {
-                    'Accept': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'X-XSRF-TOKEN': xsrfToken ? decodeURIComponent(xsrfToken) : '',
-                },
-            });
-            if (!response.ok) throw new Error('Failed to fetch applications.');
-            return await response.json();
+            await apiFetch(`${API_BASE_URL}/logout`, {
+                method: 'POST',
+            }, auth);
         } catch (error) {
-            console.error('API Error getApplications:', error);
-            throw error;
+            console.error('Logout API call failed:', error);
+            // Continue with local cleanup even if API call fails
+        } finally {
+            // Clear all authentication data
+            clearAuthCookies();
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('authUser');
+            
+            // Get fresh CSRF cookie for next session
+            await apiService(auth).getCsrfCookie();
         }
     },
 
-    approveApplication: async (applicationId) => {
-        const xsrfToken = getCookie('XSRF-TOKEN');
-        try {
-            const response = await fetch(`${API_BASE_URL}/admin/influencer-applications/${applicationId}/approve`, {
-                method: 'POST',
-                credentials: 'include',
-                headers: {
-                    'Accept': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'X-XSRF-TOKEN': xsrfToken ? decodeURIComponent(xsrfToken) : '',
-                },
-            });
-            const data = await response.json();
-            if (!response.ok) throw new Error(data.message || 'Failed to approve application.');
-            return data;
-        } catch (error) {
-            console.error('API Error approveApplication:', error);
-            throw error;
-        }
+    /**
+     * Check authentication status
+     */
+    checkAuthStatus: async () => {
+        return apiFetch(`${API_BASE_URL}/user`, {}, auth);
     },
 
-    rejectApplication: async (applicationId, rejection_reason) => {
-        const xsrfToken = getCookie('XSRF-TOKEN');
-        try {
-            const response = await fetch(`${API_BASE_URL}/admin/influencer-applications/${applicationId}/reject`, {
-                method: 'POST',
-                credentials: 'include',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'X-XSRF-TOKEN': xsrfToken ? decodeURIComponent(xsrfToken) : '',
-                },
-                body: JSON.stringify({ rejection_reason }),
-            });
-            const data = await response.json();
-            if (!response.ok) throw new Error(data.message || 'Failed to reject application.');
-            return data;
-        } catch (error) {
-            console.error('API Error rejectApplication:', error);
-            throw error;
-        }
-    },
-
-    // NEW METHOD
-    applyAsInfluencer: async (applicationData) => {
-        const xsrfToken = getCookie('XSRF-TOKEN');
-        try {
-            const response = await fetch(`${API_BASE_URL}/public/influencer-applications`, {
-                method: 'POST',
-                credentials: 'include',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'X-XSRF-TOKEN': xsrfToken ? decodeURIComponent(xsrfToken) : '',
-                },
-                body: JSON.stringify(applicationData),
-            });
-            const responseData = await response.json();
-            if (!response.ok) {
-                const message = responseData.message || `HTTP error! status: ${response.status}`;
-                const errors = responseData.errors ? Object.values(responseData.errors).flat().join(' ') : '';
-                throw new Error(`${message} ${errors}`);
-            }
-            return responseData;
-        } catch (error) {
-            console.error("Gagal mengirim aplikasi influencer:", error);
-            throw error;
-        }
-    },
-    
-    register: (name, email, password, password_confirmation) => {
+    /**
+     * Register new user
+     */
+    register: async (name, email, password, password_confirmation) => {
+        await apiService(auth).getCsrfCookie();
         return apiFetch(`${API_BASE_URL}/public/register`, {
             method: 'POST',
             body: { name, email, password, password_confirmation },
         }, auth);
     },
 
-    logout: () => {
-        return apiFetch(`${API_BASE_URL}/logout`, {
-            method: 'POST',
+    // ===================================
+    // ADMIN ENDPOINTS
+    // ===================================
+    
+    getApplications: async (status = 'pending', page = 1) => {
+        return apiFetch(`${API_BASE_URL}/admin/influencer-applications?status=${status}&page=${page}`, {}, auth);
+    },
+
+    approveApplication: async (applicationId) => {
+        return apiFetch(`${API_BASE_URL}/admin/influencer-applications/${applicationId}/approve`, {
+            method: 'POST'
         }, auth);
     },
 
-    checkAuthStatus: async () => {
-        try {
-            // This will succeed if the user is authenticated
-            const response = await apiFetch(`${API_BASE_URL}/user/profile`, {}, auth);
-            return { user: response.user };
-        } catch (error) {
-            // If it fails with a 401, it means the user is not logged in. Return null.
-            if (error.message.includes('401') || error.message.includes('Unauthorized')) {
-                return { user: null };
-            }
-            // For other errors, re-throw them.
-            throw error;
-        }
+    rejectApplication: async (applicationId, rejection_reason) => {
+        return apiFetch(`${API_BASE_URL}/admin/influencer-applications/${applicationId}/reject`, {
+            method: 'POST',
+            body: { rejection_reason },
+        }, auth);
     },
 
     // ===================================
-    // PUBLIC ROUTES
+    // INFLUENCER ENDPOINTS
     // ===================================
-    getPublicCampaigns: async () => {
-        const response = await apiFetch(`${API_BASE_URL}/public/campaigns`, {}, auth);
-        return response;
-    },
-    getPublicCampaignsbyStatus: async () => {
-        const response = await apiFetch(`${API_BASE_URL}/public/campaigns?status=active`, {}, auth);
-        return response;
-    },
-    getCampaignDetail: async (id) => {
-        const response = await apiFetch(`${API_BASE_URL}/public/campaigns/${id}`, {}, auth);
-        return response;
-    },
-    getPublicInfluencers: async () => {
-        const response = await apiFetch(`${API_BASE_URL}/public/influencers`, {}, auth);
-        return response;
-    },
-    getInfluencerDetail: async (id) => {
-        const response = await apiFetch(`${API_BASE_URL}/public/influencers/${id}`, {}, auth);
-        return response;
-    },
-    getPublicPosts: (url = null) => apiFetch(url || `${API_BASE_URL}/public/posts`, {}, auth),
-    getPostDetail: (id) => apiFetch(`${API_BASE_URL}/public/posts/${id}`, {}, auth),
-    getCampaignLeaderboard: (campaignId) => apiFetch(`${API_BASE_URL}/public/campaigns/${campaignId}/leaderboard`, {}, auth),
     
+    applyAsInfluencer: async (applicationData) => {
+        return apiFetch(`${API_BASE_URL}/public/influencer-applications`, {
+            method: 'POST',
+            body: applicationData,
+        }, auth);
+    },
+
+    getInfluencerDashboardStats: async (influencerId) => {
+        return apiFetch(`${API_BASE_URL}/influencer/dashboard-stats/${influencerId}`, {}, auth);
+    },
+
+    getInfluencerCampaigns: async (influencerId, status = 'all') => {
+        return apiFetch(`${API_BASE_URL}/influencer/${influencerId}/campaigns?status=${status}`, {}, auth);
+    },
+
     // ===================================
-    // ADMIN & BRAND ROUTES
+    // BRAND ENDPOINTS
     // ===================================
-    getAdminCampaigns: () => apiFetch(`${API_BASE_URL}/admin/campaigns`, {}, auth),
-    getAdminCampaignDetail: (id) => apiFetch(`${API_BASE_URL}/admin/campaigns/${id}`, {}, auth),
+    
+    getBrandDashboardStats: async (brandId) => {
+        return apiFetch(`${API_BASE_URL}/brand/dashboard-stats/${brandId}`, {}, auth);
+    },
+
+    getBrandCampaigns: async (brandId, status = 'all') => {
+        return apiFetch(`${API_BASE_URL}/brand/${brandId}/campaigns?status=${status}`, {}, auth);
+    },
+
+    // ===================================
+    // CAMPAIGN ENDPOINTS
+    // ===================================
+    
+    getCampaigns: async (page = 1, perPage = 10, filters = {}) => {
+        const queryParams = new URLSearchParams({
+            page,
+            per_page: perPage,
+            ...filters
+        });
+        return apiFetch(`${API_BASE_URL}/campaigns?${queryParams}`, {}, auth);
+    },
+
+    getCampaignDetails: async (campaignId) => {
+        return apiFetch(`${API_BASE_URL}/campaigns/${campaignId}`, {}, auth);
+    },
+
     createCampaign: async (campaignData) => {
-        await apiService(auth).getCsrfCookie();
-        return apiFetch(`${API_BASE_URL}/admin/campaigns`, { method: 'POST', body: campaignData }, auth);
+        return apiFetch(`${API_BASE_URL}/campaigns`, {
+            method: 'POST',
+            body: campaignData,
+        }, auth);
     },
-    updateCampaign: async (id, campaignData) => {
-        await apiService(auth).getCsrfCookie();
-        return apiFetch(`${API_BASE_URL}/admin/campaigns/${id}`, { method: 'PUT', body: campaignData }, auth);
+
+    updateCampaign: async (campaignId, campaignData) => {
+        return apiFetch(`${API_BASE_URL}/campaigns/${campaignId}`, {
+            method: 'PUT',
+            body: campaignData,
+        }, auth);
     },
-    updateCampaignStatus: (id, status) => apiFetch(`${API_BASE_URL}/admin/campaigns/${id}/status`, { method: 'PATCH', body: { status } }, auth),
-    getCampaignParticipants: (campaignId) => apiFetch(`${API_BASE_URL}/admin/campaigns/${campaignId}/participants`, {}, auth),
-    updateParticipantStatus: (campaignId, participantId, status) => apiFetch(`${API_BASE_URL}/admin/campaigns/${campaignId}/participants/${participantId}/status`, { method: 'PATCH', body: { status } }, auth),
-    getCampaignPosts: (campaignId, url = null) => apiFetch(url || `${API_BASE_URL}/public/posts/campaign/${campaignId}`, {}, auth),
-    validatePost: (postId, isValid, notes) => apiFetch(`${API_BASE_URL}/admin/posts/${postId}`, { method: 'PUT', body: { is_valid_for_campaign: isValid, validation_notes: notes } }, auth),
-    getPostsForInfluencerInCampaign: (campaignId, userId) => apiFetch(`${API_BASE_URL}/public/campaigns/${campaignId}/posts?user_id=${userId}`, {}, auth),
+
+    deleteCampaign: async (campaignId) => {
+        return apiFetch(`${API_BASE_URL}/campaigns/${campaignId}`, {
+            method: 'DELETE',
+        }, auth);
+    },
+
+    // ===================================
+    // USER PROFILE
+    // ===================================
     
-    // ===================================
-    // NEW! STRATEGIC REPORTING ROUTES
-    // ===================================
-    getBrandPerformanceReport: (params = {}) => {
-        const query = new URLSearchParams(params).toString();
-        return apiFetch(`${API_BASE_URL}/admin/reports/brand-performance?${query}`, {}, auth);
+    getUserProfile: async () => {
+        return apiFetch(`${API_BASE_URL}/user`, {}, auth);
     },
 
-    getCampaignComparisonReport: (campaign_ids = []) => {
-        const params = new URLSearchParams();
-        campaign_ids.forEach(id => params.append('campaign_ids[]', id));
-        const query = params.toString();
-        return apiFetch(`${API_BASE_URL}/admin/reports/campaign-comparison?${query}`, {}, auth);
+    updateUserProfile: async (profileData) => {
+        return apiFetch(`${API_BASE_URL}/user/profile`, {
+            method: 'PUT',
+            body: profileData,
+        }, auth);
     },
 
-    getInfluencerPerformanceReport: (userId) => {
-        return apiFetch(`${API_BASE_URL}/admin/reports/influencer-performance/${userId}`, {}, auth);
+    changePassword: async (currentPassword, newPassword, newPasswordConfirmation) => {
+        return apiFetch(`${API_BASE_URL}/user/change-password`, {
+            method: 'POST',
+            body: {
+                current_password: currentPassword,
+                new_password: newPassword,
+                new_password_confirmation: newPasswordConfirmation,
+            },
+        }, auth);
     },
-
-    // =-=================================
-    // INFLUENCER ROUTES
-    // ===================================
-    getMyCampaigns: () => apiFetch(`${API_BASE_URL}/influencer/campaigns`, {}, auth),
-    applyCampaign: (campaignId) => apiFetch(`${API_BASE_URL}/influencer/campaigns/${campaignId}/apply`, { method: 'POST' }, auth),
-    withdrawFromCampaign: (campaignId) => apiFetch(`${API_BASE_URL}/influencer/campaigns/${campaignId}/withdraw`, { method: 'POST' }, auth),
-    
-    // New endpoint for influencer dashboard stats
-    getInfluencerDashboardStats: (userId) => apiFetch(`${API_BASE_URL}/influencer/dashboard-stats/${userId}`, {}, auth),
 });
+
+// Export a default instance for backward compatibility
+export default apiService;
