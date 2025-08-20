@@ -144,96 +144,20 @@ export const apiService = (auth) => ({
         }, auth);
     },
 
-    getApplications: async (status = 'pending', page = 1) => {
-        const xsrfToken = getCookie('XSRF-TOKEN');
-        try {
-            const response = await fetch(`${API_BASE_URL}/admin/influencer-applications?status=${status}&page=${page}`, {
-                method: 'GET',
-                credentials: 'include',
-                headers: {
-                    'Accept': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'X-XSRF-TOKEN': xsrfToken ? decodeURIComponent(xsrfToken) : '',
-                },
-            });
-            if (!response.ok) throw new Error('Failed to fetch applications.');
-            return await response.json();
-        } catch (error) {
-            console.error('API Error getApplications:', error);
-            throw error;
-        }
+    getApplications: (status = 'pending', page = 1) => {
+        return apiFetch(`${API_BASE_URL}/admin/influencer-applications?status=${status}&page=${page}`, { method: 'GET' }, auth);
     },
 
-    approveApplication: async (applicationId) => {
-        const xsrfToken = getCookie('XSRF-TOKEN');
-        try {
-            const response = await fetch(`${API_BASE_URL}/admin/influencer-applications/${applicationId}/approve`, {
-                method: 'POST',
-                credentials: 'include',
-                headers: {
-                    'Accept': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'X-XSRF-TOKEN': xsrfToken ? decodeURIComponent(xsrfToken) : '',
-                },
-            });
-            const data = await response.json();
-            if (!response.ok) throw new Error(data.message || 'Failed to approve application.');
-            return data;
-        } catch (error) {
-            console.error('API Error approveApplication:', error);
-            throw error;
-        }
+    approveApplication: (applicationId) => {
+        return apiFetch(`${API_BASE_URL}/admin/influencer-applications/${applicationId}/approve`, { method: 'POST' }, auth);
     },
 
-    rejectApplication: async (applicationId, rejection_reason) => {
-        const xsrfToken = getCookie('XSRF-TOKEN');
-        try {
-            const response = await fetch(`${API_BASE_URL}/admin/influencer-applications/${applicationId}/reject`, {
-                method: 'POST',
-                credentials: 'include',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'X-XSRF-TOKEN': xsrfToken ? decodeURIComponent(xsrfToken) : '',
-                },
-                body: JSON.stringify({ rejection_reason }),
-            });
-            const data = await response.json();
-            if (!response.ok) throw new Error(data.message || 'Failed to reject application.');
-            return data;
-        } catch (error) {
-            console.error('API Error rejectApplication:', error);
-            throw error;
-        }
+    rejectApplication: (applicationId, rejection_reason) => {
+        return apiFetch(`${API_BASE_URL}/admin/influencer-applications/${applicationId}/reject`, { method: 'POST', body: { rejection_reason } }, auth);
     },
 
-    // NEW METHOD
-    applyAsInfluencer: async (applicationData) => {
-        const xsrfToken = getCookie('XSRF-TOKEN');
-        try {
-            const response = await fetch(`${API_BASE_URL}/public/influencer-applications`, {
-                method: 'POST',
-                credentials: 'include',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'X-XSRF-TOKEN': xsrfToken ? decodeURIComponent(xsrfToken) : '',
-                },
-                body: JSON.stringify(applicationData),
-            });
-            const responseData = await response.json();
-            if (!response.ok) {
-                const message = responseData.message || `HTTP error! status: ${response.status}`;
-                const errors = responseData.errors ? Object.values(responseData.errors).flat().join(' ') : '';
-                throw new Error(`${message} ${errors}`);
-            }
-            return responseData;
-        } catch (error) {
-            console.error("Gagal mengirim aplikasi influencer:", error);
-            throw error;
-        }
+    applyAsInfluencer: (applicationData) => {
+        return apiFetch(`${API_BASE_URL}/public/influencer-applications`, { method: 'POST', body: applicationData }, auth);
     },
     
     register: (name, email, password, password_confirmation) => {

@@ -27,7 +27,7 @@ export const AuthProvider = ({ children }) => {
         const checkUser = async () => {
             setLoading(true);
             try {
-                const { user: refreshedUser } = await apiService({ showSessionExpiredModal }).checkAuthStatus();
+                const { user: refreshedUser } = await apiService(value).checkAuthStatus();
                 if (refreshedUser) {
                     setUser(refreshedUser);
                     localStorage.setItem('authUser', JSON.stringify(refreshedUser));
@@ -59,7 +59,7 @@ export const AuthProvider = ({ children }) => {
     // Login function
     const login = async (email, password) => {
         try {
-            const data = await apiService(value).login(email, password);
+            const data = await apiService(null).login(email, password);
             setUser(data.user);
             localStorage.setItem('authUser', JSON.stringify(data.user));
             return data;
@@ -71,7 +71,7 @@ export const AuthProvider = ({ children }) => {
     // Logout function
     const logout = async () => {
         try {
-            await apiService(value).logout();
+            await apiService(null).logout();
         } catch (error) {
             console.error('Logout error:', error);
         } finally {
