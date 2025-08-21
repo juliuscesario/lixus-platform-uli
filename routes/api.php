@@ -13,6 +13,7 @@ use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\ReportController;
 // --- 2. IMPORT THE NEW CONTROLLER APPLICATION ---
 use App\Http\Controllers\Api\InfluencerApplicationController;
+use App\Http\Controllers\Api\SocialAuthController; // <-- IMPORT THE SOCIAL AUTH CONTROLLER
 
 /*
 |--------------------------------------------------------------------------
@@ -53,6 +54,11 @@ Route::prefix('public')->group(function () {
 });
 
 
+// --- TIKTOK CALLBACK ROUTE (PUBLIC) ---
+// This must be outside any authentication groups because it's called by TikTok's server.
+Route::get('/social/tiktok/callback', [SocialAuthController::class, 'handleTikTokCallback'])->name('social.tiktok.callback');
+
+
 // --- PROTECTED API ROUTES (Requires Sanctum Token) ---
 Route::middleware('auth:sanctum')->group(function () {
 
@@ -77,6 +83,10 @@ Route::middleware('auth:sanctum')->group(function () {
         // Menggunakan apiResource untuk CRUD dasar, lalu tambahkan custom
         Route::apiResource('social-media-accounts', SocialMediaAccountController::class);
         Route::post('/social-media-accounts/{social_media_account}/sync-posts', [SocialMediaAccountController::class, 'syncPosts']);
+
+        // --- NEW SOCIAL AUTH REDIRECT ROUTE (PROTECTED) ---
+        // This must be initiated by a logged-in influencer.
+        Route::get('/social/tiktok/redirect', [SocialAuthController::class, 'redirectToTikTok'])->name('social.tiktok.redirect');
 
         // Campaign Actions for Influencer
         Route::get('/influencer/campaigns', [CampaignController::class, 'indexForInfluencer']); // Campaigns available to influencer
@@ -142,7 +152,4 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/influencer-applications/{application}/reject', [InfluencerApplicationController::class, 'reject']);
 
     });
-    //ROUTE FOR SOCIAL MEDIAs
-    Route::get('/social/{provider}/redirect', [SocialAuthController::class, 'redirect'])->name('social.redirect');
-    Route::get('/social/{provider}/callback', [SocialAuthController::class, 'callback'])->name('social.callback');
 });
