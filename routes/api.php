@@ -142,4 +142,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/influencer-applications/{application}/reject', [InfluencerApplicationController::class, 'reject']);
 
     });
+    //ROUTE FOR SOCIAL MEDIAs
+    Route::get('/social/{provider}/redirect', [SocialAuthController::class, 'redirect'])->name('social.redirect');
+    Route::get('/social/{provider}/callback', [SocialAuthController::class, 'callback'])->name('social.callback');
 });
