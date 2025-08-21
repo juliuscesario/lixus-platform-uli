@@ -18,6 +18,11 @@ Route::get('/terms-of-service', function () {
 Route::get('/privacy-policy', function () {
     return view('lixus-flow-privacy-policy');
 });
+
+// Add this new route for the Gaung landing page
+Route::get('/mini-game-padel', function () {
+    return view('lixus-flow-padel');
+});
 // Arahkan semua request non-API ke view 'app'
 // yang akan memuat aplikasi React Anda.
 Route::get('/{any?}', function () {
