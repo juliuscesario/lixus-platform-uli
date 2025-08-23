@@ -56,8 +56,9 @@ Route::prefix('public')->group(function () {
 
 // --- TIKTOK CALLBACK ROUTE (PUBLIC) ---
 // This must be outside any authentication groups because it's called by TikTok's server.
-Route::get('/social/tiktok/callback', [SocialAuthController::class, 'handleTikTokCallback'])->name('social.tiktok.callback');
-
+// --- DELETE THIS LINE ---
+// Route::get('/social/tiktok/callback', [SocialAuthController::class, 'handleTikTokCallback'])->name('social.tiktok.callback');
+// --- END OF DELETION ---
 
 // --- PROTECTED API ROUTES (Requires Sanctum Token) ---
 Route::middleware('auth:sanctum')->group(function () {
@@ -104,6 +105,7 @@ Route::middleware('auth:sanctum')->group(function () {
         
         // NEW: Influencer dashboard stats route
         Route::get('/influencer/dashboard-stats/{user}', [InfluencerController::class, 'getInfluencerDashboardStats']);
+        Route::post('/social/tiktok/sync-videos', [SocialAuthController::class, 'syncTikTokVideos'])->name('social.tiktok.sync');
     });
 
 

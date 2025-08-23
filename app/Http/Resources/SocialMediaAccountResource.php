@@ -22,7 +22,7 @@ class SocialMediaAccountResource extends JsonResource
             'username' => $this->username,
             // Access token tidak disarankan untuk ditampilkan di API publik
             // 'access_token' => $this->access_token,
-            'token_expires_at' => $this->token_expires_at ? $this->token_expires_at->toIso8601String() : null,
+            'token_expires_at' =>  $this->token_expires_at ? \Carbon\Carbon::parse($this->token_expires_at)->toIso8601String() : null,
             'instagram_business_account_id' => $this->instagram_business_account_id,
             'facebook_page_id' => $this->facebook_page_id,
             'created_at' => $this->created_at?->toIso8601String(),

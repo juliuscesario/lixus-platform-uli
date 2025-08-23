@@ -66,7 +66,7 @@ export default function DashboardPage({ user }) {
                      <div className="bg-green-100 p-6 rounded-lg">
                         <h3 className="font-bold text-green-800">Akun Sosial Media</h3>
                         <p className="text-green-700 text-sm mt-1">Hubungkan dan kelola akun sosial media Anda.</p>
-                        <Link to="/social-media" className="mt-3 text-sm font-semibold text-green-800 hover:underline">Hubungkan Akun &rarr;</Link>
+                        <a href="/api/social/tiktok/redirect" className="mt-3 text-sm font-semibold text-green-800 hover:underline">Hubungkan Akun &rarr;</a>
                     </div>
                 </div>
 

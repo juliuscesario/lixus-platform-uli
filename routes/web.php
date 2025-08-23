@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\SocialAuthController; // <-- ADD THIS LINE
 
 // Add this new route for the Gaung landing page
 Route::get('/', function () {
@@ -24,6 +25,10 @@ Route::get('/mini-game-padel', function () {
     return view('lixus-flow-padel');
 });
 // Arahkan semua request non-API ke view 'app'
+
+// --- TIKTOK CALLBACK ROUTE HERE ---
+Route::get('/social/tiktok/callback', [SocialAuthController::class, 'handleTikTokCallback'])->name('social.tiktok.callback');
+
 // yang akan memuat aplikasi React Anda.
 Route::get('/{any?}', function () {
     return view('welcome');

@@ -24,7 +24,7 @@ class SocialMediaAccount extends Model
         'avatar_url',
         'access_token',
         'refresh_token',
-        'expires_in',
+        'token_expires_at',
         'scopes',
     ];
 
@@ -44,9 +44,9 @@ class SocialMediaAccount extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'expires_in' => 'datetime',
+        // THIS LINE IS THE FIX FOR THE LOG ERROR
+        'token_expires_at' => 'datetime',
         'scopes' => 'array',
-        // ADD THIS CASTING FOR ENCRYPTION
         'access_token' => 'encrypted',
         'refresh_token' => 'encrypted',
     ];

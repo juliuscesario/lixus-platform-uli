@@ -354,8 +354,7 @@
         let gameTime = 60;
         let timerInterval;
         let gameState = 'start';
-        // **FIX 1: Variabel baru untuk mengelola state serve**
-        let serveState = null; // null, 'readyToDrop', 'dropping', 'readyToHit', 'inFlight'
+        let serveState = null;
         let server = 'player';
         let servingSide = 'right';
         let targetServiceBox = null;
@@ -401,7 +400,8 @@
             x: 0, y: 0,
             width: 30, height: 40,
             targetX: 0, targetY: 0,
-            speed: 0.08,
+            // **FIX 1: Kecepatan AI ditingkatkan**
+            speed: 0.11,
             color: '#17A2B8',
             scaleX: 1, scaleY: 1
         };
@@ -410,7 +410,7 @@
             x: 0, y: 0, z: 25,
             radius: 7,
             speedX: 0, speedY: 0, speedZ: 0,
-            baseSpeed: 7.5, // Kecepatan pukulan serve
+            baseSpeed: 7.5,
             maxSpeed: 12,
             color: '#FFE135',
             trail: [],
@@ -434,7 +434,6 @@
             input.y = touch.clientY - rect.top;
             input.active = true;
 
-            // Hanya proses tap sekali per frame untuk menghindari double trigger
             if (!input.tapped) {
                 if (gameState === 'serving' && server === 'player') {
                     if (serveState === 'readyToDrop') {
@@ -451,7 +450,7 @@
         canvas.addEventListener('touchmove', handleInput, { passive: false });
         canvas.addEventListener('touchend', () => {
             input.active = false;
-            input.tapped = false; // Reset status tap saat jari diangkat
+            input.tapped = false;
         });
         canvas.addEventListener('mousedown', handleInput);
         canvas.addEventListener('mousemove', (e) => { if (e.buttons === 1) handleInput(e); });
@@ -530,35 +529,34 @@
             ball.speedX = 0;
             ball.speedY = 0;
             ball.speedZ = 0;
-            ball.z = 40; // Posisi awal bola di udara
             ball.canBeHit = false;
 
             if (server === 'player') {
                 serveState = 'readyToDrop';
                 player.y = court.y + court.height - player.height - 5;
                 player.x = servingSide === 'right' ? court.x + court.width * 0.75 - player.width / 2 : court.x + court.width * 0.25 - player.width / 2;
+                // **FIX 2: Posisi bola serve lebih dekat dan natural**
                 ball.x = player.x + player.width / 2;
-                ball.y = player.y - player.height; // Bola di depan pemain
+                ball.y = player.y - 15;
+                ball.z = 50;
                 targetServiceBox = servingSide === 'right' ? court.zones.aiLeft : court.zones.aiRight;
             } else {
-                serveState = 'inFlight'; // AI langsung memukul
+                serveState = 'inFlight';
                 ai.y = court.y + 5;
                 ai.x = servingSide === 'right' ? court.x + court.width * 0.75 - ai.width / 2 : court.x + court.width * 0.25 - ai.width / 2;
                 ball.x = ai.x + ai.width / 2;
                 ball.y = ai.y + ai.height + 20;
+                ball.z = 40;
                 targetServiceBox = servingSide === 'right' ? court.zones.playerLeft : court.zones.playerRight;
-                setTimeout(hitServe, 1000); // AI serve setelah 1 detik
+                setTimeout(hitServe, 1000);
             }
         }
         
-        // **FIX 1: Fungsi baru untuk tahap 1 serve (menjatuhkan bola)**
         function dropBall() {
             if (serveState !== 'readyToDrop') return;
             serveState = 'dropping';
-            // Biarkan gravitasi yang bekerja, tidak perlu speed awal
         }
 
-        // **FIX 1: Fungsi ini sekarang untuk memukul serve (tahap 2)**
         function hitServe() {
             ball.lastHitBy = server;
             const targetX = targetServiceBox.x + targetServiceBox.width / 2;
@@ -568,7 +566,7 @@
             const serveSpeed = ball.baseSpeed;
             ball.speedX = Math.cos(angle) * serveSpeed;
             ball.speedY = Math.sin(angle) * serveSpeed;
-            ball.speedZ = 6; // Beri sedikit pantulan ke atas saat dipukul
+            ball.speedZ = 6;
             ball.canBeHit = false;
             
             if (server === 'player') {
@@ -599,22 +597,30 @@
             player.y = Math.max(court.y + court.height / 2, Math.min(court.y + court.height - player.height, player.y));
         }
 
+        // **FIX 1: Logika AI dirombak total agar lebih pintar**
         function updateAI() {
-             if (gameState === 'serving' && server === 'ai') return;
+            if (gameState === 'serving' && server === 'ai') return;
+
+            // Target X & Y sekarang dinamis mengikuti bola
             ai.targetX = ball.x - ai.width / 2;
-            ai.targetY = court.y + court.height * (ball.speedY < 0 ? 0.25 : 0.1);
+            ai.targetY = ball.y - ai.height / 2;
+            
+            // Batasi pergerakan AI hanya di areanya sendiri
+            ai.targetY = Math.max(court.y, Math.min(court.y + court.height / 2 - ai.height, ai.targetY));
+
             const dx = ai.targetX - ai.x;
             const dy = ai.targetY - ai.y;
+
             ai.x += dx * ai.speed;
             ai.y += dy * ai.speed;
+            
+            // Batasi posisi AI di dalam lapangan
             ai.x = Math.max(court.x, Math.min(court.x + court.width - ai.width, ai.x));
-            ai.y = Math.max(court.y, Math.min(court.y + court.height / 2 - ai.height, ai.y));
         }
 
         function updateBall() {
             if (ball.hitCooldown > 0) ball.hitCooldown--;
             
-            // Hanya update posisi jika game tidak sedang menunggu serve drop
             if (serveState !== 'readyToDrop') {
                 ball.trail.push({ x: ball.x, y: ball.y, z: ball.z, r: ball.radius * (1 + ball.z / 100) });
                 if (ball.trail.length > 15) ball.trail.shift();
@@ -632,15 +638,19 @@
                 
                 ball.canBeHit = true; 
 
-                // **FIX 1: Logika baru untuk menangani state serve**
                 if (gameState === 'serving') {
                     const currentSide = ball.y > court.y + court.height / 2 ? 'player' : 'ai';
                     
-                    if (serveState === 'dropping' && currentSide === 'player') {
-                        // Bola sudah memantul di area kita, siap dipukul
-                        serveState = 'readyToHit';
+                    // **FIX 3: Logika untuk mendeteksi pantulan kedua saat serve**
+                    if (server === 'player' && currentSide === 'player') {
+                        ball.bounces++;
+                        if (ball.bounces === 1 && serveState === 'dropping') {
+                            serveState = 'readyToHit';
+                        } else if (ball.bounces >= 2) {
+                            pointWon('ai', 'Pantulan 2x saat serve');
+                            return;
+                        }
                     } else if (serveState === 'inFlight') {
-                        // Cek apakah serve masuk setelah dipukul
                         const isInTargetBox = ball.x > targetServiceBox.x && ball.x < targetServiceBox.x + targetServiceBox.width &&
                                               ball.y > targetServiceBox.y && ball.y < targetServiceBox.y + targetServiceBox.height;
                         if (isInTargetBox) {
@@ -650,10 +660,12 @@
                             pointWon(server === 'player' ? 'ai' : 'player', 'Serve gagal');
                             return;
                         }
+                    } else if (serveState === 'dropping' && currentSide !== 'player') {
+                        pointWon('ai', 'Serve gagal');
+                        return;
                     }
-                }
-                
-                if (gameState === 'playing') {
+
+                } else if (gameState === 'playing') {
                     const currentSide = ball.y > court.y + court.height / 2 ? 'player' : 'ai';
                     if (ball.lastCourtSide === currentSide) {
                         ball.bounces++;
@@ -691,16 +703,10 @@
         }
 
         function checkCollision(char) {
-            // Pemain tidak bisa memukul bola saat sedang proses drop serve
             if (ball.hitCooldown > 0 || serveState === 'dropping' || serveState === 'readyToDrop') return;
             
-            // Pemain hanya bisa memukul bola serve saat state-nya 'readyToHit'
-            if (gameState === 'serving' && serveState !== 'readyToHit') return;
-
             const isPlayer = char === player;
-            if (isPlayer && gameState === 'playing' && input.tapped) {
-                 // Logika pukulan biasa saat reli bisa ditambahkan di sini jika perlu
-            }
+            if (isPlayer && gameState === 'serving' && serveState !== 'readyToHit') return;
 
             const receiver = isPlayer ? 'player' : 'ai';
             
@@ -923,7 +929,6 @@
             ctx.arc(0, 0, ballRenderRadius, 0, 2 * Math.PI);
             ctx.fill();
 
-            // **FIX 1: Tambahkan efek glow saat bola siap dipukul**
             if (serveState === 'readyToHit') {
                 ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
                 ctx.beginPath();
@@ -983,7 +988,6 @@
                 else drawCharacter(entity);
             });
             
-            // Reset status tap di akhir setiap frame
             input.tapped = false;
         }
 

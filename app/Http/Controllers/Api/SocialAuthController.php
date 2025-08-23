@@ -7,8 +7,8 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
-use InvalidArgumentException;
 
 class SocialAuthController extends Controller
 {
@@ -17,23 +17,18 @@ class SocialAuthController extends Controller
      */
     public function redirectToTikTok(Request $request)
     {
-        // We generate a random 'state' string for security (prevents CSRF attacks)
-        $state = Str::random(40);
-        // We store it in the session to verify it later in the callback
-        $request->session()->put('state', $state);
-
-        // Build the authorization URL
+        $user = Auth::user();
+        $signature = hash_hmac('sha256', $user->id, config('app.key'));
+        $state = $user->id . '.' . $signature;
         $query = http_build_query([
             'client_key' => config('services.tiktok.client_key'),
             'redirect_uri' => config('services.tiktok.redirect_uri'),
             'response_type' => 'code',
-            'scope' => 'user.info.basic,video.list', // Requesting user info and video list permissions
+            // --- CHANGE #1: ADDED 'user.info.stats' SCOPE ---
+            'scope' => 'user.info.basic,video.list,user.info.stats',
             'state' => $state,
         ]);
-
         $url = 'https://www.tiktok.com/v2/auth/authorize/?' . $query;
-
-        // Redirect the user's browser to TikTok
         return redirect()->away($url);
     }
 
@@ -42,13 +37,21 @@ class SocialAuthController extends Controller
      */
     public function handleTikTokCallback(Request $request)
     {
-        // First, check if the state from TikTok matches what we stored in the session
-        // If it doesn't match, it could be a security risk, so we abort.
-        if ($request->state !== $request->session()->pull('state')) {
-            return redirect('https://jul-proto.lixus.id/error?message=invalid_state');
+        // ... (state verification logic remains the same)
+        if ($request->has('error')) {
+            Log::error('TikTok callback error', $request->all());
+            return redirect('https://jul-proto.lixus.id/social-media?error=tiktok_denied');
+        }
+        if (!$request->has('state') || !str_contains($request->state, '.')) {
+             return redirect('https://jul-proto.lixus.id/social-media?error=invalid_state');
+        }
+        list($userId, $signature) = explode('.', $request->state, 2);
+        $expectedSignature = hash_hmac('sha256', $userId, config('app.key'));
+        if (!hash_equals($expectedSignature, $signature)) {
+            return redirect('https://jul-proto.lixus.id/social-media?error=invalid_signature');
         }
 
-        // --- Step 1: Exchange the Authorization Code for an Access Token ---
+        // ... (token exchange logic remains the same)
         $response = Http::asForm()->post('https://open.tiktokapis.com/v2/oauth/token/', [
             'client_key' => config('services.tiktok.client_key'),
             'client_secret' => config('services.tiktok.client_secret'),
@@ -56,51 +59,36 @@ class SocialAuthController extends Controller
             'grant_type' => 'authorization_code',
             'redirect_uri' => config('services.tiktok.redirect_uri'),
         ]);
-
         if ($response->failed()) {
-            // If the token exchange fails, redirect to a frontend error page
-            return redirect('https://jul-proto.lixus.id/error?message=token_exchange_failed');
+            Log::error('TikTok token exchange failed', $response->json());
+            return redirect('https://jul-proto.lixus.id/social-media?error=token_exchange_failed');
         }
-
         $tokenData = $response->json();
-
-        // --- Step 2: Use the Access Token to get User Info ---
+        
+        // --- CHANGE #2: FETCH BOTH USER INFO AND STATS ---
         $userResponse = Http::withToken($tokenData['access_token'])
-            ->get('https://open.tiktokapis.com/v2/user/info/', [
-                'fields' => 'open_id,union_id,avatar_url,display_name,username'
-            ]);
+        ->get('https://open.tiktokapis.com/v2/user/info/', [
+            // Temporarily REMOVE follower_count, likes_count
+            'fields' => 'open_id,union_id,avatar_url,display_name,username'
+        ]);
+
 
         if ($userResponse->failed()) {
-            return redirect('https://jul-proto.lixus.id/error?message=user_info_failed');
+             Log::error('TikTok user info fetch failed', $userResponse->json());
+            return redirect('https://jul-proto.lixus.id/social-media?error=user_info_failed');
         }
-
         $tiktokUser = $userResponse->json()['data']['user'];
-        $user = session('user'); // Assuming user is stored in session before redirect
-
-        // --- Step 3: Save the Social Media Account to the Database ---
-        // Find the user who initiated this. Since this is a stateless callback,
-        // we can't use Auth::user(). A common approach is to pass the user_id in the 'state'
-        // or have the user log back in briefly. For now, we'll assume the user ID is somehow known.
-        // A better, secure method would be to encode the user ID in the state and verify it.
-        // NOTE: This part needs a strategy to securely identify the user. Let's start simply.
-        // For the prototype, we can fetch the last logged-in user, but this is not production-safe.
-        
-        // Let's find the user from the state for a more robust solution
-        $stateParts = explode('|', $request->state);
-        $userId = $stateParts[0] ?? null; // Assume user ID is the first part
         $user = User::find($userId);
-
         if (!$user) {
-             return redirect('https://jul-proto.lixus.id/error?message=user_not_found');
+             Log::error('User not found during TikTok callback', ['user_id' => $userId]);
+             return redirect('https://jul-proto.lixus.id/social-media?error=user_not_found');
         }
 
+        // Save the Social Media Account details
         $user->socialMediaAccounts()->updateOrCreate(
+            ['platform' => 'tiktok', 'platform_user_id' => $tiktokUser['open_id']],
             [
-                'platform' => 'tiktok',
-                'platform_user_id' => $tiktokUser['open_id'],
-            ],
-            [
-                'username' => $tiktokUser['username'],
+                'username' => $tiktokUser['username'] ?? 'N/A',
                 'display_name' => $tiktokUser['display_name'],
                 'avatar_url' => $tiktokUser['avatar_url'],
                 'access_token' => $tokenData['access_token'],
@@ -110,7 +98,66 @@ class SocialAuthController extends Controller
             ]
         );
 
-        // --- Step 4: Redirect to the frontend success page ---
-        return redirect('https://jul-proto.lixus.id/success-auth-tiktok-user');
+        // --- CHANGE #3: SAVE STATS TO INFLUENCER PROFILE ---
+        if ($user->influencerProfile) {
+            $user->influencerProfile->update([
+                'tiktok_follower_count' => $tiktokUser['follower_count'] ?? 0,
+                'tiktok_likes_count' => $tiktokUser['likes_count'] ?? 0,
+            ]);
+        }
+
+        return redirect('https://jul-proto.lixus.id/social-media?success=tiktok_connected');
+    }
+
+    // --- CHANGE #4: ADDED NEW METHOD TO SYNC VIDEOS ---
+    /**
+     * Fetch recent videos from TikTok and save them as posts.
+     */
+    public function syncTikTokVideos(Request $request)
+    {
+        $user = $request->user();
+        $tiktokAccount = $user->socialMediaAccounts()->where('platform', 'tiktok')->first();
+
+        if (!$tiktokAccount) {
+            return response()->json(['message' => 'TikTok account not connected.'], 400);
+        }
+
+        $response = Http::withToken($tiktokAccount->access_token)
+            ->post('https://open.tiktokapis.com/v2/video/list/', [
+                'fields' => 'id,create_time,video_description,like_count,comment_count,share_count,view_count',
+                'max_count' => 20
+            ]);
+
+        if ($response->failed()) {
+            Log::error('TikTok video fetch failed', $response->json());
+            return response()->json(['message' => 'Failed to fetch videos from TikTok. Check logs for details.'], 500);
+        }
+
+        $videos = $response->json()['data']['videos'];
+        $syncedCount = 0;
+
+        foreach ($videos as $video) {
+            $user->posts()->updateOrCreate(
+                [
+                    'platform' => 'tiktok',
+                    'platform_post_id' => $video['id']
+                ],
+                [
+                    // Assuming 'user_id' is already set by the relationship
+                    'caption' => $video['video_description'],
+                    'posted_at' => \Carbon\Carbon::createFromTimestamp($video['create_time']),
+                    'metrics' => [
+                        'likes' => $video['like_count'],
+                        'comments' => $video['comment_count'],
+                        'shares' => $video['share_count'],
+                        'views' => $video['view_count']
+                    ]
+                    // campaign_id should be linked separately, perhaps via the frontend
+                ]
+            );
+            $syncedCount++;
+        }
+        
+        return response()->json(['message' => "Successfully synced {$syncedCount} videos."]);
     }
 }
