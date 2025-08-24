@@ -13,26 +13,23 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->trustProxies(at: '*');
-        // Konfigurasi untuk middleware API group
+        
+        // Add Sanctum's middleware to API group
         $middleware->api(prepend: [
             \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
         ]);
 
-        // Konfigurasi untuk middleware WEB group
-        $middleware->web(append: [
-            \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
-        ]);
-
+        // Exclude public routes from CSRF verification
         $middleware->validateCsrfTokens(except: [
-            'api/public/*',
+            'api/public/*', // Public routes don't need CSRF
         ]);
 
-        // Alias middleware (seperti 'auth:sanctum', atau custom 'role')
+        // Define middleware aliases
         $middleware->alias([
             'admin' => \App\Http\Middleware\IsAdmin::class,
-            'brand_or_influencer' => \App\Http\Middleware\IsBrandOrInfluencer::class,
+            'role' => \App\Http\Middleware\CheckRole::class,
         ]);
     })
-    ->withExceptions(function (Exceptions $exceptions): void {
+    ->withExceptions(function (Exceptions $exceptions) {
         //
     })->create();

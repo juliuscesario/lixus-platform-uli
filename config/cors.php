@@ -14,21 +14,15 @@ return [
     | To learn more: https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS
     |
     */
-
     'paths' => ['api/*', 'sanctum/csrf-cookie'],
-
     'allowed_methods' => ['*'],
-
-    'allowed_origins' => ['https://jul-proto.lixus.id'],
-
+    'allowed_origins' => [
+        'https://jul-proto.lixus.id',
+        'http://localhost:3000', // for local development
+    ],
     'allowed_origins_patterns' => [],
-
     'allowed_headers' => ['*'],
-
     'exposed_headers' => [],
-
     'max_age' => 0,
-
-    'supports_credentials' => true,
-
+    'supports_credentials' => true, // This is crucial
 ];
