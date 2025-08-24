@@ -2,9 +2,10 @@ import { Link } from 'react-router-dom';
 import React, { useState, useEffect } from 'react';
 import { apiService, formatCompactNumber } from '../services/apiService';
 import { useAuth } from '../contexts/AuthContext';
+import SocialConnect from '../components/SocialConnect'; // 1. Import the new component
 
-export default function DashboardPage({ user }) {
-    const { auth } = useAuth(); // Get auth from AuthContext
+export default function DashboardPage() { // Removed the 'user' prop, as we get it from useAuth
+    const { user } = useAuth(); // 2. Get the user directly from the context
     const [stats, setStats] = useState(null);
     const [loadingStats, setLoadingStats] = useState(true);
     const [errorStats, setErrorStats] = useState(null);
@@ -13,8 +14,8 @@ export default function DashboardPage({ user }) {
         const fetchInfluencerStats = async () => {
             setLoadingStats(true);
             try {
-                // Pass the auth object to apiService
-                const response = await apiService(auth).getInfluencerDashboardStats(user.id);
+                // apiService now gets auth state internally, so you may not need to pass it
+                const response = await apiService().getInfluencerDashboardStats(user.id);
                 setStats(response);
             } catch (err) {
                 setErrorStats("Failed to fetch influencer stats.");
@@ -29,7 +30,6 @@ export default function DashboardPage({ user }) {
         }
     }, [user]);
 
-    // Handle case where user is not yet available
     // Handle case where user is not yet available
     if (!user) {
         return (
@@ -63,11 +63,10 @@ export default function DashboardPage({ user }) {
                         <p className="text-blue-700 text-sm mt-1">Lihat kampanye yang sedang Anda ikuti.</p>
                         <Link to="/my-campaigns" className="mt-3 text-sm font-semibold text-blue-800 hover:underline">Lihat Kampanye &rarr;</Link>
                     </div>
-                     <div className="bg-green-100 p-6 rounded-lg">
-                        <h3 className="font-bold text-green-800">Akun Sosial Media</h3>
-                        <p className="text-green-700 text-sm mt-1">Hubungkan dan kelola akun sosial media Anda.</p>
-                        <Link to="/social-media" className="mt-3 text-sm font-semibold text-green-800 hover:underline">Hubungkan Akun &rarr;</Link>
-                    </div>
+
+                    {/* 3. Replace the old div with the new component */}
+                    <SocialConnect />
+                    
                 </div>
 
                 <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
