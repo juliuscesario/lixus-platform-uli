@@ -122,28 +122,48 @@ const apiFetch = async (url, options = {}, auth = null) => {
 };
 
 // --- Utility Functions ---
+/**
+ * THIS IS THE MISSING FUNCTION
+ * A helper function to read a specific cookie from the browser.
+ * It's needed to retrieve the XSRF-TOKEN for secure POST requests.
+ */
+function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+}
+
+
 export const formatDate = (dateString) => {
-    if (!dateString) return 'N/A';
+    if (!dateString) return "N/A";
     return new Date(dateString).toLocaleDateString('id-ID', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
+        year: 'numeric', month: 'long', day: 'numeric'
+    });
+};
+
+export const formatDateTime = (dateString) => {
+    if (!dateString) return "N/A";
+    return new Date(dateString).toLocaleString('id-ID', {
+        year: 'numeric', month: 'long', day: 'numeric',
+        hour: '2-digit', minute: '2-digit'
     });
 };
 
 export const formatCurrency = (amount) => {
-    if (!amount) return 'Rp 0';
+    if (isNaN(amount)) return "N/A";
     return new Intl.NumberFormat('id-ID', {
         style: 'currency',
-        currency: 'IDR'
+        currency: 'IDR',
+        minimumFractionDigits: 0
     }).format(amount);
 };
 
-export const formatCompactNumber = (num) => {
-    if (!num) return '0';
-    if (num < 1000) return num.toString();
-    if (num < 1000000) return (num / 1000).toFixed(1) + 'K';
-    return (num / 1000000).toFixed(1) + 'M';
+export const formatCompactNumber = (number) => {
+    if (number === null || number === undefined) return '0';
+    return new Intl.NumberFormat('en-US', {
+        notation: 'compact',
+        compactDisplay: 'short'
+    }).format(number);
 };
 
 // --- API Service Object ---

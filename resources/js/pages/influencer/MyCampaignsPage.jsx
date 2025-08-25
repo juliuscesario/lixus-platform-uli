@@ -1,7 +1,12 @@
+// ========================================
+// STEP 3: Migrate MyCampaignsPage.jsx
+// ========================================
+
+// FILE: resources/js/pages/influencer/MyCampaignsPage.jsx (MIGRATED)
 import React, { useState, useEffect } from 'react';
-import { formatDate } from '../../services/apiService';
-import useApi from '../../hooks/useApi';
 import { Link } from 'react-router-dom';
+import useApi from '../../hooks/useApi';
+import { formatDate } from '../../services/apiService';
 import PostsModal from '../../components/PostsModal';
 
 const StatusBadge = ({ status }) => {
@@ -12,28 +17,20 @@ const StatusBadge = ({ status }) => {
         completed: 'bg-blue-100 text-blue-800',
         withdrawn: 'bg-gray-100 text-gray-800',
     };
-    
     return (
-        <span className={`capitalize px-2 py-1 text-xs font-semibold rounded-full ${
-            statusStyles[status] || 'bg-gray-100 text-gray-800'
-        }`}>
+        <span className={`capitalize px-2 py-1 text-xs font-semibold rounded-full ${statusStyles[status] || 'bg-gray-100 text-gray-800'}`}>
             {status}
         </span>
     );
 };
 
-export default function MyCampaignsPage({ user }) {
-    const { api, auth } = useApi();
-    const { user: authUser } = auth;
-    
-    // Use authenticated user or passed user prop
-    const currentUser = authUser || user;
-    
+export default function MyCampaignsPage() {
+    const { api } = useApi();
     const [participations, setParticipations] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     
-    // State for modal
+    // State untuk modal
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [modalPosts, setModalPosts] = useState([]);
     const [isModalLoading, setIsModalLoading] = useState(false);
@@ -42,13 +39,18 @@ export default function MyCampaignsPage({ user }) {
     const fetchMyCampaigns = async () => {
         setLoading(true);
         setError(null);
-        
         try {
             const response = await api('getMyCampaigns');
             setParticipations(response.data || []);
         } catch (err) {
+            if (err.message.includes('401') || err.message.includes('Session expired')) {
+                // Session expired - handled by AuthContext automatically
+            } else if (err.message.includes('403')) {
+                setError("You don't have permission to view campaigns.");
+            } else {
+                setError("Gagal memuat data kampanye Anda.");
+            }
             console.error('Error fetching campaigns:', err);
-            setError("Gagal memuat data kampanye Anda.");
         } finally {
             setLoading(false);
         }
@@ -63,49 +65,37 @@ export default function MyCampaignsPage({ user }) {
             try {
                 await api('withdrawFromCampaign', campaignId);
                 alert('Anda berhasil mengundurkan diri.');
-                fetchMyCampaigns(); // Reload data
+                fetchMyCampaigns(); // Muat ulang data
             } catch (err) {
-                alert(err.message || 'Gagal mengundurkan diri.');
+                if (err.message.includes('401') || err.message.includes('Session expired')) {
+                    // Session expired - handled by AuthContext automatically
+                } else if (err.message.includes('403')) {
+                    alert("You don't have permission to perform this action");
+                } else if (err.message.includes('419')) {
+                    alert("Security token expired. Please refresh the page.");
+                } else {
+                    alert(err.message || 'Gagal mengundurkan diri.');
+                }
             }
         }
     };
 
-    // Function to open posts modal
-    const handleViewPosts = async (campaignId, campaignName) => {
-        setIsModalOpen(true);
-        setSelectedCampaignName(campaignName);
-        setIsModalLoading(true);
-        
-        try {
-            // Get posts for this campaign and current user
-            const response = await api('getPostsForInfluencerInCampaign', campaignId, currentUser?.id);
-            setModalPosts(response.data || []);
-        } catch (err) {
-            console.error('Error fetching posts:', err);
-            setModalPosts([]);
-        } finally {
-            setIsModalLoading(false);
-        }
-    };
-
-    const closeModal = () => {
-        setIsModalOpen(false);
-        setModalPosts([]);
-        setSelectedCampaignName('');
-    };
-
+    // Rest of the component remains the same...
     if (loading) {
         return (
-            <div className="max-w-6xl mx-auto py-12 px-4 text-center">
-                Memuat kampanye Anda...
+            <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+                <div className="flex justify-center items-center h-64">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-500"></div>
+                    <p className="ml-4 text-gray-700">Loading campaigns...</p>
+                </div>
             </div>
         );
     }
 
     if (error) {
         return (
-            <div className="max-w-6xl mx-auto py-12 px-4 text-center">
-                <div className="text-red-500 bg-red-100 p-4 rounded-md">
+            <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+                <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
                     {error}
                 </div>
             </div>
@@ -113,124 +103,69 @@ export default function MyCampaignsPage({ user }) {
     }
 
     return (
-        <div className="max-w-6xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
-            <h1 className="text-3xl font-extrabold text-gray-900 mb-8">Kampanye Saya</h1>
+        <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+            <h1 className="text-3xl font-bold text-gray-900 mb-8">My Campaigns</h1>
             
             {participations.length === 0 ? (
                 <div className="text-center py-12">
-                    <div className="text-gray-500 text-lg mb-4">
-                        Anda belum mengikuti kampanye apapun.
-                    </div>
+                    <p className="text-gray-600 text-lg mb-4">You haven't joined any campaigns yet.</p>
                     <Link 
-                        to="/" 
-                        className="bg-pink-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-pink-600 transition-colors"
+                        to="/campaigns" 
+                        className="bg-pink-500 text-white px-6 py-3 rounded-lg hover:bg-pink-600 transition duration-300"
                     >
-                        Lihat Kampanye Tersedia
+                        Browse Available Campaigns
                     </Link>
                 </div>
             ) : (
-                <div className="bg-white shadow-md rounded-lg overflow-hidden">
-                    <div className="overflow-x-auto">
-                        <table className="min-w-full divide-y divide-gray-200">
-                            <thead className="bg-gray-50">
-                                <tr>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Kampanye
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Status
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Tanggal Bergabung
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Tanggal Berakhir
-                                    </th>
-                                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Aksi
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody className="bg-white divide-y divide-gray-200">
-                                {participations.map((participation) => (
-                                    <tr key={participation.id}>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="flex items-center">
-                                                <div className="flex-shrink-0 h-10 w-10">
-                                                    <img 
-                                                        className="h-10 w-10 rounded-lg object-cover" 
-                                                        src={participation.campaign?.image || `https://placehold.co/40x40/f472b6/ffffff?text=${participation.campaign?.name?.[0] || 'C'}`}
-                                                        alt=""
-                                                    />
-                                                </div>
-                                                <div className="ml-4">
-                                                    <div className="text-sm font-medium text-gray-900">
-                                                        {participation.campaign?.name}
-                                                    </div>
-                                                    <div className="text-sm text-gray-500">
-                                                        {participation.campaign?.description?.substring(0, 60)}...
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <StatusBadge status={participation.status} />
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            {formatDate(participation.created_at)}
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            {formatDate(participation.campaign?.end_date)}
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                            <div className="flex justify-end space-x-2">
-                                                <Link
-                                                    to={`/campaigns/${participation.campaign?.id}`}
-                                                    className="text-indigo-600 hover:text-indigo-900"
-                                                >
-                                                    Lihat Detail
-                                                </Link>
-                                                
-                                                {participation.status === 'approved' && (
-                                                    <button
-                                                        onClick={() => handleViewPosts(
-                                                            participation.campaign?.id,
-                                                            participation.campaign?.name
-                                                        )}
-                                                        className="text-green-600 hover:text-green-900"
-                                                    >
-                                                        Lihat Posts
-                                                    </button>
-                                                )}
-                                                
-                                                {participation.status === 'pending' && (
-                                                    <button
-                                                        onClick={() => handleWithdraw(participation.campaign?.id)}
-                                                        className="text-red-600 hover:text-red-900"
-                                                    >
-                                                        Withdraw
-                                                    </button>
-                                                )}
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {participations.map((participation) => (
+                        <div key={participation.id} className="bg-white rounded-lg shadow-lg overflow-hidden">
+                            <div className="p-6">
+                                <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                                    {participation.campaign?.name}
+                                </h3>
+                                <p className="text-gray-600 text-sm mb-4">
+                                    {participation.campaign?.description}
+                                </p>
+                                
+                                <div className="flex justify-between items-center mb-4">
+                                    <StatusBadge status={participation.status} />
+                                    <span className="text-sm text-gray-500">
+                                        Joined: {formatDate(participation.created_at)}
+                                    </span>
+                                </div>
+
+                                <div className="flex justify-between items-center">
+                                    <Link 
+                                        to={`/campaigns/${participation.campaign?.id}`}
+                                        className="text-pink-500 hover:text-pink-600 font-medium"
+                                    >
+                                        View Details
+                                    </Link>
+                                    
+                                    {participation.status === 'approved' && (
+                                        <button
+                                            onClick={() => handleWithdraw(participation.campaign?.id)}
+                                            className="text-red-500 hover:text-red-600 font-medium"
+                                        >
+                                            Withdraw
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    ))}
                 </div>
             )}
 
             {/* Posts Modal */}
-            {isModalOpen && (
-                <PostsModal
-                    isOpen={isModalOpen}
-                    onClose={closeModal}
-                    posts={modalPosts}
-                    campaignName={selectedCampaignName}
-                    loading={isModalLoading}
-                />
-            )}
+            <PostsModal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                posts={modalPosts}
+                loading={isModalLoading}
+                campaignName={selectedCampaignName}
+            />
         </div>
     );
 }

@@ -3,7 +3,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import SessionExpiredModal from '../components/SessionExpiredModal';
 
-// --- Ikon ---
+// --- Icons ---
 const IconHome = () => ( <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg> );
 const IconCampaign = () => ( <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 6c-3.5 0-7 1.5-7 5s3.5 5 7 5 7-1.5 7-5-3.5-5-7-5z"/><path d="M12 6v12"/></svg> );
 const IconUsers = () => ( <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg> );
@@ -25,14 +25,20 @@ export default function DashboardLayout({ children }) {
         { name: 'My Campaigns', to: '/influencer/my-campaigns', icon: <IconMegaphone />, roles: ['influencer'] },
         // Menu Admin/Brand
         { name: 'Manage Campaigns', to: '/admin/campaigns', icon: <IconMegaphone />, roles: ['admin', 'brand'] },
-        { name: 'Manage Applicants', to: '/admin/applications', icon: <IconUsers />,roles: ['admin', 'brand'] }, 
+        { name: 'Manage Applicants', to: '/admin/applications', icon: <IconUsers />, roles: ['admin', 'brand'] }, 
         { name: 'Reporting', to: '/admin/reporting', icon: <IconChartBar />, roles: ['admin', 'brand'] },
         { name: 'Manage Users', to: '/admin/users', icon: <IconUsers />, roles: ['admin'] },
     ];
 
     const handleLogout = async () => {
-        await logout();
-        navigate('/login');
+        try {
+            await logout();
+            navigate('/login');
+        } catch (error) {
+            console.error('Logout error:', error);
+            // Force logout even if API call fails
+            navigate('/login');
+        }
     };
 
     const SidebarContent = () => (
@@ -48,7 +54,7 @@ export default function DashboardLayout({ children }) {
                             key={item.name}
                             to={item.to}
                             onClick={() => setIsSidebarOpen(false)}
-                            className={`flex items-center px-4 py-3 text-gray-700 hover:bg-gray-200 ${location.pathname === item.to ? 'bg-gray-200 border-r-4 border-pink-500' : ''}`}
+                            className={`flex items-center px-4 py-3 text-gray-700 hover:bg-gray-200 transition-colors ${location.pathname === item.to ? 'bg-gray-200 border-r-4 border-pink-500' : ''}`}
                         >
                             {item.icon}
                             <span className="mx-4 font-medium">{item.name}</span>
@@ -61,12 +67,12 @@ export default function DashboardLayout({ children }) {
 
     return (
         <div className="flex h-screen bg-gray-100">
-            {/* Sidebar untuk Desktop */}
+            {/* Sidebar for Desktop */}
             <aside className="w-64 bg-white shadow-md hidden md:block flex-shrink-0">
                 <SidebarContent />
             </aside>
 
-            {/* Sidebar untuk Mobile (Slide-out) */}
+            {/* Sidebar for Mobile (Slide-out) */}
             {isSidebarOpen && (
                 <>
                     <div className="fixed inset-0 bg-black bg-opacity-50 z-30 md:hidden" onClick={() => setIsSidebarOpen(false)}></div>
@@ -78,20 +84,36 @@ export default function DashboardLayout({ children }) {
 
             {/* Main Content */}
             <div className="flex-1 flex flex-col overflow-hidden">
-                <header className="flex justify-between items-center p-4 bg-white border-b-2 border-gray-200">
-                    <button className="text-gray-600 md:hidden" onClick={() => setIsSidebarOpen(!isSidebarOpen)}>
+                <header className="flex justify-between items-center p-4 bg-white border-b-2 border-gray-200 shadow-sm">
+                    <button 
+                        className="text-gray-600 md:hidden hover:text-gray-900 transition-colors" 
+                        onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                        aria-label="Toggle sidebar"
+                    >
                         <IconMenu />
                     </button>
                     <div className="hidden md:block"></div>
-                    <div className="flex items-center">
-                        <span className="mr-4 text-sm md:text-base">Welcome, {user?.name || 'Guest'}</span>
-                        <button onClick={handleLogout} className="bg-gray-200 text-gray-700 px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-300">Logout</button>
+                    <div className="flex items-center gap-4">
+                        <div className="text-right hidden sm:block">
+                            <div className="text-sm font-medium text-gray-900">Welcome, {user?.name || 'Guest'}</div>
+                            <div className="text-xs text-gray-500 capitalize">{user?.role || 'Guest'}</div>
+                        </div>
+                        <button 
+                            onClick={handleLogout} 
+                            className="bg-gray-200 text-gray-700 px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-300 transition-colors flex items-center gap-2"
+                            aria-label="Logout"
+                        >
+                            <IconPower className="w-4 h-4" />
+                            <span className="hidden sm:inline">Logout</span>
+                        </button>
                     </div>
                 </header>
+                
                 <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 p-4 md:p-6">
                     {children}
                 </main>
             </div>
+            
             <SessionExpiredModal />
         </div>
     );
