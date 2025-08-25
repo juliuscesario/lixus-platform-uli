@@ -13,12 +13,11 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->trustProxies(at: '*');
-        // Konfigurasi untuk middleware API group
+
         $middleware->api(prepend: [
             \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
         ]);
 
-        // Konfigurasi untuk middleware WEB group
         $middleware->web(append: [
             \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
         ]);
@@ -27,12 +26,13 @@ return Application::configure(basePath: dirname(__DIR__))
             'api/public/*',
         ]);
 
-        // Alias middleware (seperti 'auth:sanctum', atau custom 'role')
+        // ✅ FIX: Define simple, direct aliases for the role middleware.
         $middleware->alias([
             'admin' => \App\Http\Middleware\IsAdmin::class,
-            'brand_or_influencer' => \App\Http\Middleware\IsBrandOrInfluencer::class,
+            'influencer' => \App\Http\Middleware\IsInfluencer::class,
+            'admin_or_brand' => \App\Http\Middleware\IsAdminOrBrand::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        // Exception handling can be configured here
     })->create();
