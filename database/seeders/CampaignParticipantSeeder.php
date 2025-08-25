@@ -12,16 +12,16 @@ class CampaignParticipantSeeder extends Seeder
     public function run(): void
     {
         // Get the two approved campaigns
-        $approvedCampaigns = Campaign::where('status', 'approved')->get();
+        $activeCampaigns = Campaign::where('status', 'active')->get();
 
         // Get all influencer users
         $influencers = User::whereHas('role', function ($query) {
             $query->where('name', 'influencer');
         })->get();
 
-        // Ensure we have approved campaigns and influencers
-        if ($approvedCampaigns->isEmpty()) {
-            \Log::warning('No approved campaigns found. Skipping CampaignParticipantSeeder.');
+        // Ensure we have active campaigns and influencers
+        if ($activeCampaigns->isEmpty()) {
+            \Log::warning('No active campaigns found. Skipping CampaignParticipantSeeder.');
             return;
         }
 
@@ -30,12 +30,12 @@ class CampaignParticipantSeeder extends Seeder
             return;
         }
 
-        // Distribute 50 influencers randomly across the two approved campaigns
+        // Distribute 50 influencers randomly across the two active campaigns
         $influencersToAssign = $influencers->random(min(50, $influencers->count()));
 
         foreach ($influencersToAssign as $influencer) {
-            // Randomly pick one of the approved campaigns
-            $randomCampaign = $approvedCampaigns->random();
+            // Randomly pick one of the active campaigns
+            $randomCampaign = $activeCampaigns->random();
 
             CampaignParticipant::firstOrCreate(
                 [
