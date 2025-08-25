@@ -28,7 +28,7 @@ class CampaignController extends Controller
     {
         Log::info('Fetching public campaigns with filter status.');
         
-        $campaignsQuery = Campaign::whereIn('status', ['active', 'pending']);
+        $campaignsQuery = Campaign::whereIn('status', ['active']);
         if ($request->has('status')) {
             $statusFilter = $request->query('status');
             if (!in_array($statusFilter, ['active', 'pending', 'completed'])) {
