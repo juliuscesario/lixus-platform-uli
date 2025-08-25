@@ -16,7 +16,7 @@ export const useAuth = () => {
 // AuthProvider component
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(undefined); // undefined = loading, null = not logged in, object = logged in
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false); // Used for login/logout operations
     const [sessionExpired, setSessionExpired] = useState(false);
 
     // Centralized function to handle setting user data
@@ -35,26 +35,27 @@ export const AuthProvider = ({ children }) => {
     // Check authentication status on mount
     useEffect(() => {
         const checkAuth = async () => {
-            setLoading(true);
             try {
                 // Check if we have stored credentials
                 const storedUser = localStorage.getItem('authUser');
                 const storedToken = localStorage.getItem('authToken');
 
                 if (storedUser && storedToken) {
-                    // Verify the stored credentials are still valid
+                    // Parse stored user data
+                    const parsedUser = JSON.parse(storedUser);
+                    
+                    // Verify the token is still valid by checking with server
                     try {
-                        const response = await apiService.checkAuthStatus();
-                        if (response && response.id) {
-                            // Update with fresh user data
-                            setUserData(response, storedToken);
+                        const response = await apiService.checkAuthStatus({ showSessionExpiredModal });
+                        if (response && response.user) {
+                            // Server confirmed auth is valid
+                            setUserData(response.user, storedToken);
                         } else {
-                            // Stored credentials are invalid
+                            // Invalid token, clear everything
                             setUserData(null, null);
                         }
                     } catch (error) {
-                        console.error('Auth check failed:', error);
-                        // If auth check fails, clear stored data
+                        // Token verification failed, clear everything
                         setUserData(null, null);
                     }
                 } else {
@@ -62,39 +63,35 @@ export const AuthProvider = ({ children }) => {
                     setUser(null);
                 }
             } catch (error) {
-                console.error('Error checking authentication:', error);
+                console.error('Auth check failed:', error);
                 setUser(null);
-            } finally {
-                setLoading(false);
             }
         };
 
         checkAuth();
     }, []);
 
-    // Show session expired modal
+    // Function to show session expired modal
     const showSessionExpiredModal = () => {
         setSessionExpired(true);
-        setUserData(null, null);
+        setUserData(null, null); // Clear all user data
     };
-
+    
     // Login function
     const login = async (email, password) => {
         setLoading(true);
         try {
-            const response = await apiService.login(email, password, { showSessionExpiredModal });
-            
+            const response = await apiService.login(email, password);
             if (response.user && response.access_token) {
                 setUserData(response.user, response.access_token);
-                setSessionExpired(false); // Clear any session expired state
                 return response;
             } else {
-                throw new Error('Invalid server response');
+                setUserData(null, null); // Clear data on failed login
+                throw new Error('Login failed: Invalid server response.');
             }
         } catch (error) {
-            console.error('Login error:', error);
-            setUserData(null, null);
-            throw error;
+            setUserData(null, null); // Ensure cleanup on error
+            throw error; // Let the component handle the error display
         } finally {
             setLoading(false);
         }
@@ -104,40 +101,13 @@ export const AuthProvider = ({ children }) => {
     const logout = async () => {
         setLoading(true);
         try {
+            // Call server logout endpoint with auth context
             await apiService.logout({ showSessionExpiredModal });
         } catch (error) {
-            console.error('Logout error:', error);
-            // Even if the server logout fails, clear local state
+            console.error('Logout failed:', error);
+            // Still clear data locally even if server call fails
         } finally {
             setUserData(null, null);
-            setSessionExpired(false);
-            setLoading(false);
-        }
-    };
-
-    // Register function
-    const register = async (name, email, password, password_confirmation) => {
-        setLoading(true);
-        try {
-            const response = await apiService.register(
-                name, 
-                email, 
-                password, 
-                password_confirmation,
-                { showSessionExpiredModal }
-            );
-            
-            if (response.user && response.access_token) {
-                setUserData(response.user, response.access_token);
-                return response;
-            } else {
-                throw new Error('Invalid server response');
-            }
-        } catch (error) {
-            console.error('Registration error:', error);
-            setUserData(null, null);
-            throw error;
-        } finally {
             setLoading(false);
         }
     };
@@ -145,71 +115,38 @@ export const AuthProvider = ({ children }) => {
     // Update user function
     const updateUser = (newUserData) => {
         const token = localStorage.getItem('authToken');
-        if (token) {
-            setUserData(newUserData, token);
-        }
+        setUserData(newUserData, token);
     };
-
-    // Refresh user data from server
-    const refreshUser = async () => {
+    
+    // Revalidate user session (useful for checking if session is still valid)
+    const revalidateUser = async () => {
         const token = localStorage.getItem('authToken');
-        if (!token) {
-            setUser(null);
-            return null;
-        }
-
+        if (!token) return;
+        
         try {
             const response = await apiService.checkAuthStatus({ showSessionExpiredModal });
-            if (response && response.id) {
-                setUserData(response, token);
-                return response;
+            if (response && response.user) {
+                // Use the existing token, as a new one isn't issued on profile check
+                setUserData(response.user, token);
             } else {
-                setUserData(null, null);
-                return null;
+                showSessionExpiredModal();
             }
         } catch (error) {
-            console.error('Failed to refresh user:', error);
-            setUserData(null, null);
-            return null;
+            showSessionExpiredModal();
         }
     };
-
-    // Check if user has a specific role
-    const hasRole = (roleName) => {
-        return user?.role?.name === roleName;
-    };
-
-    // Check if user is admin
-    const isAdmin = () => {
-        return hasRole('admin');
-    };
-
-    // Check if user is influencer
-    const isInfluencer = () => {
-        return hasRole('influencer');
-    };
-
-    // Check if user is brand
-    const isBrand = () => {
-        return hasRole('brand');
-    };
-
+    
     const value = {
         user,
         login,
         logout,
-        register,
         updateUser,
-        refreshUser,
+        revalidateUser,
         loading,
-        isAuthenticated: !!user,
+        isAuthenticated: !!user, // If user object exists, they are authenticated
         sessionExpired,
         setSessionExpired,
-        showSessionExpiredModal,
-        hasRole,
-        isAdmin,
-        isInfluencer,
-        isBrand,
+        showSessionExpiredModal
     };
 
     return (

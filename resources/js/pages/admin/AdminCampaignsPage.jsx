@@ -1,30 +1,62 @@
 import React, { useState, useEffect } from 'react';
-import { apiService, formatDate, formatCurrency } from '../../services/apiService';
-import { useAuth } from '../../contexts/AuthContext';
-
+import { formatDate, formatCurrency } from '../../services/apiService';
+import useApi from '../../hooks/useApi';
 import { Link, useNavigate } from 'react-router-dom';
 
 export default function AdminCampaignsPage() {
-    const { user, auth } = useAuth();
     const navigate = useNavigate();
+    const { api, auth } = useApi();
+    const { user, loading: authLoading } = auth;
     const [campaigns, setCampaigns] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
+    // Function to handle unauthorized access
+    const handleUnauthorized = () => {
+        setError("Unauthorized access. You do not have permission to view this page.");
+        // Redirect to a 404 page or login page after a delay
+        setTimeout(() => {
+            navigate('/not-found');
+        }, 3000);
+    };
+
     useEffect(() => {
         const fetchCampaigns = async () => {
+            if (authLoading) return; // Wait for authentication check to complete
+
+            // Determine which API call to make based on user role
             setLoading(true);
             setError(null);
-            const response = await apiService(auth).getAdminCampaigns();
-            if (response && response.data) {
-                setCampaigns(response.data);
-            } else {
-                setError("Gagal memuat data kampanye.");
+
+            try {
+                let response;
+                if (user?.role?.name === 'admin') {
+                    response = await api('getAdminCampaigns');
+                } else if (user?.role?.name === 'brand') {
+                    response = await api('getBrandCampaigns');
+                } else {
+                    handleUnauthorized();
+                    return; // Stop execution if no valid role
+                }
+
+                if (response && response.data) {
+                    setCampaigns(response.data);
+                } else {
+                    setError("Failed to load campaign data.");
+                }
+            } catch (err) {
+                if (err.message.includes('403')) {
+                    handleUnauthorized();
+                } else {
+                    setError("An unexpected error occurred.");
+                }
+            } finally {
+                setLoading(false);
             }
-            setLoading(false);
         };
+
         fetchCampaigns();
-    }, []);
+    }, [user, authLoading, navigate, api]);
 
     if (loading) return <div>Memuat data kampanye...</div>;
     if (error) return <div className="text-red-500 bg-red-100 p-4 rounded-md">{error}</div>;
@@ -61,7 +93,6 @@ export default function AdminCampaignsPage() {
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{formatDate(campaign.start_date)}</td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{formatDate(campaign.end_date)}</td>
                                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                    {/* PERBAIKAN: Mengubah link menjadi tombol yang rapi dan berwarna */}
                                     <div className="flex justify-end items-center gap-2">
                                         <Link 
                                             to={`/admin/campaigns/edit/${campaign.id}`}
@@ -81,10 +112,11 @@ export default function AdminCampaignsPage() {
                                         >
                                             Posts
                                         </Link>
-                                        <Link to={`/admin/campaigns/${campaign.id}/leaderboard`} 
-                                        className="py-1 px-3 bg-yellow-100 text-yellow-700 border border-yellow-200 rounded-md hover:bg-yellow-200 transition-colors text-xs font-semibold"
-                                            >
-                                                Leaderboard
+                                        <Link 
+                                            to={`/admin/campaigns/${campaign.id}/leaderboard`} 
+                                            className="py-1 px-3 bg-yellow-100 text-yellow-700 border border-yellow-200 rounded-md hover:bg-yellow-200 transition-colors text-xs font-semibold"
+                                        >
+                                            Leaderboard
                                         </Link>
                                     </div>
                                 </td>
