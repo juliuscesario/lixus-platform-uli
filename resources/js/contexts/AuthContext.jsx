@@ -3,90 +3,71 @@ import { apiService } from '../services/apiService';
 
 const AuthContext = createContext();
 
-export const useAuth = () => {
-    const context = useContext(AuthContext);
-    if (!context) {
-        throw new Error('useAuth must be used within an AuthProvider');
-    }
-    return context;
-};
-
-export const AuthProvider = ({ children }) => {
-    // Remove localStorage dependency - let session handle persistence
+export function AuthProvider({ children }) {
     const [user, setUser] = useState(null);
-    const [loading, setLoading] = useState(true); // Start with loading true
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [loading, setLoading] = useState(true);
     const [isAuthenticating, setIsAuthenticating] = useState(false);
-    const [sessionExpired, setSessionExpired] = useState(false);
     const [initialized, setInitialized] = useState(false);
+    const [sessionExpiredModalVisible, setSessionExpiredModalVisible] = useState(false);
 
-    // Create the context value first (needed for apiService)
-    const contextValue = {
-        user,
-        loading,
-        isAuthenticating,
-        sessionExpired,
-        initialized,
-        isAuthenticated: !!user,
-        showSessionExpiredModal: () => {
-            setSessionExpired(true);
-            setUser(null);
-        },
-        setSessionExpired
-    };
+    // Create API service instance with auth context
+    const api = apiService({
+        showSessionExpiredModal: () => setSessionExpiredModalVisible(true)
+    });
 
-    // Check authentication status on app initialization
+    // Initialize CSRF and check authentication
     useEffect(() => {
-        let isMounted = true;
-
-        const checkAuthStatus = async () => {
+        const initializeAuth = async () => {
             try {
-                setLoading(true);
-                setIsAuthenticating(true);
+                // Initialize CSRF cookie first
+                await api.getCsrfCookie();
                 
-                // Use session-based check instead of localStorage
-                const userData = await apiService(contextValue).checkAuthStatus();
-                
-                if (isMounted) {
-                    if (userData) {
-                        setUser(userData);
-                    } else {
-                        setUser(null);
-                    }
-                }
+                // Then check if user is authenticated
+                await checkAuthStatus();
             } catch (error) {
-                console.error('Auth status check failed:', error);
-                if (isMounted) {
-                    setUser(null);
-                }
+                console.log('Auth initialization failed:', error);
             } finally {
-                if (isMounted) {
-                    setLoading(false);
-                    setIsAuthenticating(false);
-                    setInitialized(true);
-                }
+                setLoading(false);
+                setInitialized(true);
             }
         };
 
-        checkAuthStatus();
-
-        return () => {
-            isMounted = false;
-        };
+        initializeAuth();
     }, []);
 
-    const login = async (email, password) => {
+    const checkAuthStatus = async () => {
         try {
-            setIsAuthenticating(true);
-            const data = await apiService(contextValue).login(email, password);
-            
-            if (data.user) {
-                setUser(data.user);
-                setSessionExpired(false);
+            const user = await api.checkAuthStatus();
+            if (user) {
+                setUser(user);
+                setIsAuthenticated(true);
+            } else {
+                setUser(null);
+                setIsAuthenticated(false);
             }
-            
-            return data;
         } catch (error) {
-            console.error('Login error:', error);
+            setUser(null);
+            setIsAuthenticated(false);
+        }
+    };
+
+    const login = async (email, password) => {
+        setIsAuthenticating(true);
+        try {
+            // Initialize CSRF before login
+            await api.getCsrfCookie();
+            
+            const response = await api.login(email, password);
+            
+            if (response.user) {
+                setUser(response.user);
+                setIsAuthenticated(true);
+                return response;
+            }
+        } catch (error) {
+            setUser(null);
+            setIsAuthenticated(false);
             throw error;
         } finally {
             setIsAuthenticating(false);
@@ -95,52 +76,37 @@ export const AuthProvider = ({ children }) => {
 
     const logout = async () => {
         try {
-            setIsAuthenticating(true);
-            await apiService(contextValue).logout();
+            await api.logout();
         } catch (error) {
             console.error('Logout error:', error);
         } finally {
             setUser(null);
-            setSessionExpired(false);
-            setIsAuthenticating(false);
+            setIsAuthenticated(false);
         }
     };
 
-    const updateUser = (userData) => {
-        setUser(userData);
+    const showSessionExpiredModal = () => {
+        setSessionExpiredModalVisible(true);
     };
 
-    const refreshUser = async () => {
-        try {
-            const userData = await apiService(contextValue).checkAuthStatus();
-            if (userData) {
-                setUser(userData);
-                return userData;
-            } else {
-                setUser(null);
-                return null;
-            }
-        } catch (error) {
-            console.error('Failed to refresh user:', error);
-            setUser(null);
-            return null;
-        }
+    const hideSessionExpiredModal = () => {
+        setSessionExpiredModalVisible(false);
     };
 
-    // Update context value with all functions
     const value = {
         user,
-        login,
-        logout,
-        updateUser,
-        refreshUser,
+        isAuthenticated,
         loading,
         isAuthenticating,
         initialized,
-        isAuthenticated: !!user,
-        sessionExpired,
-        showSessionExpiredModal: contextValue.showSessionExpiredModal,
-        setSessionExpired
+        login,
+        logout,
+        checkAuthStatus,
+        sessionExpiredModalVisible,
+        showSessionExpiredModal,
+        hideSessionExpiredModal,
+        // Provide the API service instance to components
+        api,
     };
 
     return (
@@ -148,4 +114,12 @@ export const AuthProvider = ({ children }) => {
             {children}
         </AuthContext.Provider>
     );
-};
+}
+
+export function useAuth() {
+    const context = useContext(AuthContext);
+    if (!context) {
+        throw new Error('useAuth must be used within an AuthProvider');
+    }
+    return context;
+}
