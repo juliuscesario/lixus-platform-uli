@@ -1,93 +1,186 @@
-import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { useNavigate, useLocation } from 'react-router-dom';
 
-const IconLock = () => ( <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> );
-const IconMail = () => ( <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg> );
-
-export default function LoginPage() {
+const LoginPage = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
-    const [loading, setLoading] = useState(false);
-    const { login, isAuthenticated } = useAuth();
+    const [isLoading, setIsLoading] = useState(false);
+    
+    const { login } = useAuth();
     const navigate = useNavigate();
+    const location = useLocation();
 
-    // Redirect if already logged in
-    useEffect(() => {
-        if (isAuthenticated) {
-            navigate('/dashboard');
-        }
-    }, [isAuthenticated, navigate]);
+    // Get the intended destination or default to dashboard
+    const from = location.state?.from?.pathname || '/dashboard';
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
-        setLoading(true);
+        setIsLoading(true);
+
         try {
             await login(email, password);
-            // The redirect is now handled by the useEffect hook above,
-            // which waits for `isAuthenticated` to be true.
-        } catch (err) {
-            setError(err.message || 'Email atau password salah. Silakan coba lagi.');
+            // Navigate to intended destination
+            navigate(from, { replace: true });
+        } catch (error) {
+            console.error('Login failed:', error);
+            setError(error.message || 'Login failed. Please check your credentials.');
         } finally {
-            setLoading(false);
+            setIsLoading(false);
         }
     };
-    
+
+    // Quick login buttons for testing
+    const handleQuickLogin = async (userType) => {
+        const credentials = {
+            brand: { email: 'brand@lixus.id', password: 'password' },
+            influencerA: { email: 'influencerA@example.com', password: 'password' },
+            influencerB: { email: 'influencerB@example.com', password: 'password' }
+        };
+
+        const { email: quickEmail, password: quickPassword } = credentials[userType];
+        setEmail(quickEmail);
+        setPassword(quickPassword);
+
+        // Auto-submit
+        setError('');
+        setIsLoading(true);
+
+        try {
+            await login(quickEmail, quickPassword);
+            navigate(from, { replace: true });
+        } catch (error) {
+            console.error('Quick login failed:', error);
+            setError(error.message || 'Login failed. Please check your credentials.');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     return (
-        <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-            <div className="sm:mx-auto sm:w-full sm:max-w-md">
-                <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-                    Login ke Akun Anda
-                </h2>
-                <p className="mt-2 text-center text-sm text-gray-600">
-                    Atau{' '}
-                    {/* MODIFIED: Changed link to the application page */}
-                    <Link to="/apply-influencer" className="font-medium text-pink-600 hover:text-pink-500">
-                        daftar sebagai influencer baru
-                    </Link>
-                </p>
-            </div>
+        <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+            <div className="max-w-md w-full space-y-8">
+                <div>
+                    <div className="mx-auto h-12 w-auto flex items-center justify-center">
+                        <h1 className="text-2xl font-bold text-gray-900">Lixus</h1>
+                    </div>
+                    <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+                        Sign in to your account
+                    </h2>
+                    <p className="mt-2 text-center text-sm text-gray-600">
+                        Lixus Community Platform
+                    </p>
+                </div>
 
-            <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-                <div className="bg-white py-8 px-4 shadow-xl sm:rounded-lg sm:px-10">
-                    <form className="space-y-6" onSubmit={handleSubmit}>
-                        {error && <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-md mb-4">{error}</div>}
-                        
-                        <div>
-                            <label htmlFor="email" className="block text-sm font-medium text-gray-700">Alamat Email</label>
-                            <div className="mt-1 relative rounded-md shadow-sm">
-                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <IconMail className="h-5 w-5 text-gray-400" />
-                                </div>
-                                <input id="email" name="email" type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)}
-                                    className="appearance-none block w-full px-3 py-2 pl-10 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-pink-500 focus:border-pink-500 sm:text-sm"
-                                    placeholder="anda@email.com" />
+                <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+                    {error && (
+                        <div className="bg-red-50 border border-red-200 rounded-md p-4">
+                            <div className="text-sm text-red-700">
+                                {error}
                             </div>
                         </div>
+                    )}
 
+                    <div className="rounded-md shadow-sm -space-y-px">
                         <div>
-                            <label htmlFor="password" className="block text-sm font-medium text-gray-700">Password</label>
-                            <div className="mt-1 relative rounded-md shadow-sm">
-                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <IconLock className="h-5 w-5 text-gray-400" />
+                            <label htmlFor="email" className="sr-only">
+                                Email address
+                            </label>
+                            <input
+                                id="email"
+                                name="email"
+                                type="email"
+                                autoComplete="email"
+                                required
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                className="relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                                placeholder="Email address"
+                                disabled={isLoading}
+                            />
+                        </div>
+                        <div>
+                            <label htmlFor="password" className="sr-only">
+                                Password
+                            </label>
+                            <input
+                                id="password"
+                                name="password"
+                                type="password"
+                                autoComplete="current-password"
+                                required
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                className="relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                                placeholder="Password"
+                                disabled={isLoading}
+                            />
+                        </div>
+                    </div>
+
+                    <div>
+                        <button
+                            type="submit"
+                            disabled={isLoading}
+                            className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            {isLoading ? (
+                                <div className="flex items-center">
+                                    <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full mr-2"></div>
+                                    Signing in...
                                 </div>
-                                <input id="password" name="password" type="password" autoComplete="current-password" required value={password} onChange={(e) => setPassword(e.target.value)}
-                                    className="appearance-none block w-full px-3 py-2 pl-10 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-pink-500 focus:border-pink-500 sm:text-sm"
-                                    placeholder="Password Anda" />
+                            ) : (
+                                'Sign in'
+                            )}
+                        </button>
+                    </div>
+
+                    {/* Quick Login Buttons for Development */}
+                    {process.env.NODE_ENV === 'development' && (
+                        <div className="mt-6 space-y-2">
+                            <div className="text-center text-sm text-gray-500 mb-2">
+                                Quick Login (Development)
+                            </div>
+                            <div className="grid grid-cols-1 gap-2">
+                                <button
+                                    type="button"
+                                    onClick={() => handleQuickLogin('brand')}
+                                    disabled={isLoading}
+                                    className="w-full py-2 px-4 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
+                                >
+                                    Login as Brand
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => handleQuickLogin('influencerA')}
+                                    disabled={isLoading}
+                                    className="w-full py-2 px-4 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
+                                >
+                                    Login as Influencer A
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => handleQuickLogin('influencerB')}
+                                    disabled={isLoading}
+                                    className="w-full py-2 px-4 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
+                                >
+                                    Login as Influencer B
+                                </button>
                             </div>
                         </div>
+                    )}
+                </form>
 
-                        <div>
-                            <button type="submit" disabled={loading}
-                                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-pink-600 hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500 disabled:bg-pink-300">
-                                {loading ? 'Memproses...' : 'Login'}
-                            </button>
-                        </div>
-                    </form>
+                <div className="mt-6">
+                    <div className="text-center text-xs text-gray-500">
+                        Lixus is a combine Creative & Technology as agency
+                    </div>
                 </div>
             </div>
         </div>
     );
-}
+};
+
+export default LoginPage;

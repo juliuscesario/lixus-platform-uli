@@ -1,10 +1,8 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import { apiService } from '../services/apiService';
 
-// Create the AuthContext
 const AuthContext = createContext();
 
-// Custom hook to use the AuthContext
 export const useAuth = () => {
     const context = useContext(AuthContext);
     if (!context) {
@@ -13,102 +11,136 @@ export const useAuth = () => {
     return context;
 };
 
-// AuthProvider component
 export const AuthProvider = ({ children }) => {
-    const [user, setUser] = useState(() => {
-        const storedUser = localStorage.getItem('authUser');
-        return storedUser ? JSON.parse(storedUser) : null;
-    });
-    const [loading, setLoading] = useState(false);
-    const [sessionExpired, setSessionExpired] = useState(false); // New state for session status
+    // Remove localStorage dependency - let session handle persistence
+    const [user, setUser] = useState(null);
+    const [loading, setLoading] = useState(true); // Start with loading true
+    const [isAuthenticating, setIsAuthenticating] = useState(false);
+    const [sessionExpired, setSessionExpired] = useState(false);
+    const [initialized, setInitialized] = useState(false);
 
-    // Check if user is authenticated on app load
+    // Create the context value first (needed for apiService)
+    const contextValue = {
+        user,
+        loading,
+        isAuthenticating,
+        sessionExpired,
+        initialized,
+        isAuthenticated: !!user,
+        showSessionExpiredModal: () => {
+            setSessionExpired(true);
+            setUser(null);
+        },
+        setSessionExpired
+    };
+
+    // Check authentication status on app initialization
     useEffect(() => {
-        const checkUser = async () => {
-            setLoading(true);
+        let isMounted = true;
+
+        const checkAuthStatus = async () => {
             try {
-                const { user: refreshedUser } = await apiService(value).checkAuthStatus();
-                if (refreshedUser) {
-                    setUser(refreshedUser);
-                    localStorage.setItem('authUser', JSON.stringify(refreshedUser));
-                } else {
-                    // If check fails, clear local state and storage
-                    setUser(null);
-                    localStorage.removeItem('authUser');
+                setLoading(true);
+                setIsAuthenticating(true);
+                
+                // Use session-based check instead of localStorage
+                const userData = await apiService(contextValue).checkAuthStatus();
+                
+                if (isMounted) {
+                    if (userData) {
+                        setUser(userData);
+                    } else {
+                        setUser(null);
+                    }
                 }
             } catch (error) {
-                console.error("Authentication check failed on refresh:", error);
-                setUser(null);
-                localStorage.removeItem('authUser');
+                console.error('Auth status check failed:', error);
+                if (isMounted) {
+                    setUser(null);
+                }
             } finally {
-                setLoading(false);
+                if (isMounted) {
+                    setLoading(false);
+                    setIsAuthenticating(false);
+                    setInitialized(true);
+                }
             }
         };
 
-        // Only run check if there's a user from localStorage initially
-        if (user) {
-            checkUser();
-        }
+        checkAuthStatus();
+
+        return () => {
+            isMounted = false;
+        };
     }, []);
 
-    const showSessionExpiredModal = () => {
-        setSessionExpired(true);
-    };
-
-
-    // Login function
     const login = async (email, password) => {
         try {
-            const data = await apiService(null).login(email, password);
-            setUser(data.user);
-            localStorage.setItem('authUser', JSON.stringify(data.user));
+            setIsAuthenticating(true);
+            const data = await apiService(contextValue).login(email, password);
+            
+            if (data.user) {
+                setUser(data.user);
+                setSessionExpired(false);
+            }
+            
             return data;
         } catch (error) {
+            console.error('Login error:', error);
             throw error;
+        } finally {
+            setIsAuthenticating(false);
         }
     };
 
-    // Logout function
     const logout = async () => {
         try {
-            await apiService(null).logout();
+            setIsAuthenticating(true);
+            await apiService(contextValue).logout();
         } catch (error) {
             console.error('Logout error:', error);
         } finally {
-            localStorage.removeItem('authUser');
             setUser(null);
-            setSessionExpired(false); // Clear session expired flag on logout
-            // Navigation will be handled by the component that calls logout
+            setSessionExpired(false);
+            setIsAuthenticating(false);
         }
     };
 
-    // Update user function
     const updateUser = (userData) => {
         setUser(userData);
-        localStorage.setItem('authUser', JSON.stringify(userData));
     };
 
-   const checkAuthStatus = async () => {
+    const refreshUser = async () => {
         try {
-            const fetchedUser = await apiService({ showSessionExpiredModal }).checkAuthStatus();
-            setUser(fetchedUser);
+            const userData = await apiService(contextValue).checkAuthStatus();
+            if (userData) {
+                setUser(userData);
+                return userData;
+            } else {
+                setUser(null);
+                return null;
+            }
         } catch (error) {
+            console.error('Failed to refresh user:', error);
             setUser(null);
-            console.log("No active session found.");
+            return null;
         }
     };
 
+    // Update context value with all functions
     const value = {
         user,
         login,
         logout,
         updateUser,
+        refreshUser,
         loading,
+        isAuthenticating,
+        initialized,
         isAuthenticated: !!user,
         sessionExpired,
-        showSessionExpiredModal,
-        setSessionExpired,
-        checkAuthStatus // <-- EXPOSE THE FUNCTION HERE
+        showSessionExpiredModal: contextValue.showSessionExpiredModal,
+        setSessionExpired
     };
 
     return (

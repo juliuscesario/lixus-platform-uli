@@ -3,121 +3,90 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Auth;
-use App\Models\User;
-use App\Models\Role; // Kita perlu Role model untuk assign role
 use App\Http\Resources\UserResource;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\ValidationException;
+use App\Models\User;
 
 class AuthController extends Controller
 {
-    public function register(Request $request)
-    {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:8|confirmed',
-        ]);
-
-        $influencerRole = Role::where('name', 'influencer')->first();
-
-        if (!$influencerRole) {
-            return response()->json(['message' => 'Influencer role not found. Please run seeder.'], 500);
-        }
-
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-            'role_id' => $influencerRole->id,
-        ]);
-
-        // Load the relationship before returning the user data
-        $user->load('role', 'socialMediaAccounts');
-
-        $token = $user->createToken('auth_token')->plainTextToken;
-
-        return response()->json([
-            'message' => 'Registration successful!',
-            // Use the UserResource for a consistent response format
-            'user' => new UserResource($user), 
-            'access_token' => $token,
-            'token_type' => 'Bearer',
-        ], 201);
-    }
-
+    /**
+     * Handle user login using session-based authentication
+     */
     public function login(Request $request)
     {
         $request->validate([
-            'email' => 'required|string|email',
-            'password' => 'required|string',
+            'email' => 'required|email',
+            'password' => 'required',
         ]);
 
-        if (!Auth::attempt($request->only('email', 'password'))) {
-            return response()->json([
-                'message' => 'Invalid login details'
-            ], 401);
+        $user = User::where('email', $request->email)->first();
+
+        if (!$user || !Hash::check($request->password, $user->password)) {
+            throw ValidationException::withMessages([
+                'email' => ['The provided credentials are incorrect.'],
+            ]);
         }
 
-        $user = User::where('email', $request->email)->firstOrFail();
-        $token = $user->createToken('auth_token')->plainTextToken;
+        // Use session-based authentication instead of tokens
+        Auth::login($user, true); // Remember the user
         
-        // --- MODIFY THIS LINE ---
-        // Add 'socialMediaAccounts' to the list of relationships to load.
+        // Regenerate session to prevent session fixation
+        $request->session()->regenerate();
+
+        // Load relationships
         $user->load('role', 'influencerProfile', 'socialMediaAccounts');
 
         return response()->json([
             'message' => 'Login successful!',
             'user' => new UserResource($user),
-            'access_token' => $token,
-            'token_type' => 'Bearer',
         ]);
     }
 
+    /**
+     * Handle user logout
+     */
     public function logout(Request $request)
     {
-        // Get the current access token
-        $token = $request->user()->currentAccessToken();
+        Auth::logout();
         
-        // Only delete if it's a PersonalAccessToken (not TransientToken)
-        if ($token && method_exists($token, 'delete')) {
-            $token->delete();
-        }
-        
-        // Alternative approach: Delete all tokens for the user
-        // This ensures complete logout from all devices
-        $request->user()->tokens()->delete();
-        
-        // For API routes with Sanctum, we don't need Auth::logout()
-        // as it's token-based authentication, not session-based
-        
-        // If there's a session (for web routes), clear it
-        if ($request->hasSession()) {
-            $request->session()->invalidate();
-            $request->session()->regenerateToken();
-        }
-    
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
         return response()->json([
             'message' => 'Logged out successfully'
         ]);
     }
     
     /**
-     * Get the authenticated User.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \App\Http\Resources\UserResource
+     * Get the authenticated user
      */
     public function me(Request $request)
     {
-        // Get the currently authenticated user from the request
         $user = $request->user();
         
+        if (!$user) {
+            return response()->json([
+                'message' => 'Unauthenticated'
+            ], 401);
+        }
+
         // Load the relationships needed by the frontend
         $user->load('role', 'influencerProfile', 'socialMediaAccounts');
 
         // Return the user data formatted by our UserResource
-        return new UserResource($user);
+        return response()->json([
+            'user' => new UserResource($user),
+        ]);
+    }
+
+    /**
+     * Initialize CSRF cookie for SPA
+     */
+    public function sanctumCsrf()
+    {
+        return response()->json(['message' => 'CSRF cookie initialized']);
     }
 }
