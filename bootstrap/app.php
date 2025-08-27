@@ -12,21 +12,20 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
+        // ✅ THIS IS THE ONLY LINE YOU NEED FOR SANCTUM SESSIONS
+        // It correctly applies the stateful API middleware.
+        $middleware->statefulApi(); 
+
+        // This is fine, especially if you are behind a load balancer.
         $middleware->trustProxies(at: '*');
 
-        $middleware->api(prepend: [
-            \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
-        ]);
-
-        $middleware->web(append: [
-            \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
-        ]);
-
+        // This is also correct.
         $middleware->validateCsrfTokens(except: [
             'api/public/*',
+            'api/login'
         ]);
 
-        // ✅ FIX: Define simple, direct aliases for the role middleware.
+        // Your role aliases are correct.
         $middleware->alias([
             'admin' => \App\Http\Middleware\IsAdmin::class,
             'influencer' => \App\Http\Middleware\IsInfluencer::class,

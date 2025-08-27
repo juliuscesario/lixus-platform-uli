@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\SocialMediaAccountController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\ReportController;
 use App\Http\Controllers\Api\InfluencerApplicationController;
+use App\Http\Controllers\Api\TikTokController;
 
 /*
 |--------------------------------------------------------------------------
@@ -36,6 +37,10 @@ Route::prefix('public')->group(function () {
 
 // --- PROTECTED API ROUTES (Requires Sanctum Token) ---
 Route::middleware('auth:sanctum')->group(function () {
+
+     // ✅ ADD THE DISCONNECT ROUTE HERE
+    Route::post('/social/tiktok/disconnect', [TikTokController::class, 'disconnectTikTok']);
+    
     // --- Core Authenticated User Actions ---
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/user/profile', [UserController::class, 'showProfile']);

@@ -23,23 +23,14 @@ Route::get('/privacy-policy', function () {
 });
 
 // --- TIKTOK CONNECTOR ROUTES ---
-// The 'auth' middleware ensures that only logged-in users can connect their accounts.
 Route::middleware('auth')->prefix('social')->group(function () {
     Route::get('/tiktok/redirect', [TikTokController::class, 'redirectToTikTok'])->name('social.tiktok.redirect');
-    // ADD THIS NEW ROUTE FOR DISCONNECTING
-    Route::post('/tiktok/disconnect', [TikTokController::class, 'disconnectTikTok'])->name('social.tiktok.disconnect');
-    // ADD THIS NEW ROUTE
-    Route::get('/me', [AuthController::class, 'me']);
-
+    // REMOVE THE DISCONNECT ROUTE FROM THIS FILE
 });
 
 Route::get('/social/tiktok/callback', [TikTokController::class, 'handleTikTokCallback'])->name('social.tiktok.callback');
 
-
-// Arahkan semua request non-API ke view 'app'
-// yang akan memuat aplikasi React Anda.
+// Your React catch-all route (this is correct)
 Route::get('/{any?}', function () {
     return view('welcome');
-})->where('any', '.*');
-
-// Route untuk API Anda akan tetap ada di routes/api.php
+})->where('any', '.*'); 

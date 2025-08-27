@@ -20,11 +20,13 @@ class TikTokController extends Controller
         $state = Str::random(40);
         Cache::put('tiktok_state_'.$state, Auth::id(), now()->addMinutes(10));
         $baseUrl = 'https://www.tiktok.com/v2/auth/authorize/';
+        
+        // ✅ MENGGUNAKAN config() BUKAN env()
         $params = [
-            'client_key' => env('TIKTOK_CLIENT_KEY'),
+            'client_key' => config('services.tiktok.client_key'),
             'scope' => 'user.info.basic,user.info.profile,user.info.stats,video.list',
             'response_type' => 'code',
-            'redirect_uri' => env('TIKTOK_REDIRECT_URI'),
+            'redirect_uri' => config('services.tiktok.redirect_uri'),
             'state' => $state,
         ];
         $url = $baseUrl . '?' . http_build_query($params);
@@ -44,16 +46,18 @@ class TikTokController extends Controller
         }
 
         try {
+            // ✅ MENGGUNAKAN config() BUKAN env()
             $tokenResponse = Http::asForm()->post('https://open.tiktokapis.com/v2/oauth/token/', [
-                'client_key' => env('TIKTOK_CLIENT_KEY'),
-                'client_secret' => env('TIKTOK_CLIENT_SECRET'),
+                'client_key' => config('services.tiktok.client_key'),
+                'client_secret' => config('services.tiktok.client_secret'),
                 'code' => $request->code,
                 'grant_type' => 'authorization_code',
-                'redirect_uri' => env('TIKTOK_REDIRECT_URI'),
+                'redirect_uri' => config('services.tiktok.redirect_uri'),
             ]);
 
             if ($tokenResponse->failed()) { return redirect('/dashboard')->with('error', 'Failed to get TikTok access token.'); }
 
+            // ... sisa kodenya sama ...
             $tokenData = $tokenResponse->json();
             $accessToken = $tokenData['access_token'];
             $userResponse = Http::withToken($accessToken)->get('https://open.tiktokapis.com/v2/user/info/', [
@@ -67,21 +71,18 @@ class TikTokController extends Controller
                 [
                     'user_id' => $user->id,
                     'platform' => 'tiktok',
-                    'platform_user_id' => $userData['open_id'], // Corrected column name
+                    'platform_user_id' => $userData['open_id'],
                 ],
                 [
                     'username' => $userData['username'],
                     'access_token' => Crypt::encryptString($accessToken),
                     'refresh_token' => isset($tokenData['refresh_token']) ? Crypt::encryptString($tokenData['refresh_token']) : null,
-                    'expires_at' => isset($tokenData['expires_in']) ? now()->addSeconds($tokenData['expires_in']) : null,
+                    'token_expires_at' => isset($tokenData['expires_in']) ? now()->addSeconds($tokenData['expires_in']) : null,
                     'meta_data' => $userData,
                 ]
             );
             
-            // Log the user in to create a session
             Auth::login($user);
-
-            // Redirect directly to the dashboard
             return redirect('/dashboard');
 
         } catch (\Exception $e) {
@@ -89,13 +90,15 @@ class TikTokController extends Controller
             return redirect('/dashboard')->with('error', 'An unexpected error occurred.');
         }
     }
-
+    
+    // ... fungsi disconnectTikTok Anda ...
     public function disconnectTikTok(Request $request)
     {
         $user = Auth::user();
-        SocialMediaAccount::where('user_id', $user->id)
-            ->where('platform', 'tiktok')
-            ->delete();
-        return back()->with('success', 'Successfully disconnected your TikTok account.');
+        if ($user) {
+            $user->socialMediaAccounts()->where('platform', 'tiktok')->delete();
+            return response()->json(['message' => 'Successfully disconnected your TikTok account.']);
+        }
+        return response()->json(['message' => 'User not authenticated.'], 401);
     }
 }
