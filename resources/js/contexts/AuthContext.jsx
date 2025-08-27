@@ -88,6 +88,16 @@ export const AuthProvider = ({ children }) => {
         localStorage.setItem('authUser', JSON.stringify(userData));
     };
 
+   const checkAuthStatus = async () => {
+        try {
+            const fetchedUser = await apiService({ showSessionExpiredModal }).checkAuthStatus();
+            setUser(fetchedUser);
+        } catch (error) {
+            setUser(null);
+            console.log("No active session found.");
+        }
+    };
+
     const value = {
         user,
         login,
@@ -97,7 +107,8 @@ export const AuthProvider = ({ children }) => {
         isAuthenticated: !!user,
         sessionExpired,
         showSessionExpiredModal,
-        setSessionExpired
+        setSessionExpired,
+        checkAuthStatus // <-- EXPOSE THE FUNCTION HERE
     };
 
     return (

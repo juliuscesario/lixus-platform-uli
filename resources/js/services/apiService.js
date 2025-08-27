@@ -263,7 +263,14 @@ export const apiService = (auth) => ({
     getMyCampaigns: () => apiFetch(`${API_BASE_URL}/influencer/campaigns`, {}, auth),
     applyCampaign: (campaignId) => apiFetch(`${API_BASE_URL}/influencer/campaigns/${campaignId}/apply`, { method: 'POST' }, auth),
     withdrawFromCampaign: (campaignId) => apiFetch(`${API_BASE_URL}/influencer/campaigns/${campaignId}/withdraw`, { method: 'POST' }, auth),
-    
+     // --- ADD THIS NEW FUNCTION ---
+    // This function will handle the secure POST request for disconnecting.
+    // Your apiFetch wrapper automatically adds the necessary CSRF token.
+    disconnectTikTok: () => {
+        return apiFetch(`${BASE_URL}/social/tiktok/disconnect`, {
+            method: 'POST',
+        }, auth);
+    },
     // New endpoint for influencer dashboard stats
     getInfluencerDashboardStats: (userId) => apiFetch(`${API_BASE_URL}/influencer/dashboard-stats/${userId}`, {}, auth),
 });
