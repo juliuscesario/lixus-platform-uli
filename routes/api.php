@@ -52,6 +52,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // --- INFLUENCER SPECIFIC ROUTES ---
     // ✅ FIX: Changed middleware from 'can:influencer' to the correct alias 'influencer'
     Route::middleware('influencer')->group(function () {
+        Route::post('/influencer/campaigns/{campaign}/fetch-tiktok-videos', [TikTokController::class, 'fetchUserVideos']);
         Route::get('/influencer/profile', [InfluencerProfileController::class, 'showAuthenticatedInfluencerProfile']);
         Route::put('/influencer/profile', [InfluencerProfileController::class, 'updateAuthenticatedInfluencerProfile']);
         Route::apiResource('social-media-accounts', SocialMediaAccountController::class);

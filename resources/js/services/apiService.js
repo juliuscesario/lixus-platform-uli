@@ -260,5 +260,6 @@ export const apiService = (auth) => ({
             method: 'POST',
         }, auth);
     },
+    fetchTiktokVideos: (campaignId) => apiFetch(`${API_BASE_URL}/influencer/campaigns/${campaignId}/fetch-tiktok-videos`, { method: 'POST', body: { campaign_id: campaignId } }, auth),
     getInfluencerDashboardStats: (userId) => apiFetch(`${API_BASE_URL}/influencer/dashboard-stats/${userId}`, {}, auth),
 });

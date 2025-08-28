@@ -79,6 +79,16 @@ export default function MyCampaignsPage({ user }) {
         }
     };
 
+    const handleFetchTiktokVideos = async (campaignId) => {
+        try {
+            const response = await apiService(auth).fetchTiktokVideos(campaignId);
+            alert(response.message);
+            // you might want to refresh the posts modal after this
+        } catch (err) {
+            alert(err.message || 'Gagal mengambil video TikTok.');
+        }
+    };
+
     if (loading) return <div>Memuat kampanye Anda...</div>;
     if (error) return <div className="text-red-500 bg-red-100 p-4 rounded-md">{error}</div>;
 
@@ -115,6 +125,7 @@ export default function MyCampaignsPage({ user }) {
                                     {p.participant_status === 'approved' ? (
                                         <div className="flex justify-end items-center gap-4">
                                             <button onClick={() => handleViewPosts(p.id, p.name)} className="text-blue-600 hover:underline">Lihat Postingan</button>
+                                            <button onClick={() => handleFetchTiktokVideos(p.id)} className="text-purple-600 hover:underline">Fetch TikTok Videos</button>
                                             <button onClick={() => handleWithdraw(p.id)} className="text-red-600 hover:underline">Withdraw</button>
                                         </div>
                                     ) : (
