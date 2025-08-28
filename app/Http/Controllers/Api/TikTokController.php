@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Services\TikTokService; // 👈 Add this
 use App\Models\SocialMediaAccount;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -12,6 +13,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
+use App\Models\Campaign;
+use App\Models\Post;
 
 class TikTokController extends Controller
 {
@@ -21,7 +24,6 @@ class TikTokController extends Controller
         Cache::put('tiktok_state_'.$state, Auth::id(), now()->addMinutes(10));
         $baseUrl = 'https://www.tiktok.com/v2/auth/authorize/';
         
-        // ✅ MENGGUNAKAN config() BUKAN env()
         $params = [
             'client_key' => config('services.tiktok.client_key'),
             'scope' => 'user.info.basic,user.info.profile,user.info.stats,video.list',
@@ -46,7 +48,6 @@ class TikTokController extends Controller
         }
 
         try {
-            // ✅ MENGGUNAKAN config() BUKAN env()
             $tokenResponse = Http::asForm()->post('https://open.tiktokapis.com/v2/oauth/token/', [
                 'client_key' => config('services.tiktok.client_key'),
                 'client_secret' => config('services.tiktok.client_secret'),
@@ -57,7 +58,6 @@ class TikTokController extends Controller
 
             if ($tokenResponse->failed()) { return redirect('/dashboard')->with('error', 'Failed to get TikTok access token.'); }
 
-            // ... sisa kodenya sama ...
             $tokenData = $tokenResponse->json();
             $accessToken = $tokenData['access_token'];
             $userResponse = Http::withToken($accessToken)->get('https://open.tiktokapis.com/v2/user/info/', [
@@ -91,7 +91,6 @@ class TikTokController extends Controller
         }
     }
     
-    // ... fungsi disconnectTikTok Anda ...
     public function disconnectTikTok(Request $request)
     {
         $user = Auth::user();
@@ -100,5 +99,35 @@ class TikTokController extends Controller
             return response()->json(['message' => 'Successfully disconnected your TikTok account.']);
         }
         return response()->json(['message' => 'User not authenticated.'], 401);
+    }
+
+    public function fetchUserVideos(Request $request, TikTokService $tiktokService) // 👈 Inject the service
+    {
+        try {
+            $request->validate([
+                'campaign_id' => 'required|uuid|exists:campaigns,id',
+            ]);
+
+            $user = Auth::user();
+            $campaign = Campaign::findOrFail($request->input('campaign_id'));
+
+            // 👇 Use the service
+            $result = $tiktokService->fetchAndSaveUserVideos($user, $campaign);
+
+            if ($result['status'] === 'error') {
+                return response()->json(['message' => $result['message']], 400);
+            }
+            
+            // Reformat the message for the frontend response
+            $message = str_replace("user {$user->id}", 'you', $result['message']);
+            return response()->json(['message' => ucfirst($message)]);
+
+        } catch (\Exception $e) {
+            Log::error('An unexpected exception occurred in fetchUserVideos controller action.', [
+                'error_message' => $e->getMessage(), 'file' => $e->getFile(), 'line' => $e->getLine(),
+                'trace' => Str::limit($e->getTraceAsString(), 2000),
+            ]);
+            return response()->json(['message' => 'An unexpected server error occurred. The issue has been logged.'], 500);
+        }
     }
 }

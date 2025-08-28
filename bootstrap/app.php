@@ -34,4 +34,8 @@ return Application::configure(basePath: dirname(__DIR__))
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         // Exception handling can be configured here
+    })
+    // ✅ FIX: Use the full namespace directly in the type hint
+    ->withSchedule(function (\Illuminate\Console\Scheduling\Schedule $schedule) {
+        $schedule->command('app:sync-campaign-posts')->everyFifteenMinutes();
     })->create();

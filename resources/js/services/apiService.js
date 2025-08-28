@@ -227,6 +227,8 @@ export const apiService = (auth) => ({
     getAdminCampaignPosts: (campaignId, queryParams = '') => apiFetch(`${API_BASE_URL}/admin/campaigns/${campaignId}/posts?${queryParams}`, {}, auth),
     validatePost: (postId, isValid, notes) => apiFetch(`${API_BASE_URL}/admin/posts/${postId}`, { method: 'PUT', body: { is_valid_for_campaign: isValid, validation_notes: notes } }, auth),
     getPostsForInfluencerInCampaign: (campaignId, userId) => apiFetch(`${API_BASE_URL}/public/campaigns/${campaignId}/posts?user_id=${userId}`, {}, auth),
+    // 👇 Add this new function
+    recalculateCampaignScores: (campaignId) => apiFetch(`${API_BASE_URL}/admin/campaigns/${campaignId}/recalculate-scores`, { method: 'POST' }, auth),
 
     fetchAbsoluteUrl: (url) => apiFetch(url, {}, auth),
     
@@ -260,5 +262,6 @@ export const apiService = (auth) => ({
             method: 'POST',
         }, auth);
     },
+    fetchTiktokVideos: (campaignId) => apiFetch(`${API_BASE_URL}/influencer/campaigns/${campaignId}/fetch-tiktok-videos`, { method: 'POST', body: { campaign_id: campaignId } }, auth),
     getInfluencerDashboardStats: (userId) => apiFetch(`${API_BASE_URL}/influencer/dashboard-stats/${userId}`, {}, auth),
 });
