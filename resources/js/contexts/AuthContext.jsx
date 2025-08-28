@@ -1,10 +1,8 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { apiService } from '../services/apiService';
 
-// Create the AuthContext
 const AuthContext = createContext();
 
-// Custom hook to use the AuthContext
 export const useAuth = () => {
     const context = useContext(AuthContext);
     if (!context) {
@@ -13,91 +11,64 @@ export const useAuth = () => {
     return context;
 };
 
-// AuthProvider component
 export const AuthProvider = ({ children }) => {
-    const [user, setUser] = useState(() => {
-        const storedUser = localStorage.getItem('authUser');
-        return storedUser ? JSON.parse(storedUser) : null;
-    });
-    const [loading, setLoading] = useState(false);
-    const [sessionExpired, setSessionExpired] = useState(false); // New state for session status
+    const [user, setUser] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [sessionExpired, setSessionExpired] = useState(false);
 
-    // Check if user is authenticated on app load
+    // This object will be passed to apiService, containing the functions it needs
+    const authHelpers = {
+        showSessionExpiredModal: () => setSessionExpired(true),
+    };
+
     useEffect(() => {
         const checkUser = async () => {
-            setLoading(true);
             try {
-                const { user: refreshedUser } = await apiService(value).checkAuthStatus();
-                if (refreshedUser) {
-                    setUser(refreshedUser);
-                    localStorage.setItem('authUser', JSON.stringify(refreshedUser));
-                } else {
-                    // If check fails, clear local state and storage
-                    setUser(null);
-                    localStorage.removeItem('authUser');
+                // This call now uses the updated apiService which won't trigger the modal
+                const data = await apiService(authHelpers).checkAuthStatus();
+                if (data && data.user) {
+                    setUser(data.user);
                 }
             } catch (error) {
-                console.error("Authentication check failed on refresh:", error);
+                console.log("No active session found. Ready for login.");
                 setUser(null);
-                localStorage.removeItem('authUser');
             } finally {
-                setLoading(false);
+                setLoading(false); // Done checking, allow app to render
             }
         };
 
-        // Only run check if there's a user from localStorage initially
-        if (user) {
-            checkUser();
-        }
+        checkUser();
     }, []);
 
-    const showSessionExpiredModal = () => {
-        setSessionExpired(true);
-    };
-
-
-    // Login function
     const login = async (email, password) => {
-        try {
-            const data = await apiService(null).login(email, password);
-            setUser(data.user);
-            localStorage.setItem('authUser', JSON.stringify(data.user));
-            return data;
-        } catch (error) {
-            throw error;
-        }
+        const data = await apiService(authHelpers).login(email, password);
+        // Assuming login returns user data in a 'user' or 'data' property
+        const userData = data.user || data.data;
+        setUser(userData);
+        return data;
     };
 
-    // Logout function
     const logout = async () => {
         try {
-            await apiService(null).logout();
+            await apiService(authHelpers).logout();
         } catch (error) {
             console.error('Logout error:', error);
         } finally {
-            localStorage.removeItem('authUser');
             setUser(null);
-            setSessionExpired(false); // Clear session expired flag on logout
-            // Navigation will be handled by the component that calls logout
+            setSessionExpired(false);
+            window.location.href = '/login';
         }
     };
-
-    // Update user function
-    const updateUser = (userData) => {
-        setUser(userData);
-        localStorage.setItem('authUser', JSON.stringify(userData));
-    };
-
+    
     const value = {
         user,
         login,
         logout,
-        updateUser,
         loading,
         isAuthenticated: !!user,
         sessionExpired,
-        showSessionExpiredModal,
-        setSessionExpired
+        setSessionExpired,
+        showSessionExpiredModal: authHelpers.showSessionExpiredModal,
     };
 
     return (

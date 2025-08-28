@@ -11,7 +11,6 @@ const SANCTUM_URL = BASE_URL;
 // --- Helper Functions ---
 
 /**
- * THIS IS THE MISSING FUNCTION
  * A helper function to read a specific cookie from the browser.
  * It's needed to retrieve the XSRF-TOKEN for secure POST requests.
  */
@@ -20,7 +19,6 @@ function getCookie(name) {
     const parts = value.split(`; ${name}=`);
     if (parts.length === 2) return parts.pop().split(';').shift();
 }
-
 
 export const formatDate = (dateString) => {
     if (!dateString) return "N/A";
@@ -54,78 +52,72 @@ export const formatCompactNumber = (number) => {
     }).format(number);
 };
 
-
 /**
  * A global fetch wrapper that handles credentials, headers, and authentication errors.
- * This is the core of the fix.
  * @param {string} url - The URL to fetch.
- * @param {object} options - The fetch options.
+ * @param {object} options - The fetch options, including a custom 'suppressAuthRedirect' flag.
+ * @param {object} auth - The auth context object with showSessionExpiredModal.
  * @returns {Promise<Response>}
  */
 const apiFetch = async (url, options = {}, auth) => {
-    // Get XSRF token for POST/PUT/PATCH/DELETE requests
+    // Destructure our custom option out so it's not passed to fetch()
+    const { suppressAuthRedirect, ...fetchOptions } = options;
+
     const xsrfToken = getCookie('XSRF-TOKEN');
     
     const defaultOptions = {
-        // **THE FIX**: This ensures cookies (session, XSRF-TOKEN) are sent with every request.
         credentials: 'include',
         headers: {
             'Accept': 'application/json',
             'X-Requested-With': 'XMLHttpRequest',
-            'Content-Type': 'application/json', // Assume JSON content type for POST/PUT/PATCH
-            ...options.headers,
+            'Content-Type': 'application/json',
+            ...fetchOptions.headers,
         },
-        ...options,
+        ...fetchOptions,
     };
     
-    // Add XSRF token for state-changing requests
-    if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(options.method?.toUpperCase()) && xsrfToken) {
+    // ** THE FIX IS HERE **: Corrected 'xsriToken' to 'xsrfToken'
+    if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(defaultOptions.method?.toUpperCase()) && xsrfToken) {
         defaultOptions.headers['X-XSRF-TOKEN'] = decodeURIComponent(xsrfToken);
     }
     
-    // Automatically stringify body if it's an object
-    if (defaultOptions.body && typeof defaultOptions.body === 'object') {
+    // Automatically stringify body unless it's FormData
+    if (defaultOptions.body && typeof defaultOptions.body === 'object' && !(defaultOptions.body instanceof FormData)) {
         defaultOptions.body = JSON.stringify(defaultOptions.body);
     }
 
-    console.log('Fetching URL:', url, 'with options:', defaultOptions);
     const response = await fetch(url, defaultOptions);
 
-    // Check if it's a public route by examining the URL
     const isPublicRoute = url.includes('/public/') || url.includes('/sanctum/');
     
-    // If the session has expired, Laravel returns 401 or 419.
-    // Only redirect to login if it's not a public route
-    if ((response.status === 401 || response.status === 419) && !isPublicRoute) {
-        if (auth) {
+    // Only show the modal if the request failed AND the suppress flag is false.
+    if ((response.status === 401 || response.status === 419) && !isPublicRoute && !suppressAuthRedirect) {
+        if (auth && auth.showSessionExpiredModal) {
             auth.showSessionExpiredModal();
         }
+        // We still throw the error to stop the promise chain
         throw new Error('Your session has expired. Please log in again.');
     }
 
-    // For public routes, let 401 errors pass through without redirecting
-    if (!response.ok && (response.status === 401 || response.status === 419) && isPublicRoute) {
-        throw new Error('Unauthorized');
-    }
-
-    // Handle empty response
-    let data;
-    try {
-        data = await response.json();
-    } catch (e) {
-        if (!response.ok) {
+    if (!response.ok) {
+        let errorData;
+        try {
+            errorData = await response.json();
+        } catch (e) {
+            // If parsing JSON fails, throw a generic error
             throw new Error(`HTTP error! Status: ${response.status}`);
         }
-        data = {};
-    }
-
-    if (!response.ok) {
-        const message = data.message || `HTTP error! Status: ${response.status}`;
-        const validationErrors = data.errors ? Object.values(data.errors).flat().join(' ') : '';
+        const message = errorData.message || `HTTP error! Status: ${response.status}`;
+        const validationErrors = errorData.errors ? Object.values(errorData.errors).flat().join(' ') : '';
         throw new Error(`${message} ${validationErrors}`);
     }
+    
+    // Handle 204 No Content response
+    if (response.status === 204) {
+        return {};
+    }
 
-    return data;
+    return response.json();
 }
 
 
@@ -175,15 +167,15 @@ export const apiService = (auth) => ({
 
     checkAuthStatus: async () => {
         try {
-            // This will succeed if the user is authenticated
-            const response = await apiFetch(`${API_BASE_URL}/user/profile`, {}, auth);
-            return { user: response.user };
+            // We pass our new option to this specific call.
+            const response = await apiFetch(`${API_BASE_URL}/user/profile`, { suppressAuthRedirect: true }, auth);
+            return { user: response.data || response }; // Handle cases where user is nested in 'data'
         } catch (error) {
-            // If it fails with a 401, it means the user is not logged in. Return null.
+            // If it fails with a 401, it's expected for a non-logged-in user. Return null.
             if (error.message.includes('401') || error.message.includes('Unauthorized')) {
                 return { user: null };
             }
-            // For other errors, re-throw them.
+            // For other errors, re-throw them so they can be caught elsewhere if needed.
             throw error;
         }
     },
@@ -239,7 +231,7 @@ export const apiService = (auth) => ({
     fetchAbsoluteUrl: (url) => apiFetch(url, {}, auth),
     
     // ===================================
-    // NEW! STRATEGIC REPORTING ROUTES
+    // STRATEGIC REPORTING ROUTES
     // ===================================
     getBrandPerformanceReport: (params = {}) => {
         const query = new URLSearchParams(params).toString();
@@ -257,13 +249,16 @@ export const apiService = (auth) => ({
         return apiFetch(`${API_BASE_URL}/admin/reports/influencer-performance/${userId}`, {}, auth);
     },
 
-    // =-=================================
+    // ===================================
     // INFLUENCER ROUTES
     // ===================================
     getMyCampaigns: () => apiFetch(`${API_BASE_URL}/influencer/campaigns`, {}, auth),
     applyCampaign: (campaignId) => apiFetch(`${API_BASE_URL}/influencer/campaigns/${campaignId}/apply`, { method: 'POST' }, auth),
     withdrawFromCampaign: (campaignId) => apiFetch(`${API_BASE_URL}/influencer/campaigns/${campaignId}/withdraw`, { method: 'POST' }, auth),
-    
-    // New endpoint for influencer dashboard stats
+    disconnectTikTok: () => {
+        return apiFetch(`${API_BASE_URL}/social/tiktok/disconnect`, {
+            method: 'POST',
+        }, auth);
+    },
     getInfluencerDashboardStats: (userId) => apiFetch(`${API_BASE_URL}/influencer/dashboard-stats/${userId}`, {}, auth),
 });

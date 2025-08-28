@@ -115,6 +115,7 @@ class InfluencerApplicationController extends Controller
             return response()->json([
                 'message' => 'Influencer application approved successfully. User account has been created and a welcome email has been sent.',
                 'user' => $user->load('influencerProfile'),
+                'generated_password' => $password, // <-- THIS IS THE REQUIRED CHANGE
             ], 200);
 
         } catch (\Exception $e) {

@@ -20,7 +20,6 @@ class AuthController extends Controller
             'password' => 'required|string|min:8|confirmed',
         ]);
 
-        // Dapatkan role_id untuk 'influencer' secara default
         $influencerRole = Role::where('name', 'influencer')->first();
 
         if (!$influencerRole) {
@@ -31,15 +30,18 @@ class AuthController extends Controller
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
-            'role_id' => $influencerRole->id, // Default to influencer
+            'role_id' => $influencerRole->id,
         ]);
 
-        // Autentikasi user dan buat token
+        // Load the relationship before returning the user data
+        $user->load('role', 'socialMediaAccounts');
+
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
             'message' => 'Registration successful!',
-            'user' => $user,
+            // Use the UserResource for a consistent response format
+            'user' => new UserResource($user), 
             'access_token' => $token,
             'token_type' => 'Bearer',
         ], 201);
@@ -61,8 +63,9 @@ class AuthController extends Controller
         $user = User::where('email', $request->email)->firstOrFail();
         $token = $user->createToken('auth_token')->plainTextToken;
         
-        // Load relationships for UserResource
-        $user->load('role', 'influencerProfile');
+        // --- MODIFY THIS LINE ---
+        // Add 'socialMediaAccounts' to the list of relationships to load.
+        $user->load('role', 'influencerProfile', 'socialMediaAccounts');
 
         return response()->json([
             'message' => 'Login successful!',
@@ -98,5 +101,23 @@ class AuthController extends Controller
         return response()->json([
             'message' => 'Logged out successfully'
         ]);
+    }
+    
+    /**
+     * Get the authenticated User.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \App\Http\Resources\UserResource
+     */
+    public function me(Request $request)
+    {
+        // Get the currently authenticated user from the request
+        $user = $request->user();
+        
+        // Load the relationships needed by the frontend
+        $user->load('role', 'influencerProfile', 'socialMediaAccounts');
+
+        // Return the user data formatted by our UserResource
+        return new UserResource($user);
     }
 }

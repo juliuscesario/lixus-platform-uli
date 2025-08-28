@@ -28,7 +28,7 @@ class CampaignController extends Controller
     {
         Log::info('Fetching public campaigns with filter status.');
         
-        $campaignsQuery = Campaign::whereIn('status', ['active', 'pending']);
+        $campaignsQuery = Campaign::whereIn('status', ['active']);
         if ($request->has('status')) {
             $statusFilter = $request->query('status');
             if (!in_array($statusFilter, ['active', 'pending', 'completed'])) {
@@ -109,34 +109,30 @@ class CampaignController extends Controller
         Log::info('Base posts query for campaign:', ['campaign_id' => $campaign->id, 'count' => $postsQuery->count()]);
 
         // Apply filters
-        $validatedFilters = $request->validate([
-            'user_id' => 'sometimes|uuid',
-            'platform' => ['sometimes', 'string', Rule::in(['instagram', 'facebook', 'tiktok', 'youtube'])], // Assuming these are the platforms
-            'start_date' => 'sometimes|date',
-            'end_date' => 'sometimes|date|after_or_equal:start_date',
-            'search' => 'sometimes|string|max:255',
-        ]);
-
-        if (isset($validatedFilters['user_id'])) {
-            $postsQuery->where('user_id', $validatedFilters['user_id']);
+        if ($request->has('user_id')) {
+            $userId = $request->query('user_id');
+            if (!\Illuminate\Support\Str::isUuid($userId)) {
+                return response()->json(['status' => 'error', 'message' => 'Invalid user ID format.'], 400);
+            }
+            $postsQuery->where('user_id', $userId);
         }
 
-        if (isset($validatedFilters['platform']) && $validatedFilters['platform'] !== 'all') {
-            $postsQuery->whereHas('socialMediaAccount', function ($q) use ($validatedFilters) {
-                $q->where('platform', $validatedFilters['platform']);
+        if ($request->has('platform') && $request->query('platform') !== 'all') {
+            $postsQuery->whereHas('socialMediaAccount', function ($q) use ($request) {
+                $q->where('platform', $request->query('platform'));
             });
         }
 
-        if (isset($validatedFilters['start_date'])) {
-            $postsQuery->where('posted_at', '>=', $validatedFilters['start_date']);
+        if ($request->has('start_date')) {
+            $postsQuery->where('posted_at', '>=', $request->query('start_date'));
         }
 
-        if (isset($validatedFilters['end_date'])) {
-            $postsQuery->where('posted_at', '<=', $validatedFilters['end_date']);
+        if ($request->has('end_date')) {
+            $postsQuery->where('posted_at', '<=', $request->query('end_date'));
         }
 
-        if (isset($validatedFilters['search'])) {
-            $search = $validatedFilters['search'];
+        if ($request->has('search')) {
+            $search = $request->query('search');
             $postsQuery->where(function ($query) use ($search) {
                 $query->where('caption', 'like', '%' . $search . '%')
                       ->orWhere('platform_post_id', 'like', '%' . $search . '%')
@@ -186,10 +182,10 @@ class CampaignController extends Controller
     public function index(Request $request)
     {
         Log::info('Fetching campaigns for admin/brand.', ['user_id' => $request->user()->id]);
-        $user = $request->user();
+        $user = $request->user()->load('role');
         $query = Campaign::query();
 
-        if ($user->role->name === 'brand') {
+        if ($user->role && $user->role->name === 'brand') {
             $query->where('brand_id', $user->id);
         }
 
@@ -522,22 +518,14 @@ class CampaignController extends Controller
     public function getLeaderboard(Request $request, Campaign $campaign)
     {
         try {
-            $validated = $request->validate([
-                'limit' => 'sometimes|integer|min:1',
-                'offset' => 'sometimes|integer|min:0',
-            ]);
-
-            $limit = $validated['limit'] ?? 10;
-            $offset = $validated['offset'] ?? 0;
-
             $leaderboardData = Post::select('user_id', DB::raw('SUM(score) as total_score'))
                 ->where('campaign_id', $campaign->id)
                 ->where('is_valid_for_campaign', true)
                 ->groupBy('user_id')
                 ->orderByDesc('total_score')
                 ->with(['user.influencerProfile', 'user.socialMediaAccounts'])
-                ->limit($limit)
-                ->offset($offset)
+                ->limit($request->query('limit', 10))
+                ->offset($request->query('offset', 0))
                 ->get();
             Log::info('Leaderboard accessed for campaign.', ['campaign_id' => $campaign->id]);
             return response()->json([
