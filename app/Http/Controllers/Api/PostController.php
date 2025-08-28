@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use App\Services\ScoringService; // 👈 Add this
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
 use App\Models\Campaign;
@@ -12,9 +13,12 @@ use App\Models\CampaignParticipant;
 use App\Http\Resources\PostResource;
 use App\Http\Resources\CampaignResource; // Pastikan ini diimpor jika digunakan di PostResource
 use App\Models\User; // Pastikan ini diimpor jika digunakan di PostResource (untuk influencer)
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests; // ✅ 1. Add this import
+
 
 class PostController extends Controller
 {
+    use AuthorizesRequests; // ✅ 2. Add this trait
     /**
      * [Public] Mendapatkan detail postingan publik.
      * Endpoint: GET /public/posts/{post}
@@ -568,56 +572,39 @@ class PostController extends Controller
     }
 
     /**
-     * [Admin] Recalculate scores for all posts in a specific campaign.
-     * Endpoint: POST /api/admin/campaigns/{uuid}/recalculate-scores
-     * Roadmap: 4.10 Hitung ulang skor untuk SEMUA postingan dalam kampanye tertentu
+     * Recalculate scores for all posts in a given campaign.
+     * This is an admin-only action.
+     *
+     * @param Request $request
+     * @param Campaign $campaign
+     * @param ScoringService $scoringService
+     * @return \Illuminate\Http\JsonResponse
      */
-    public function recalculateAllCampaignScores(Request $request, Campaign $campaign)
+    public function recalculateAllCampaignScores(Request $request, Campaign $campaign, ScoringService $scoringService)
     {
-        // Pastikan hanya admin yang bisa mengakses ini (akan diimplementasikan dengan middleware peran nantinya)
-        // if ($request->user()->role->name !== 'admin') {
-        //     return response()->json(['status' => 'error', 'message' => 'Unauthorized.'], 403);
-        // }
+        $user = $request->user();
 
         try {
-            // Ambil semua post yang terkait dengan campaign ini
-            $posts = $campaign->posts; // Pastikan model Campaign memiliki relasi hasMany(Post::class)
+            $result = $scoringService->recalculateScoresForCampaign($campaign);
 
-            if ($posts->isEmpty()) {
-                return response()->json([
-                    'status' => 'info',
-                    'message' => 'No posts found for this campaign to recalculate scores.'
-                ], 200);
+            // Create a more informative success message
+            $message = "Successfully recalculated scores for {$result['posts_processed']} posts in campaign '{$campaign->name}'.";
+            if ($result['posts_failed'] > 0) {
+                $message .= " Failed to process {$result['posts_failed']} posts due to data errors. Please check the logs for details.";
             }
 
-            $updatedCount = 0;
-            $scoringRules = $campaign->scoring_rules ?? []; // Dapatkan aturan scoring dari Campaign
-
-           foreach ($posts as $post) {
-                // Hanya hitung ulang jika post memiliki metrik
-                if ($post->metrics) {
-                    $calculatedScore = $this->applyScoringRules($post->metrics, $scoringRules, $post->platform);
-                    $post->score = $calculatedScore;
-                    $post->save();
-                    $updatedCount++;
-                }
-            }
-
-            Log::info('Scores recalculated for campaign.', ['campaign_id' => $campaign->id, 'updated_posts' => $updatedCount, 'admin_id' => $request->user()->id]);
+            Log::info("Scores recalculated by user {$user->id} for campaign {$campaign->id}. Processed: {$result['posts_processed']}, Failed: {$result['posts_failed']}.");
 
             return response()->json([
-                'status' => 'success',
-                'message' => "Scores recalculated for {$updatedCount} posts in campaign '{$campaign->name}'.",
-                'updated_count' => $updatedCount
-            ], 200);
-
-        } catch (\Throwable $e) {
-            Log::error('Failed to recalculate scores for campaign.', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString(), 'campaign_id' => $campaign->id, 'admin_id' => $request->user()->id]);
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Failed to recalculate scores for campaign.',
-                'details' => $e->getMessage()
-            ], 500);
+                'message' => $message,
+                'data' => $result,
+            ]);
+        } catch (\Exception $e) {
+            Log::error("A critical error occurred during the score recalculation process for campaign {$campaign->id}", [
+                'user_id' => $user->id,
+                'error' => $e->getMessage()
+            ]);
+            return response()->json(['message' => 'An unexpected critical error occurred. The process was halted.'], 500);
         }
     }
 

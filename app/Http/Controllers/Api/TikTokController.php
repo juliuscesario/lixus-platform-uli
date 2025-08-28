@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Services\TikTokService; // 👈 Add this
 use App\Models\SocialMediaAccount;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -100,7 +101,7 @@ class TikTokController extends Controller
         return response()->json(['message' => 'User not authenticated.'], 401);
     }
 
-    public function fetchUserVideos(Request $request)
+    public function fetchUserVideos(Request $request, TikTokService $tiktokService) // 👈 Inject the service
     {
         try {
             $request->validate([
@@ -109,101 +110,21 @@ class TikTokController extends Controller
 
             $user = Auth::user();
             $campaign = Campaign::findOrFail($request->input('campaign_id'));
-            $tiktokAccount = $user->socialMediaAccounts()->where('platform', 'tiktok')->first();
 
-            if (!$tiktokAccount) {
-                return response()->json(['message' => 'TikTok account not connected.'], 400);
+            // 👇 Use the service
+            $result = $tiktokService->fetchAndSaveUserVideos($user, $campaign);
+
+            if ($result['status'] === 'error') {
+                return response()->json(['message' => $result['message']], 400);
             }
-
-            try {
-                $accessToken = Crypt::decryptString($tiktokAccount->access_token);
-            } catch (\Illuminate\Contracts\Encryption\DecryptException $e) {
-                Log::error('Failed to decrypt TikTok access token. This might be an APP_KEY issue.', [
-                    'user_id' => $user->id, 'error' => $e->getMessage(),
-                ]);
-                return response()->json(['message' => 'Could not authenticate with TikTok. Please reconnect your account.'], 500);
-            }
-
-            $baseUrl = 'https://open.tiktokapis.com/v2/video/list/';
-            $queryParams = [
-                'fields' => 'id,title,video_description,cover_image_url,share_url,view_count,like_count,comment_count,share_count,create_time'
-            ];
-            $body = [
-                'max_count' => 20
-            ];
-
-            $videoResponse = Http::withToken($accessToken)
-                ->asJson()
-                ->post($baseUrl . '?' . http_build_query($queryParams), $body);
-
-            if ($videoResponse->failed()) {
-                Log::error('TikTok API request to fetch videos failed.', [
-                    'user_id' => $user->id, 'status' => $videoResponse->status(), 'response_body' => $videoResponse->body()
-                ]);
-                return response()->json(['message' => 'Failed to fetch videos from TikTok. Their server responded with an error.'], 500);
-            }
-
-            $responseData = $videoResponse->json();
-
-            if (!isset($responseData['data']['videos'])) {
-                if (isset($responseData['error']) && $responseData['error']['code'] != 'ok') {
-                     Log::error('TikTok API returned an error in the response body.', [
-                        'user_id' => $user->id, 'response_body' => $responseData
-                    ]);
-                    return response()->json(['message' => 'Received an error from TikTok: ' . $responseData['error']['message']], 500);
-                }
-                return response()->json(['message' => 'Successfully checked for videos, but none were found.', 'data' => []]);
-            }
-
-            $videoData = $responseData['data'];
-            $campaignHashtags = collect($campaign->briefing_content['hashtags'] ?? [])->map(fn($tag) => str_replace('#', '', strtolower($tag)));
-
-            if ($campaignHashtags->isEmpty()) {
-                return response()->json(['message' => 'This campaign does not have any hashtags to match against.'], 400);
-            }
-
-            $savedPosts = [];
-
-            foreach ($videoData['videos'] as $video) {
-                $description = strtolower($video['video_description'] ?? '');
-                $hasCampaignHashtag = $campaignHashtags->some(fn($hashtag) => Str::contains($description, $hashtag));
-
-                if ($hasCampaignHashtag) {
-                    $post = Post::updateOrCreate(
-                        [
-                            'platform_post_id' => $video['id'], 'user_id' => $user->id, 'campaign_id' => $campaign->id,
-                        ],
-                        [
-                            'social_media_account_id' => $tiktokAccount->id,
-                            'platform' => 'tiktok',
-                            'post_type' => 'video',
-                            'post_url' => $video['share_url'] ?? null,
-                            'media_url' => $video['cover_image_url'] ?? null, // Now safe to pass null
-                            'caption' => $video['video_description'] ?? null,
-                            'metrics' => [
-                                'views_count' => $video['view_count'] ?? 0,
-                                'likes_count' => $video['like_count'] ?? 0,
-                                'comments_count' => $video['comment_count'] ?? 0,
-                                'shares_count' => $video['share_count'] ?? 0,
-                            ],
-                            'posted_at' => date('Y-m-d H:i:s', $video['create_time']),
-                            'is_valid_for_campaign' => true,
-                        ]
-                    );
-                    $savedPosts[] = $post;
-                }
-            }
-
-            return response()->json([
-                'message' => 'Successfully fetched and saved ' . count($savedPosts) . ' relevant TikTok videos.',
-                'data' => $savedPosts,
-            ]);
+            
+            // Reformat the message for the frontend response
+            $message = str_replace("user {$user->id}", 'you', $result['message']);
+            return response()->json(['message' => ucfirst($message)]);
 
         } catch (\Exception $e) {
-            Log::error('An unexpected exception occurred in fetchUserVideos.', [
-                'error_message' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
+            Log::error('An unexpected exception occurred in fetchUserVideos controller action.', [
+                'error_message' => $e->getMessage(), 'file' => $e->getFile(), 'line' => $e->getLine(),
                 'trace' => Str::limit($e->getTraceAsString(), 2000),
             ]);
             return response()->json(['message' => 'An unexpected server error occurred. The issue has been logged.'], 500);
