@@ -20,68 +20,39 @@ use App\Http\Controllers\Api\TikTokController;
 */
 
 // --- PUBLIC API ROUTES ---
-Route::prefix('public')->group(function () {
-    Route::post('/register', [AuthController::class, 'register']);
-    Route::post('/login', [AuthController::class, 'login']);
-    Route::get('/campaigns', [CampaignController::class, 'indexPublic']);
-    Route::get('/campaigns/{campaign}', [CampaignController::class, 'showPublic']);
-    Route::get('/campaigns/{campaign}/posts', [CampaignController::class, 'campaignPostsPublic']);
-    Route::get('/influencers', [InfluencerController::class, 'index']);
-    Route::get('/influencers/{user}', [InfluencerController::class, 'show'])->name('api.public.influencers.show');
-    Route::get('/posts', [PostController::class, 'indexPublic']);
-    Route::get('/posts/{post}', [PostController::class, 'showPublic']);
-    Route::get('/posts/campaign/{campaign}', [PostController::class, 'ShowPublicbyCampaign']);
-    Route::post('/influencer-applications', [InfluencerApplicationController::class, 'store']);
-    Route::get('/campaigns/{campaign}/leaderboard', [CampaignController::class, 'getLeaderboard']);
-});
+// These routes are accessible without authentication and are not tenant-specific.
+Route::post('/register', [AuthController::class, 'register']);
+Route::post('/login', [AuthController::class, 'login']);
+Route::post('/influencer-applications', [InfluencerApplicationController::class, 'store']);
 
-// --- PROTECTED API ROUTES (Requires Sanctum Token) ---
-Route::middleware('auth:sanctum')->group(function () {
 
-     // ✅ ADD THE DISCONNECT ROUTE HERE
-    Route::post('/social/tiktok/disconnect', [TikTokController::class, 'disconnectTikTok']);
+// --- PROTECTED, TENANT-AWARE API ROUTES ---
+// All routes in this group require authentication AND the X-Tenant-ID header.
+Route::middleware(['auth:sanctum', 'tenant'])->group(function () {
     
     // --- Core Authenticated User Actions ---
     Route::post('/logout', [AuthController::class, 'logout']);
-    Route::get('/user/profile', [UserController::class, 'showProfile']);
-    Route::put('/user/profile', [UserController::class, 'updateProfile']);
     Route::get('/user', function (Request $request) {
-        return $request->user()->load('role', 'influencerProfile');
-    });
-
-    // --- INFLUENCER SPECIFIC ROUTES ---
-    // ✅ FIX: Changed middleware from 'can:influencer' to the correct alias 'influencer'
-    Route::middleware('influencer')->group(function () {
-        Route::post('/influencer/campaigns/{campaign}/fetch-tiktok-videos', [TikTokController::class, 'fetchUserVideos']);
-        Route::get('/influencer/profile', [InfluencerProfileController::class, 'showAuthenticatedInfluencerProfile']);
-        Route::put('/influencer/profile', [InfluencerProfileController::class, 'updateAuthenticatedInfluencerProfile']);
-        Route::apiResource('social-media-accounts', SocialMediaAccountController::class);
-        Route::post('/social-media-accounts/{social_media_account}/sync-posts', [SocialMediaAccountController::class, 'syncPosts']);
-        Route::get('/influencer/campaigns', [CampaignController::class, 'indexForInfluencer']);
-        Route::get('/influencer/campaigns/{campaign}', [CampaignController::class, 'showForInfluencer']);
-        Route::post('/influencer/campaigns/{campaign}/apply', [CampaignController::class, 'applyForCampaign']);
-        Route::post('/influencer/campaigns/{campaign}/withdraw', [CampaignController::class, 'withdrawFromCampaign']);
-        Route::post('/my-posts', [PostController::class, 'store']);
-        Route::get('/my-posts', [PostController::class, 'index']);
-        Route::get('/my-posts/{post}', [PostController::class, 'show']);
-        Route::put('/my-posts/{post}', [PostController::class, 'update']);
-        Route::delete('/my-posts/{post}', [PostController::class, 'destroy']);
-        Route::get('/influencer/dashboard-stats/{user}', [InfluencerController::class, 'getInfluencerDashboardStats']);
+        // The user is automatically associated with the current tenant
+        return $request->user()->load('role', 'influencerProfile', 'tenant');
     });
 
     // --- ADMIN / BRAND SPECIFIC ROUTES ---
-    // ✅ FIX: Changed middleware from 'can:admin_or_brand' to the correct alias 'admin_or_brand'
+    // These routes are for users with 'admin' or 'brand' roles within a tenant.
     Route::middleware('admin_or_brand')->prefix('admin')->group(function () {
         Route::apiResource('campaigns', CampaignController::class);
         Route::patch('campaigns/{campaign}/status', [CampaignController::class, 'updateStatus']);
         Route::get('campaigns/{campaign}/participants', [CampaignController::class, 'getParticipants']);
         Route::patch('campaigns/{campaign}/participants/{user}/status', [CampaignController::class, 'updateParticipantStatus']);
         Route::get('campaigns/{campaign}/posts', [CampaignController::class, 'getCampaignPostsAdmin']);
+        Route::get('campaigns/{campaign}/leaderboard', [CampaignController::class, 'getLeaderboard']);
+        
         Route::get('/posts', [PostController::class, 'indexForAdmin']);
         Route::put('/posts/{post}', [PostController::class, 'validatePost']);
         Route::post('/campaigns/{campaign}/recalculate-scores', [PostController::class, 'recalculateAllCampaignScores']);
         Route::get('/posts/{post}', [PostController::class, 'showAdminPost']);
         Route::post('/campaigns/{campaign}/fetch-metrics', [PostController::class, 'fetchAllCampaignMetrics']);
+        
         Route::get('/influencers', [InfluencerController::class, 'indexAdmin']);
         Route::get('/influencers/{user}', [InfluencerController::class, 'showAdmin']);
 
@@ -97,5 +68,30 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/influencer-applications/{application}', [InfluencerApplicationController::class, 'show']);
         Route::post('/influencer-applications/{application}/approve', [InfluencerApplicationController::class, 'approve']);
         Route::post('/influencer-applications/{application}/reject', [InfluencerApplicationController::class, 'reject']);
+    });
+
+    // --- INFLUENCER SPECIFIC ROUTES ---
+    // These routes are for users with the 'influencer' role within a tenant.
+    Route::middleware('isInfluencer')->prefix('influencer')->group(function () {
+        // Profile & Account Management
+        Route::get('/profile', [InfluencerProfileController::class, 'showAuthenticatedInfluencerProfile']);
+        Route::put('/profile', [InfluencerProfileController::class, 'updateAuthenticatedInfluencerProfile']);
+        Route::apiResource('social-media-accounts', SocialMediaAccountController::class)->except(['store', 'update']); // Assuming creation/update handled elsewhere
+        Route::post('/social/tiktok/disconnect', [TikTokController::class, 'disconnectTikTok']);
+
+        // Campaign Interaction
+        Route::get('/campaigns', [CampaignController::class, 'indexForInfluencer']);
+        Route::get('/campaigns/{campaign}', [CampaignController::class, 'showForInfluencer']);
+        Route::post('/campaigns/{campaign}/apply', [CampaignController::class, 'applyForCampaign']);
+        Route::post('/campaigns/{campaign}/withdraw', [CampaignController::class, 'withdrawFromCampaign']);
+
+        // Post Management
+        Route::apiResource('posts', PostController::class)->names('influencer.posts');
+        
+        // TikTok Integration
+        Route::post('/campaigns/{campaign}/fetch-tiktok-videos', [TikTokController::class, 'fetchUserVideos']);
+
+        // Dashboard
+        Route::get('/dashboard-stats', [InfluencerController::class, 'getInfluencerDashboardStats']);
     });
 });

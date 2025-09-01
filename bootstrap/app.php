@@ -30,6 +30,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'admin' => \App\Http\Middleware\IsAdmin::class,
             'influencer' => \App\Http\Middleware\IsInfluencer::class,
             'admin_or_brand' => \App\Http\Middleware\IsAdminOrBrand::class,
+            'tenant' => \App\Http\Middleware\IdentifyTenant::class, // Add this line
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
