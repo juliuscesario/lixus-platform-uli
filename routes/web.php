@@ -21,6 +21,10 @@ Route::get('/terms-of-service', function () {
 Route::get('/privacy-policy', function () {
     return view('lixus-flow-privacy-policy');
 });
+// Add this new route for the Gaung landing page
+Route::get('/padel-games', function () {
+    return view('lixus-flow-padel-mini-game');
+});
 
 // --- TIKTOK CONNECTOR ROUTES ---
 Route::middleware('auth')->prefix('social')->group(function () {
